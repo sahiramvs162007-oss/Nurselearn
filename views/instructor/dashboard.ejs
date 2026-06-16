@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — SENA Inglés</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="layout">
+  <header class="topbar">
+    <a href="/instructor" class="topbar-logo">SENA <span>Inglés</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user"><span><%= user %></span><span class="topbar-rol">Instructor</span></div>
+  </header>
+  <nav class="sidebar">
+    <%- include('../partials/sidebar', { session: { userRol: 'instructor' } }) %>
+  </nav>
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Bienvenido, <%= user.split(' ')[0] %></h1>
+      <p class="page-subtitle">Ficha activa: <strong><%= fichaActiva ? fichaActiva.nombre : 'Sin ficha activa' %></strong></p>
+    </div>
+
+    <% if (error && error.length) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
+    <% if (success && success.length) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
+
+    <!-- Selector de ficha -->
+    <% if (fichas.length > 1) { %>
+    <div class="card mb-16" style="margin-bottom:20px;">
+      <div class="card-title">Cambiar ficha activa</div>
+      <form action="/instructor/ficha" method="POST" class="flex gap-8">
+        <select name="fichaId" style="flex:1;">
+          <% fichas.forEach(f => { %>
+            <option value="<%= f._id %>" <%= fichaActiva && f._id.toString() === fichaActiva._id.toString() ? 'selected' : '' %>>
+              <%= f.nombre %> (<%= f.codigo %>)
+            </option>
+          <% }) %>
+        </select>
+        <button type="submit" class="btn btn-secondary">Cambiar</button>
+      </form>
+    </div>
+    <% } %>
+
+    <% if (fichaActiva) { %>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num"><%= fichaActiva.aprendices.length %></div>
+        <div class="stat-label">Aprendices en la ficha</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Acciones rápidas</div>
+        <div class="flex" style="flex-direction:column;gap:10px;">
+          <a href="/instructor/actividades/crear" class="btn btn-primary">+ Nueva actividad</a>
+          <a href="/instructor/entregas" class="btn btn-secondary">📬 Calificar entregas</a>
+          <a href="/instructor/reportes" class="btn btn-outline">📊 Ver reporte</a>
+          <a href="/instructor/clonar" class="btn btn-ghost">📋 Clonar actividades</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Aprendices — <%= fichaActiva.nombre %></div>
+        <% if (fichaActiva.aprendices.length === 0) { %>
+          <p class="text-muted">No hay aprendices matriculados.</p>
+        <% } else { %>
+          <% fichaActiva.aprendices.slice(0, 8).forEach(ap => { %>
+            <div class="flex-between" style="padding:6px 0;border-bottom:1px solid var(--gris-borde);">
+              <span class="fw-600"><%= ap.nombre %></span>
+              <span class="badge <%= ap.estado === 'Activo' ? 'badge-success' : 'badge-gray' %>"><%= ap.estado %></span>
+            </div>
+          <% }) %>
+          <% if (fichaActiva.aprendices.length > 8) { %>
+            <p class="text-muted mt-12">+<%= fichaActiva.aprendices.length - 8 %> más…</p>
+          <% } %>
+        <% } %>
+      </div>
+    </div>
+    <% } else { %>
+      <div class="alert alert-warning">No tienes fichas asignadas. Contacta al administrador.</div>
+    <% } %>
+  </main>
+</div>
+</body>
+</html>

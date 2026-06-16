@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión — SENA Inglés</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>SENA <span>Inglés</span></h1>
+      <p>Sistema de Gestión de Actividades · Enfermería</p>
+    </div>
+
+    <% if (error && error.length) { %>
+      <div class="alert alert-error">⚠️ <%= error[0] %></div>
+    <% } %>
+    <% if (success && success.length) { %>
+      <div class="alert alert-success">✅ <%= success[0] %></div>
+    <% } %>
+
+    <form action="/auth/login" method="POST">
+      <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <input type="email" id="email" name="email" required placeholder="correo@sena.edu.co" autofocus>
+      </div>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" name="password" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn-primary w-100" style="justify-content:center; padding:12px;">
+        Ingresar al sistema
+      </button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

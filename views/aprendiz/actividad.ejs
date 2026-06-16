@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= actividad.titulo %> — SENA Inglés</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="layout">
+  <header class="topbar">
+    <a href="/aprendiz" class="topbar-logo">SENA <span>Inglés</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user"><span><%= user %></span><span class="topbar-rol">Aprendiz</span></div>
+  </header>
+  <nav class="sidebar">
+    <%- include('../partials/sidebar', { session: { userRol: 'aprendiz' } }) %>
+  </nav>
+  <main class="main">
+    <div class="page-header flex-between">
+      <div>
+        <h1 class="page-title"><%= actividad.titulo %></h1>
+        <p class="page-subtitle">
+          <%= actividad.modulo.nombre %> › <%= actividad.rap.nombre %> ·
+          <span class="badge badge-info"><%= actividad.momentoPedagogico %></span>
+        </p>
+      </div>
+      <a href="/aprendiz/modulo/<%= actividad.modulo._id %>" class="btn btn-ghost">← Volver</a>
+    </div>
+
+    <% if (error && error.length) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
+    <% if (success && success.length) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
+
+    <!-- Estado actual -->
+    <% if (entrega.estado !== 'Pendiente') { %>
+    <div class="alert <%= entrega.estado === 'Aprobado' ? 'alert-success' : entrega.estado === 'Reprobado' ? 'alert-error' : 'alert-warning' %>">
+      <strong>Estado:</strong> <%= entrega.estado %>
+      <% if (entrega.porcentaje !== null) { %> · <strong><%= entrega.porcentaje %>%</strong><% } %>
+      <% if (entrega.retroalimentacion) { %><br><em>Retroalimentación: <%= entrega.retroalimentacion %></em><% } %>
+    </div>
+    <% } %>
+
+    <!-- ══ BLOG ══════════════════════════════════════════════ -->
+    <% if (actividad.tipo === 'blog') { %>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="rich-content">
+        <%- actividad.contenidoRico %>
+      </div>
+      <% if (actividad.urlYoutube) { %>
+        <div style="margin-top:20px;aspect-ratio:16/9;border-radius:10px;overflow:hidden;">
+          <iframe src="<%= actividad.urlYoutube %>" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Entrega -->
+    <% if (actividad.tipoEntrega && (entrega.estado === 'Pendiente' || entrega.segundoIntentoHabilitado)) { %>
+    <div class="card">
+      <div class="card-title">Tu entrega</div>
+      <form action="/aprendiz/entregar" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="actividadId" value="<%= actividad._id %>">
+        <% if (actividad.tipoEntrega === 'texto') { %>
+          <div class="form-group">
+            <label>Tu respuesta</label>
+            <textarea name="respuestaTexto" rows="6" required><%= entrega.respuestaTexto || '' %></textarea>
+          </div>
+        <% } else { %>
+          <div class="form-group">
+            <label>Sube tu archivo</label>
+            <input type="file" name="archivo">
+          </div>
+        <% } %>
+        <button type="submit" class="btn btn-primary">Enviar entrega</button>
+      </form>
+    </div>
+    <% } %>
+
+    <!-- ══ JUEGO ═════════════════════════════════════════════ -->
+    <% } else if (actividad.tipo === 'juego') { %>
+    <div class="card">
+      <div class="card-title">🎮 <%= actividad.tipoJuego.replace('juego_','').replace(/_/g,' ').toUpperCase() %></div>
+      <p class="text-muted" style="margin-bottom:16px;"><%= actividad.descripcion %></p>
+      <% if (entrega.estado === 'Aprobado') { %>
+        <div class="alert alert-success">✅ ¡Ya completaste este juego!</div>
+      <% } else { %>
+        <!-- Aquí se renderizará el juego según actividad.tipoJuego -->
+        <div id="juego-container" style="min-height:200px;border:2px dashed var(--gris-borde);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+          <div style="text-align:center;">
+            <div style="font-size:3rem;">🎮</div>
+            <p class="text-muted mt-12">Juego: <strong><%= actividad.tipoJuego %></strong></p>
+            <p class="text-muted">El frontend renderizará aquí el juego correspondiente.</p>
+            <!-- Botón de prueba para marcar como completado -->
+            <button class="btn btn-primary" style="margin-top:16px;" onclick="completarJuego()">
+              Simular completar juego
+            </button>
+          </div>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- ══ EVALUACIÓN ════════════════════════════════════════ -->
+    <% } else if (actividad.tipo === 'evaluacion') { %>
+    <div class="card">
+      <div class="card-title">📝 Evaluación — <%= actividad.preguntas.length %> preguntas</div>
+      <% if (entrega.estado === 'Aprobado') { %>
+        <div class="alert alert-success">✅ Evaluación aprobada con <%= entrega.porcentaje %>%</div>
+      <% } else { %>
+      <form action="/aprendiz/evaluacion/<%= actividad._id %>/entregar" method="POST">
+        <% actividad.preguntas.forEach((p, i) => { %>
+          <div style="margin-bottom:20px;padding:16px;border:1px solid var(--gris-borde);border-radius:8px;">
+            <p class="fw-600" style="margin-bottom:12px;"><%= i+1 %>. <%= p.enunciado %></p>
+            <% p.opciones.forEach((op, j) => { %>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:6px;cursor:pointer;margin-bottom:4px;border:1px solid transparent;"
+                onmouseover="this.style.background='var(--verde-claro)'" onmouseout="this.style.background=''">
+                <input type="radio" name="pregunta_<%= i %>" value="<%= j %>" required>
+                <%= op %>
+              </label>
+            <% }) %>
+          </div>
+        <% }) %>
+        <button type="submit" class="btn btn-primary">Enviar evaluación</button>
+      </form>
+      <% } %>
+    </div>
+    <% } %>
+  </main>
+</div>
+<script>
+async function completarJuego() {
+  const res = await fetch('/aprendiz/juego/completar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ actividadId: '<%= actividad._id %>' })
+  });
+  const data = await res.json();
+  if (data.ok) { alert(data.mensaje); location.reload(); }
+}
+</script>
+</body>
+</html>

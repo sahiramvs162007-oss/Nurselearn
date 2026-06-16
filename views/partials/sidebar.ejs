@@ -1,0 +1,41 @@
+<%
+const rol = session.userRol;
+const adminLinks = [
+  { href: '/admin', icon: '🏠', label: 'Dashboard' },
+  { href: '/admin/modulos', icon: '📚', label: 'Módulos' },
+  { href: '/admin/raps', icon: '🎯', label: 'RAPs' },
+  { href: '/admin/fichas', icon: '🗂️', label: 'Fichas' },
+  { href: '/admin/usuarios', icon: '👥', label: 'Usuarios' },
+  { href: '/admin/asignaciones', icon: '🔗', label: 'Asignaciones' },
+  { href: '/admin/reportes', icon: '📊', label: 'Reportes' },
+];
+const instrLinks = [
+  { href: '/instructor', icon: '🏠', label: 'Dashboard' },
+  { href: '/instructor/actividades', icon: '📝', label: 'Actividades' },
+  { href: '/instructor/entregas', icon: '📬', label: 'Entregas' },
+  { href: '/instructor/clonar', icon: '📋', label: 'Clonar actividades' },
+  { href: '/instructor/reportes', icon: '📊', label: 'Reportes' },
+];
+const aprendizLinks = [
+  { href: '/aprendiz', icon: '🏠', label: 'Mi ruta' },
+  { href: '/aprendiz/historial', icon: '📄', label: 'Historial' },
+];
+const links = rol === 'admin' ? adminLinks : rol === 'instructor' ? instrLinks : aprendizLinks;
+const currentPath = locals.currentPath || '';
+%>
+<div class="sidebar-section">
+  <div class="sidebar-label">Navegación</div>
+  <% links.forEach(l => { %>
+    <a href="<%= l.href %>" class="<%= currentPath === l.href ? 'active' : '' %>">
+      <span class="icon"><%= l.icon %></span>
+      <%= l.label %>
+    </a>
+  <% }) %>
+</div>
+<div class="sidebar-logout">
+  <form action="/auth/logout" method="POST">
+    <button type="submit" class="btn btn-ghost w-100" style="justify-content:center;">
+      🚪 Cerrar sesión
+    </button>
+  </form>
+</div>

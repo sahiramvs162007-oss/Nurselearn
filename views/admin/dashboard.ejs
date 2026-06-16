@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — SENA Inglés</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="layout">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a href="/admin" class="topbar-logo">SENA <span>Inglés</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span><%= user %></span>
+      <span class="topbar-rol">Administrador</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <% locals.currentPath = '/admin'; %>
+    <%- include('../partials/sidebar', { session: { userRol: 'admin' } }) %>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Panel de Administración</h1>
+      <p class="page-subtitle">Gestión global del sistema SENA Inglés</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num"><%= stats.totalFichas %></div>
+        <div class="stat-label">Fichas activas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num"><%= stats.totalUsers %></div>
+        <div class="stat-label">Usuarios registrados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num"><%= stats.totalModulos %></div>
+        <div class="stat-label">Módulos creados</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Accesos rápidos</div>
+        <div class="flex" style="flex-direction:column; gap:10px;">
+          <a href="/admin/usuarios" class="btn btn-primary">👥 Crear usuario</a>
+          <a href="/admin/fichas" class="btn btn-secondary">🗂️ Nueva ficha</a>
+          <a href="/admin/asignaciones" class="btn btn-outline">🔗 Asignar instructor</a>
+          <a href="/admin/reportes" class="btn btn-ghost">📊 Ver reportes globales</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Contenido pedagógico</div>
+        <div class="flex" style="flex-direction:column; gap:10px;">
+          <a href="/admin/modulos" class="btn btn-outline">📚 Gestionar módulos</a>
+          <a href="/admin/raps" class="btn btn-outline">🎯 Gestionar RAPs</a>
+        </div>
+        <div class="alert alert-warning" style="margin-top:16px;">
+          ⚠️ Los módulos y RAPs son el esqueleto pedagógico global del SENA. Cambiarlos afecta todas las fichas.
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

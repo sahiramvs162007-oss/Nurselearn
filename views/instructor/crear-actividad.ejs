@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — SENA Inglés</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .tipo-selector { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    .tipo-btn {
+      border:2px solid var(--gris-borde); border-radius:10px; padding:16px; cursor:pointer;
+      text-align:center; transition:all 0.18s; background:white;
+    }
+    .tipo-btn:hover, .tipo-btn.selected { border-color:var(--verde); background:var(--verde-claro); }
+    .tipo-btn .ico { font-size:1.8rem; display:block; margin-bottom:6px; }
+    .tipo-btn .lbl { font-weight:600; font-size:0.85rem; color:var(--azul); }
+    .section { display:none; }
+    .section.visible { display:block; }
+    .pregunta-item { border:1px solid var(--gris-borde); border-radius:8px; padding:16px; margin-bottom:12px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <header class="topbar">
+    <a href="/instructor" class="topbar-logo">SENA <span>Inglés</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user"><span><%= user %></span><span class="topbar-rol">Instructor</span></div>
+  </header>
+  <nav class="sidebar">
+    <%- include('../partials/sidebar', { session: { userRol: 'instructor' } }) %>
+  </nav>
+  <main class="main">
+    <div class="page-header flex-between">
+      <div>
+        <h1 class="page-title">Crear actividad</h1>
+        <p class="page-subtitle">Ficha: <strong><%= fichaActiva.nombre %></strong></p>
+      </div>
+      <a href="/instructor/actividades" class="btn btn-ghost">← Volver</a>
+    </div>
+
+    <% if (error && error.length) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
+
+    <div class="card">
+      <form action="/instructor/actividades/crear" method="POST" id="form-actividad">
+
+        <!-- Tipo de actividad -->
+        <div class="card-title">Tipo de actividad</div>
+        <div class="tipo-selector">
+          <div class="tipo-btn" onclick="seleccionarTipo('blog')" id="btn-blog">
+            <span class="ico">📖</span><span class="lbl">Blog / Lectura</span>
+          </div>
+          <div class="tipo-btn" onclick="seleccionarTipo('juego')" id="btn-juego">
+            <span class="ico">🎮</span><span class="lbl">Juego</span>
+          </div>
+          <div class="tipo-btn" onclick="seleccionarTipo('evaluacion')" id="btn-evaluacion">
+            <span class="ico">📝</span><span class="lbl">Evaluación</span>
+          </div>
+        </div>
+        <input type="hidden" name="tipo" id="tipo-input" required>
+
+        <!-- Campos comunes -->
+        <div class="grid-2 mb-16" style="margin-bottom:16px;">
+          <div class="form-group"><label>Título</label><input name="titulo" required></div>
+          <div class="form-group">
+            <label>RAP</label>
+            <select name="rap" required>
+              <option value="">— Selecciona —</option>
+              <% raps.forEach(r => { %>
+                <option value="<%= r._id %>"><%= r.modulo.nombre %> › <%= r.nombre %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2 mb-16" style="margin-bottom:16px;">
+          <div class="form-group">
+            <label>Momento pedagógico</label>
+            <select name="momentoPedagogico" required>
+              <option>Exploración</option><option>Estructuración</option>
+              <option>Transferencia</option><option>Valoración</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Orden</label><input type="number" name="orden" value="0" min="0"></div>
+        </div>
+
+        <!-- SECCIÓN BLOG -->
+        <div class="section" id="sec-blog">
+          <div class="card-title">Contenido del blog</div>
+          <div class="form-group">
+            <label>Contenido enriquecido (HTML)</label>
+            <textarea name="contenidoRico" rows="8" placeholder="Escribe el contenido aquí o pega HTML..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>URL del video YouTube (iframe src)</label>
+            <input name="urlYoutube" placeholder="https://www.youtube.com/embed/VIDEO_ID">
+          </div>
+          <div class="form-group">
+            <label>Tipo de entrega del aprendiz</label>
+            <select name="tipoEntrega">
+              <option value="">Sin entrega</option>
+              <option value="texto">Texto</option>
+              <option value="archivo">Archivo</option>
+            </select>
+          </div>
+          <div class="form-group switch-wrap">
+            <label class="switch"><input type="checkbox" name="segundoIntentoAutomatico"><span class="slider"></span></label>
+            <span>Habilitar segundo intento automáticamente al reprobar</span>
+          </div>
+        </div>
+
+        <!-- SECCIÓN JUEGO -->
+        <div class="section" id="sec-juego">
+          <div class="card-title">Configuración del juego</div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea name="descripcion" rows="3" placeholder="Describe brevemente el juego..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Tipo de juego</label>
+            <select name="tipoJuego">
+              <option value="juego_emparejar">🃏 Emparejar</option>
+              <option value="juego_ahorcado_salud">💊 Ahorcado (Salud)</option>
+              <option value="juego_sopa_letras">🔤 Sopa de letras</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SECCIÓN EVALUACIÓN -->
+        <div class="section" id="sec-evaluacion">
+          <div class="card-title">Preguntas de evaluación</div>
+          <div class="form-group switch-wrap">
+            <label class="switch"><input type="checkbox" name="esCierreModulo"><span class="slider"></span></label>
+            <span>Esta es la Evaluación de Cierre de Módulo</span>
+          </div>
+          <div id="preguntas-container"></div>
+          <button type="button" class="btn btn-outline" onclick="agregarPregunta()">+ Agregar pregunta</button>
+        </div>
+
+        <div class="mt-20" style="margin-top:24px;border-top:1px solid var(--gris-borde);padding-top:20px;">
+          <button type="submit" class="btn btn-primary">Crear actividad</button>
+          <a href="/instructor/actividades" class="btn btn-ghost" style="margin-left:8px;">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+<script>
+let numPreguntas = 0;
+
+function seleccionarTipo(tipo) {
+  ['blog','juego','evaluacion'].forEach(t => {
+    document.getElementById('btn-'+t).classList.remove('selected');
+    document.getElementById('sec-'+t).classList.remove('visible');
+  });
+  document.getElementById('btn-'+tipo).classList.add('selected');
+  document.getElementById('sec-'+tipo).classList.add('visible');
+  document.getElementById('tipo-input').value = tipo;
+}
+
+function agregarPregunta() {
+  const i = numPreguntas++;
+  const container = document.getElementById('preguntas-container');
+  const div = document.createElement('div');
+  div.className = 'pregunta-item';
+  div.innerHTML = `
+    <div class="flex-between mb-16"><strong>Pregunta ${i+1}</strong>
+      <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.pregunta-item').remove()">Eliminar</button>
+    </div>
+    <div class="form-group"><label>Enunciado</label><input name="enunciados" required></div>
+    <div class="grid-2">
+      ${[0,1,2,3].map(j => `<div class="form-group"><label>Opción ${j+1}</label><input name="opcion_${i}_${j}" required></div>`).join('')}
+    </div>
+    <div class="form-group">
+      <label>Respuesta correcta</label>
+      <select name="respuestas">
+        <option value="0">Opción 1</option><option value="1">Opción 2</option>
+        <option value="2">Opción 3</option><option value="3">Opción 4</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Puntaje (dejar vacío = equitativo)</label><input type="number" name="puntajes" min="0" max="100"></div>
+  `;
+  container.appendChild(div);
+}
+</script>
+</body>
+</html>
