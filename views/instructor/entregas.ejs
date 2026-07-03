@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="layout">
+  <header class="topbar">
+    <a href="/instructor" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span><%= user %></span>
+      <span class="topbar-rol">Instructor</span>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <% locals.currentPath = '/instructor/entregas'; %>
+    <%- include('../partials/sidebar', { session: { userRol: 'instructor' } }) %>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Entregas Pendientes por Calificar</h1>
+      <p class="page-subtitle">Ficha activa: <strong><%= fichaActiva ? fichaActiva.nombre : 'Ninguna' %></strong></p>
+    </div>
+
+    <% if (error && error.length) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
+    <% if (success && success.length) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
+
+    <div class="card">
+      <div class="card-title">Listado de entregas</div>
+      
+      <% if (!entregas || entregas.length === 0) { %>
+        <div class="alert alert-success" style="background-color: var(--verde-claro); color: var(--verde-oscuro); display: flex; align-items: center; justify-content: center; padding: 30px;">
+          <div style="text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 10px;">🎉</div>
+            <strong>¡Todo al día!</strong><br> No tienes entregas pendientes por calificar en esta ficha.
+          </div>
+        </div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Aprendiz</th>
+                <th>Actividad</th>
+                <th>Tipo</th>
+                <th>Fecha de Entrega</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% entregas.forEach(e => { %>
+                <tr>
+                  <td><strong><%= e.aprendiz.nombre %></strong></td>
+                  <td><%= e.actividad.titulo %></td>
+                  <td>
+                    <% if (e.actividad.tipo === 'blog') { %>
+                      <span class="badge badge-info">📖 Blog</span>
+                    <% } else { %>
+                      <span class="badge badge-gray"><%= e.actividad.tipo %></span>
+                    <% } %>
+                  </td>
+                  <td class="text-muted">
+                    <%= e.entregadoEn ? e.entregadoEn.toLocaleDateString() + ' ' + e.entregadoEn.toLocaleTimeString() : 'Sin fecha' %>
+                  </td>
+                  <td>
+                    <a href="/instructor/entregas/<%= e._id %>/calificar" class="btn btn-sm btn-primary">Evaluar</a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

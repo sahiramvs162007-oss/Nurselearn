@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    /* Ficha cards */
+    .ficha-report-card {
+      border: 1px solid var(--gris-borde);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      background: white;
+      transition: box-shadow 0.2s;
+    }
+    .ficha-report-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .ficha-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .ficha-header:hover .ficha-name {
+      color: var(--verde);
+    }
+    .ficha-name {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--azul);
+      transition: color 0.2s;
+    }
+    .ficha-code {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--texto-suave);
+      margin-left: 8px;
+    }
+    .ficha-meta {
+      display: flex;
+      gap: 20px;
+      font-size: 0.82rem;
+      color: var(--texto-suave);
+      margin-top: 6px;
+    }
+    .ficha-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ficha-pct {
+      font-size: 1.4rem;
+      font-weight: 800;
+      font-family: var(--mono);
+      min-width: 70px;
+      text-align: right;
+    }
+    .toggle-arrow {
+      font-size: 1.1rem;
+      transition: transform 0.3s;
+      color: var(--texto-suave);
+    }
+    .toggle-arrow.open {
+      transform: rotate(180deg);
+    }
+
+    /* Expandable detail */
+    .ficha-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+    .ficha-detail.open {
+      max-height: 2000px;
+    }
+    .ficha-detail-inner {
+      padding-top: 16px;
+      margin-top: 16px;
+      border-top: 1px solid var(--gris-borde);
+    }
+
+    /* Status summary pills */
+    .summary-pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .summary-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .pill-green  { background: var(--verde-claro); color: var(--verde-oscuro); }
+    .pill-blue   { background: var(--azul-claro);  color: var(--azul); }
+    .pill-yellow { background: #fef3c7; color: #92400e; }
+    .pill-gray   { background: #f1f3f5; color: #6c757d; }
+
+    /* Export row */
+    .export-row {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--texto-suave);
+    }
+    .empty-state .icon-big {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    @media print {
+      body { background: white; color: black; }
+      .layout { display: block; }
+      .sidebar, .topbar, .export-row { display: none !important; }
+      .main { padding: 0; }
+      .ficha-detail { max-height: none !important; }
+      .ficha-report-card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a href="/admin" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span><%= user %></span>
+      <span class="topbar-rol">Administrador</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <% locals.currentPath = '/admin/reportes'; %>
+    <%- include('../partials/sidebar', { session: { userRol: 'admin' } }) %>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-header flex-between">
+      <div>
+        <h1 class="page-title">Reportes Globales</h1>
+        <p class="page-subtitle">Rendimiento general de todas las fichas del sistema</p>
+      </div>
+      <div class="export-row">
+        <button onclick="exportGlobalCSV()" class="btn btn-outline">📥 Exportar CSV</button>
+        <button onclick="descargarPDF()" class="btn btn-secondary">📥 Descargar PDF</button>
+      </div>
+    </div>
+
+    <!-- Global Stats -->
+    <%
+      let totalFichas = reportes.length;
+      let totalAprendices = 0;
+      let totalActividades = 0;
+      let sumaGlobal = 0;
+
+      reportes.forEach(r => {
+        totalAprendices += r.ficha.aprendices.length;
+        totalActividades += r.totalActs || 0;
+        sumaGlobal += r.porcentaje;
+      });
+
+      const promedioGlobal = totalFichas > 0 ? Math.round(sumaGlobal / totalFichas) : 0;
+    %>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num"><%= totalFichas %></div>
+        <div class="stat-label">Total Fichas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num"><%= totalAprendices %></div>
+        <div class="stat-label">Total Aprendices</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num"><%= totalActividades %></div>
+        <div class="stat-label">Total Actividades</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color: <%= promedioGlobal >= 70 ? 'var(--verde)' : 'var(--amarillo)' %>;"><%= promedioGlobal %>%</div>
+        <div class="stat-label">Aprobación Promedio</div>
+      </div>
+    </div>
+
+    <!-- Fichas List -->
+    <% if (reportes.length === 0) { %>
+      <div class="card empty-state">
+        <div class="icon-big">📊</div>
+        <h3>No hay fichas registradas</h3>
+        <p>Crea fichas y asigna aprendices para ver los reportes globales.</p>
+        <a href="/admin/fichas" class="btn btn-primary" style="margin-top: 16px;">🗂️ Crear ficha</a>
+      </div>
+    <% } else { %>
+      <% reportes.forEach((r, idx) => { %>
+        <div class="ficha-report-card" id="ficha-card-<%= idx %>">
+          <!-- Header (clickable to expand) -->
+          <div class="ficha-header" onclick="toggleDetail(<%= idx %>)">
+            <div style="flex: 1;">
+              <div>
+                <span class="ficha-name"><%= r.ficha.nombre %></span>
+                <span class="ficha-code">#<%= r.ficha.codigo %></span>
+              </div>
+              <div class="ficha-meta">
+                <span>👥 <%= r.ficha.aprendices.length %> aprendices</span>
+                <span>📝 <%= r.totalActs || 0 %> actividades</span>
+                <% if (r.ficha.instructores && r.ficha.instructores.length > 0) { %>
+                  <span>👨‍🏫 <%= r.ficha.instructores.map(i => i.instructor ? i.instructor.nombre : '').filter(Boolean).join(', ') %></span>
+                <% } %>
+              </div>
+              <!-- Progress bar -->
+              <div style="margin-top: 10px;">
+                <div class="progress-label">
+                  <span>Aprobación</span>
+                  <span class="fw-600"><%= r.porcentaje %>%</span>
+                </div>
+                <div class="progress-wrap">
+                  <div class="progress-bar" style="width: <%= r.porcentaje %>%; background: <%= r.porcentaje >= 70 ? '' : 'var(--amarillo)' %>;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div class="ficha-pct" style="color: <%= r.porcentaje >= 70 ? 'var(--verde)' : 'var(--amarillo)' %>;"><%= r.porcentaje %>%</div>
+              <span class="toggle-arrow" id="arrow-<%= idx %>">▼</span>
+            </div>
+          </div>
+
+          <!-- Expandable detail -->
+          <div class="ficha-detail" id="detail-<%= idx %>">
+            <div class="ficha-detail-inner">
+              <!-- Summary pills -->
+              <div class="summary-pills">
+                <span class="summary-pill pill-green">✔️ <%= r.aprobadas || 0 %> aprobadas</span>
+                <span class="summary-pill pill-blue">📨 <%= r.entregadas || 0 %> entregas realizadas</span>
+                <span class="summary-pill pill-gray">📋 <%= r.posibles || 0 %> entregas posibles</span>
+              </div>
+
+              <% if (r.detalle && r.detalle.length > 0) { %>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Aprendiz</th>
+                        <th>Estado</th>
+                        <th style="width: 35%;">Progreso</th>
+                        <th style="text-align: center;">Aprobadas</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% r.detalle.forEach(d => { %>
+                        <tr>
+                          <td class="fw-600"><%= d.aprendiz.nombre %></td>
+                          <td>
+                            <span class="badge <%= d.aprendiz.estado === 'Activo' ? 'badge-success' : 'badge-gray' %>">
+                              <%= d.aprendiz.estado || 'Activo' %>
+                            </span>
+                          </td>
+                          <td>
+                            <div class="progress-label">
+                              <span>Aprobado</span>
+                              <span class="fw-600"><%= d.pct %>%</span>
+                            </div>
+                            <div class="progress-wrap">
+                              <div class="progress-bar" style="width: <%= d.pct %>%; background: <%= d.pct >= 70 ? '' : 'var(--amarillo)' %>;"></div>
+                            </div>
+                          </td>
+                          <td style="text-align: center; font-weight: 600; font-family: var(--mono);">
+                            <%= d.aprobadas %> / <%= d.total %>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              <% } else { %>
+                <p class="text-muted text-center">No hay aprendices asignados a esta ficha.</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </main>
+</div>
+
+<script>
+  function toggleDetail(idx) {
+    const detail = document.getElementById('detail-' + idx);
+    const arrow = document.getElementById('arrow-' + idx);
+    detail.classList.toggle('open');
+    arrow.classList.toggle('open');
+  }
+
+  function descargarPDF() {
+    const element = document.querySelector('.main');
+    
+    // Ocultar botones temporalmente
+    const exportRow = document.querySelector('.export-row');
+    if (exportRow) exportRow.style.display = 'none';
+    
+    // Desplegar todas las fichas para que salgan completas en el PDF
+    const details = document.querySelectorAll('.ficha-detail');
+    const originalStyles = [];
+    details.forEach(d => {
+      originalStyles.push({ element: d, maxHeight: d.style.maxHeight, classOpen: d.classList.contains('open') });
+      d.style.maxHeight = 'none';
+      d.classList.add('open');
+    });
+
+    const opt = {
+      margin:      10,
+      filename:    'Reportes_Globales_NurseLearn.pdf',
+      image:       { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      // Restaurar estado original
+      if (exportRow) exportRow.style.display = 'flex';
+      originalStyles.forEach(item => {
+        item.element.style.maxHeight = item.maxHeight;
+        if (!item.classOpen) {
+          item.element.classList.remove('open');
+        }
+      });
+    });
+  }
+
+  function exportGlobalCSV() {
+    let csv = 'Ficha,Código,Aprendices,Actividades,Aprobación (%)\n';
+    <% reportes.forEach(r => { %>
+      csv += '"<%= r.ficha.nombre %>","<%= r.ficha.codigo %>",<%= r.ficha.aprendices.length %>,<%= r.totalActs || 0 %>,<%= r.porcentaje %>%\n';
+    <% }) %>
+
+    csv += '\nDetalle por Aprendiz\n';
+    csv += 'Ficha,Aprendiz,Estado,Aprobadas,Total Actividades,Progreso (%)\n';
+    <% reportes.forEach(r => { %>
+      <% if (r.detalle) { r.detalle.forEach(d => { %>
+        csv += '"<%= r.ficha.nombre %>","<%= d.aprendiz.nombre %>","<%= d.aprendiz.estado || 'Activo' %>",<%= d.aprobadas %>,<%= d.total %>,<%= d.pct %>%\n';
+      <% }) } %>
+    <% }) %>
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Reportes_Globales_NurseLearn.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+</script>
+</body>
+</html>

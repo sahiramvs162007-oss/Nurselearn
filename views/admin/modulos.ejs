@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="layout">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a href="/admin" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span><%= user %></span>
+      <span class="topbar-rol">Administrador</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <% locals.currentPath = '/admin/modulos'; %>
+    <%- include('../partials/sidebar', { session: { userRol: 'admin' } }) %>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Gestión de Módulos</h1>
+      <p class="page-subtitle">Los módulos son los bloques de aprendizaje macro. A ellos se asocian los RAPs.</p>
+    </div>
+
+    <% if (error && error.length) { %>
+      <div class="alert alert-error"><%= error[0] %></div>
+    <% } %>
+    <% if (success && success.length) { %>
+      <div class="alert alert-success"><%= success[0] %></div>
+    <% } %>
+
+    <div class="grid-2">
+      <!-- FORMULARIO DE CREACIÓN -->
+      <div class="card">
+        <div class="card-title">Crear Nuevo Módulo</div>
+        <form action="/admin/modulos" method="POST">
+          <div class="form-group">
+            <label>Nombre del Módulo</label>
+            <input type="text" name="nombre" required placeholder="Ej. Inglés Básico en Salud">
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea name="descripcion" rows="3" placeholder="Descripción detallada..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary mt-12 w-100">Crear Módulo</button>
+        </form>
+      </div>
+
+      <!-- LISTA DE MÓDULOS -->
+      <div class="card">
+        <div class="card-title">Módulos Existentes</div>
+        <% if (modulos.length === 0) { %>
+          <div class="alert alert-warning">No hay Módulos creados aún.</div>
+        <% } else { %>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Orden</th>
+                  <th>Nombre</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% modulos.forEach(m => { %>
+                  <tr>
+                    <td><span class="badge badge-gray"><%= m.orden %></span></td>
+                    <td><strong><%= m.nombre %></strong></td>
+                    <td>
+                      <div class="flex gap-8">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="abrirModalEditar('<%= m._id %>', '<%= m.nombre %>', '<%= m.descripcion %>')">Editar</button>
+                        <form action="/admin/modulos/<%= m._id %>/eliminar" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar este Módulo? Puede afectar a los RAPs asociados.');">
+                          <button type="submit" class="btn btn-sm btn-danger">Borrar</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal de Edición -->
+<div id="modalEditar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center;">
+  <div class="card" style="width:400px; max-width:90%;">
+    <div class="card-title flex-between">
+      <span>Editar Módulo</span>
+      <button class="btn btn-ghost btn-sm" onclick="cerrarModal()">&times;</button>
+    </div>
+    <form id="formEditar" method="POST">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" name="nombre" id="editNombre" required>
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea name="descripcion" id="editDesc" rows="3"></textarea>
+      </div>
+      <div class="flex gap-8 mt-20">
+        <button type="submit" class="btn btn-primary w-100">Guardar Cambios</button>
+        <button type="button" class="btn btn-ghost w-100" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function abrirModalEditar(id, nombre, desc) {
+    document.getElementById('formEditar').action = '/admin/modulos/' + id + '/editar';
+    document.getElementById('editNombre').value = nombre;
+    document.getElementById('editDesc').value = desc;
+    document.getElementById('modalEditar').style.display = 'flex';
+  }
+  function cerrarModal() {
+    document.getElementById('modalEditar').style.display = 'none';
+  }
+</script>
+</body>
+</html>

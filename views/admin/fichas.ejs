@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="layout">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a href="/admin" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span><%= user %></span>
+      <span class="topbar-rol">Administrador</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <% locals.currentPath = '/admin/fichas'; %>
+    <%- include('../partials/sidebar', { session: { userRol: 'admin' } }) %>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Gestión de Fichas (Cursos)</h1>
+      <p class="page-subtitle">Administra los grupos de formación de aprendices donde impartirán clase los instructores.</p>
+    </div>
+
+    <% if (error && error.length) { %>
+      <div class="alert alert-error"><%= error[0] %></div>
+    <% } %>
+    <% if (success && success.length) { %>
+      <div class="alert alert-success"><%= success[0] %></div>
+    <% } %>
+
+    <div class="grid-2">
+      <!-- FORMULARIO DE CREACIÓN -->
+      <div class="card">
+        <div class="card-title">Crear Nueva Ficha</div>
+        <form action="/admin/fichas" method="POST">
+          <div class="form-group">
+            <label>Código de Ficha</label>
+            <input type="text" name="codigo" required placeholder="Ej. 2689530">
+          </div>
+          <div class="form-group">
+            <label>Nombre del Programa</label>
+            <input type="text" name="nombre" required placeholder="Ej. Tecnólogo en Enfermería">
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea name="descripcion" rows="3" placeholder="Información adicional..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary mt-12 w-100">Crear Ficha</button>
+        </form>
+      </div>
+
+      <!-- LISTA DE FICHAS -->
+      <div class="card">
+        <div class="card-title">Fichas Creadas</div>
+        <% if (fichas.length === 0) { %>
+          <div class="alert alert-warning">No hay Fichas registradas.</div>
+        <% } else { %>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Programa</th>
+                  <th>Población</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% fichas.forEach(f => { %>
+                  <tr>
+                    <td><span class="badge badge-info"><%= f.codigo %></span></td>
+                    <td><strong><%= f.nombre %></strong></td>
+                    <td class="text-muted">
+                      <%= f.instructores.length %> Inst. <br>
+                      <%= f.aprendices.length %> Apre.
+                    </td>
+                    <td>
+                      <div class="flex gap-8">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="abrirModalEditar('<%= f._id %>', '<%= f.codigo %>', '<%= f.nombre %>', '<%= f.descripcion %>')">Editar</button>
+                        <form action="/admin/fichas/<%= f._id %>/eliminar" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar esta Ficha? Se borrará el curso del sistema.');">
+                          <button type="submit" class="btn btn-sm btn-danger">Borrar</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal de Edición -->
+<div id="modalEditar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center;">
+  <div class="card" style="width:400px; max-width:90%;">
+    <div class="card-title flex-between">
+      <span>Editar Ficha</span>
+      <button class="btn btn-ghost btn-sm" onclick="cerrarModal()">&times;</button>
+    </div>
+    <form id="formEditar" method="POST">
+      <div class="form-group">
+        <label>Código</label>
+        <input type="text" name="codigo" id="editCodigo" required>
+      </div>
+      <div class="form-group">
+        <label>Nombre del Programa</label>
+        <input type="text" name="nombre" id="editNombre" required>
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea name="descripcion" id="editDesc" rows="3"></textarea>
+      </div>
+      <div class="flex gap-8 mt-20">
+        <button type="submit" class="btn btn-primary w-100">Guardar Cambios</button>
+        <button type="button" class="btn btn-ghost w-100" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function abrirModalEditar(id, codigo, nombre, desc) {
+    document.getElementById('formEditar').action = '/admin/fichas/' + id + '/editar';
+    document.getElementById('editCodigo').value = codigo;
+    document.getElementById('editNombre').value = nombre;
+    document.getElementById('editDesc').value = desc;
+    document.getElementById('modalEditar').style.display = 'flex';
+  }
+  function cerrarModal() {
+    document.getElementById('modalEditar').style.display = 'none';
+  }
+</script>
+</body>
+</html>

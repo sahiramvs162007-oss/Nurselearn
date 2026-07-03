@@ -2,13 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title><%= actividad.titulo %> — SENA Inglés</title>
+  <title><%= actividad.titulo %> — NurseLearn</title>
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
 <div class="layout">
   <header class="topbar">
-    <a href="/aprendiz" class="topbar-logo">SENA <span>Inglés</span></a>
+    <a href="/aprendiz" class="topbar-logo">Nurse<span>Learn</span></a>
     <div class="topbar-spacer"></div>
     <div class="topbar-user"><span><%= user %></span><span class="topbar-rol">Aprendiz</span></div>
   </header>
@@ -76,26 +76,744 @@
 
     <!-- ══ JUEGO ═════════════════════════════════════════════ -->
     <% } else if (actividad.tipo === 'juego') { %>
-    <div class="card">
-      <div class="card-title">🎮 <%= actividad.tipoJuego.replace('juego_','').replace(/_/g,' ').toUpperCase() %></div>
-      <p class="text-muted" style="margin-bottom:16px;"><%= actividad.descripcion %></p>
+    <style>
+      /* Estilos generales de los juegos */
+      .game-card {
+        padding: 24px;
+        background: white;
+        border-radius: var(--radio);
+        border: 1px solid var(--gris-borde);
+        box-shadow: var(--sombra);
+      }
+      .game-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--azul);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .game-description {
+        font-size: 0.9rem;
+        color: var(--texto-suave);
+        margin-bottom: 20px;
+      }
+      .game-workspace {
+        padding: 20px;
+        background: var(--gris);
+        border-radius: var(--radio);
+        border: 1px solid var(--gris-borde);
+        margin-bottom: 20px;
+        position: relative;
+      }
+
+      /* Estilos: Juego de Emparejar */
+      .matching-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        max-width: 650px;
+        margin: 0 auto;
+      }
+      @media (max-width: 600px) {
+        .matching-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      @media (max-width: 450px) {
+        .matching-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      .matching-card {
+        height: 110px;
+        position: relative;
+        perspective: 1000px;
+        cursor: pointer;
+      }
+      .matching-card-inner {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        transform-style: preserve-3d;
+        transition: transform 0.5s;
+        border-radius: 8px;
+      }
+      .matching-card.flipped .matching-card-inner {
+        transform: rotateY(180deg);
+      }
+      .matching-card-front, .matching-card-back {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        backface-visibility: hidden;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        text-align: center;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
+      .matching-card-front {
+        background: var(--azul);
+        color: white;
+        font-size: 1.8rem;
+        border: 1.5px solid var(--azul);
+      }
+      .matching-card-back {
+        background: var(--verde-claro);
+        color: var(--azul);
+        border: 2.5px solid var(--verde);
+        transform: rotateY(180deg);
+        font-size: 0.9rem;
+      }
+      .matching-card.matched .matching-card-back {
+        background: #e8f7e0;
+        border-color: #2d8500;
+        color: #2d8500;
+        cursor: default;
+      }
+
+      /* Estilos: Juego Ahorcado Salud (Monitor EKG) */
+      .ekg-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      .ekg-monitor {
+        width: 100%;
+        max-width: 320px;
+        height: 120px;
+        background: #0d1117;
+        border-radius: 8px;
+        border: 3px solid #30363d;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        font-family: monospace;
+        color: #58a6ff;
+        position: relative;
+        overflow: hidden;
+      }
+      .ekg-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        border-bottom: 1px solid #30363d;
+        padding-bottom: 4px;
+      }
+      .ekg-svg {
+        flex: 1;
+        width: 100%;
+        height: 50px;
+      }
+      .ekg-line {
+        stroke-dasharray: 600;
+        animation: ekg-pulse 2.5s linear infinite;
+      }
+      @keyframes ekg-pulse {
+        0% { stroke-dashoffset: 600; }
+        100% { stroke-dashoffset: 0; }
+      }
+      .ekg-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #39A900;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .ekg-value.panic {
+        color: #e53935;
+        animation: flash-red 0.5s infinite alternate;
+      }
+      @keyframes flash-red {
+        from { opacity: 0.4; }
+        to { opacity: 1; }
+      }
+      .hangman-word-slots {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin: 24px 0;
+        flex-wrap: wrap;
+      }
+      .word-slot {
+        width: 32px;
+        height: 38px;
+        border-bottom: 3.5px solid var(--azul);
+        font-size: 1.6rem;
+        font-weight: 700;
+        text-align: center;
+        text-transform: uppercase;
+        color: var(--azul);
+      }
+      .hangman-clue-box {
+        background: var(--azul-claro);
+        border-left: 4px solid var(--azul);
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+      }
+      .letters-keyboard {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        max-width: 550px;
+        margin: 0 auto;
+      }
+      @media (max-width: 500px) {
+        .letters-keyboard {
+          grid-template-columns: repeat(5, 1fr);
+        }
+      }
+      .letter-key {
+        padding: 10px;
+        border-radius: 6px;
+        background: white;
+        border: 1.5px solid var(--gris-borde);
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.1s;
+      }
+      .letter-key:hover:not(:disabled) {
+        background: var(--verde-claro);
+        border-color: var(--verde);
+        color: var(--verde-oscuro);
+      }
+      .letter-key:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      /* Estilos: Sopa de Letras */
+      .wordsearch-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      .wordsearch-grid {
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: 4px;
+        width: 100%;
+        max-width: 380px;
+        background: var(--gris-borde);
+        padding: 6px;
+        border-radius: 8px;
+      }
+      .wordsearch-cell {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        font-weight: 700;
+        font-family: var(--mono);
+        cursor: pointer;
+        border-radius: 4px;
+        user-select: none;
+        border: none;
+        font-size: 1.05rem;
+        color: var(--texto);
+        transition: all 0.15s;
+      }
+      .wordsearch-cell:hover:not(.found) {
+        background: var(--azul-claro);
+        color: var(--azul);
+      }
+      .wordsearch-cell.selected {
+        background: var(--amarillo);
+        color: white;
+      }
+      .wordsearch-cell.found {
+        background: var(--verde);
+        color: white;
+        cursor: default;
+      }
+      .wordsearch-controls {
+        display: flex;
+        gap: 12px;
+        width: 100%;
+        max-width: 380px;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .wordsearch-current {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--azul);
+        background: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--gris-borde);
+      }
+      .wordsearch-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        max-width: 500px;
+        margin-top: 10px;
+      }
+      .word-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        background: white;
+        border: 1px solid var(--gris-borde);
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--texto-suave);
+      }
+      .word-badge.found {
+        background: var(--verde-claro);
+        color: var(--verde-oscuro);
+        border-color: var(--verde);
+        text-decoration: line-through;
+      }
+    </style>
+
+    <div class="game-card">
+      <div class="game-title">
+        <span>🎮</span>
+        <span><%= actividad.tipoJuego.replace('juego_','').replace(/_/g,' ').toUpperCase() %></span>
+      </div>
+      <p class="game-description"><%= actividad.descripcion %></p>
+
       <% if (entrega.estado === 'Aprobado') { %>
-        <div class="alert alert-success">✅ ¡Ya completaste este juego!</div>
+        <div class="alert alert-success" style="margin-bottom: 0;">
+          <strong>✅ ¡Excelente trabajo!</strong> Has aprobado esta actividad didáctica con el 100%.
+        </div>
       <% } else { %>
-        <!-- Aquí se renderizará el juego según actividad.tipoJuego -->
-        <div id="juego-container" style="min-height:200px;border:2px dashed var(--gris-borde);border-radius:10px;display:flex;align-items:center;justify-content:center;">
-          <div style="text-align:center;">
-            <div style="font-size:3rem;">🎮</div>
-            <p class="text-muted mt-12">Juego: <strong><%= actividad.tipoJuego %></strong></p>
-            <p class="text-muted">El frontend renderizará aquí el juego correspondiente.</p>
-            <!-- Botón de prueba para marcar como completado -->
-            <button class="btn btn-primary" style="margin-top:16px;" onclick="completarJuego()">
-              Simular completar juego
-            </button>
-          </div>
+        <div class="game-workspace">
+          <!-- Espacio dinámico para el juego actual -->
+          <div id="game-active-area"></div>
         </div>
       <% } %>
     </div>
+
+    <!-- Script de configuración de juegos -->
+    <% if (entrega.estado !== 'Aprobado') { %>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const tipoJuego = '<%= actividad.tipoJuego %>';
+        const activeArea = document.getElementById('game-active-area');
+
+        if (tipoJuego === 'juego_emparejar') {
+          initMatchingGame(activeArea);
+        } else if (tipoJuego === 'juego_ahorcado_salud') {
+          initHangmanGame(activeArea);
+        } else if (tipoJuego === 'juego_sopa_letras') {
+          initWordSearchGame(activeArea);
+        }
+      });
+
+      // ─── 1. JUEGO DE EMPAREJAR ─────────────────────────────────────────
+      function initMatchingGame(container) {
+        const pairs = [
+          { name: "Syringe", img: "/img/syringe.png" },
+          { name: "Stethoscope", img: "/img/stethoscope.png" },
+          { name: "Bandage", img: "/img/bandage.png" },
+          { name: "Thermometer", img: "/img/thermometer.png" },
+          { name: "Wheelchair", img: "/img/wheelchair.png" },
+          { name: "Scalpel", img: "/img/scalpel.png" }
+        ];
+
+        let cardsData = [];
+        pairs.forEach((p, idx) => {
+          cardsData.push({ id: idx, type: 'text', content: p.name });
+          cardsData.push({ id: idx, type: 'image', content: p.img });
+        });
+
+        // Mezclar
+        cardsData.sort(() => Math.random() - 0.5);
+
+        let html = '<div class="matching-grid">';
+        cardsData.forEach((card, index) => {
+          const displayContent = card.type === 'image'
+            ? `<img src="${card.content}" style="max-height: 85px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Medical item">`
+            : `<span style="font-size: 1.05rem; font-weight: 700; color: var(--azul);">${card.content}</span>`;
+
+          html += `
+            <div class="matching-card" data-pair-id="${card.id}" onclick="flipMatchingCard(this)">
+              <div class="matching-card-inner">
+                <div class="matching-card-front">🩺</div>
+                <div class="matching-card-back" style="background: white; padding: 4px; border: 2.5px solid var(--verde);">${displayContent}</div>
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+
+        let selected = [];
+        let busy = false;
+        let matchedCount = 0;
+
+        window.flipMatchingCard = function(cardEl) {
+          if (busy || cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
+
+          cardEl.classList.add('flipped');
+          selected.push(cardEl);
+
+          if (selected.length === 2) {
+            busy = true;
+            const c1 = selected[0];
+            const c2 = selected[1];
+
+            if (c1.dataset.pairId === c2.dataset.pairId) {
+              // Emparejado
+              c1.classList.add('matched');
+              c2.classList.add('matched');
+              selected = [];
+              matchedCount++;
+              busy = false;
+
+              if (matchedCount === pairs.length) {
+                setTimeout(() => {
+                  alert('🎉 ¡Felicidades! Completaste todas las parejas.');
+                  completarJuego();
+                }, 500);
+              }
+            } else {
+              // No emparejado, voltear de regreso
+              setTimeout(() => {
+                c1.classList.remove('flipped');
+                c2.classList.remove('flipped');
+                selected = [];
+                busy = false;
+              }, 1000);
+            }
+          }
+        }
+      }
+
+      // ─── 2. JUEGO DEL AHORCADO SALUD (EKG MONITOR) ─────────────────────
+      function initHangmanGame(container) {
+        const words = [
+          { word: "PRESCRIBE", clue: "English: Order medical treatment or medicine for a patient (Español: Recetar)" },
+          { word: "PATIENT", clue: "English: A person receiving medical care or treatment (Español: Paciente)" },
+          { word: "TREATMENT", clue: "English: Medical care given to a patient for an illness or injury (Español: Tratamiento)" },
+          { word: "INJECTION", clue: "English: An act of injecting medicine into the body (Español: Inyección)" },
+          { word: "MEDICINE", clue: "English: A substance used for treating disease or illness (Español: Medicina)" },
+          { word: "SURGERY", clue: "English: Medical treatment involving cutting open the body (Español: Cirugía)" },
+          { word: "DIAGNOSIS", clue: "English: Identification of the nature of an illness (Español: Diagnóstico)" },
+          { word: "SYMPTOMS", clue: "English: Physical or mental features indicating a condition (Español: Síntomas)" },
+          { word: "VACCINE", clue: "English: A substance used to stimulate antibody production (Español: Vacuna)" },
+          { word: "STETHOSCOPE", clue: "English: Instrument used to listen to heart or breathing (Español: Estetoscopio)" }
+        ];
+
+        // Seleccionar palabra aleatoria
+        const gameItem = words[Math.floor(Math.random() * words.length)];
+        const targetWord = gameItem.word;
+        const clue = gameItem.clue;
+
+        let guessedLetters = new Set();
+        let wrongAttempts = 0;
+        const maxAttempts = 6;
+
+        // Render inicial
+        updateHangmanUI();
+
+        function updateHangmanUI() {
+          let wordSlotsHtml = '';
+          let won = true;
+
+          for (let char of targetWord) {
+            if (guessedLetters.has(char)) {
+              wordSlotsHtml += `<div class="word-slot">${char}</div>`;
+            } else {
+              wordSlotsHtml += `<div class="word-slot">&nbsp;</div>`;
+              won = false;
+            }
+          }
+
+          // EKG heart monitor values
+          const hpPercent = Math.max(0, 100 - Math.round((wrongAttempts / maxAttempts) * 100));
+          const bpm = hpPercent > 0 ? Math.round(50 + (hpPercent * 0.7)) : 0;
+          const isPanic = hpPercent <= 35 && hpPercent > 0;
+          
+          let ekgPathD = "M0,50 L50,50 L60,30 L70,70 L85,50 L120,50 L130,10 L140,90 L155,50 L180,50 L190,30 L200,70 L215,50 L300,50";
+          let ekgStroke = "#39A900";
+          let animSpeed = "2.5s";
+
+          if (hpPercent === 0) {
+            ekgPathD = "M0,50 L300,50"; // Flatline
+            ekgStroke = "#e53935";
+            animSpeed = "0s";
+          } else if (hpPercent <= 35) {
+            ekgStroke = "#e53935";
+            animSpeed = "0.8s"; // Fast cardiac pulse
+          } else if (hpPercent <= 65) {
+            ekgStroke = "#f59e0b";
+            animSpeed = "1.5s";
+          }
+
+          let keyboardHtml = '';
+          const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+          for (let char of letters) {
+            const disabled = guessedLetters.has(char) || wrongAttempts >= maxAttempts || won ? 'disabled' : '';
+            keyboardHtml += `<button class="letter-key" ${disabled} onclick="guessHangmanLetter('${char}', this)">${char}</button>`;
+          }
+
+          let gameContentHtml = `
+            <div class="ekg-panel">
+              <div class="ekg-monitor">
+                <div class="ekg-header">
+                  <span>VITAL SIGN MONITOR</span>
+                  <span>HP: ${hpPercent}%</span>
+                </div>
+                <svg class="ekg-svg" viewBox="0 0 300 100">
+                  <path class="ekg-line" d="${ekgPathD}" fill="none" stroke="${ekgStroke}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: ekg-pulse ${animSpeed} linear infinite;"></path>
+                </svg>
+                <div class="ekg-value ${isPanic ? 'panic' : ''}">
+                  <span>❤️ HEART RATE:</span>
+                  <span>${bpm} BPM</span>
+                  <span>${hpPercent === 0 ? '[FLATLINE]' : hpPercent <= 35 ? '[CRITICAL]' : '[STABLE]'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="hangman-clue-box">
+              <strong>Clue:</strong> ${clue}
+            </div>
+
+            <div class="hangman-word-slots">
+              ${wordSlotsHtml}
+            </div>
+
+            <div class="letters-keyboard">
+              ${keyboardHtml}
+            </div>
+          `;
+
+          if (won) {
+            gameContentHtml += `
+              <div class="alert alert-success" style="margin-top: 20px; text-align: center;">
+                <strong>🎉 ¡Buen trabajo!</strong> Descubriste la palabra: <strong>${targetWord}</strong>
+              </div>
+            `;
+            setTimeout(() => { completarJuego(); }, 1500);
+          } else if (wrongAttempts >= maxAttempts) {
+            gameContentHtml += `
+              <div class="alert alert-error" style="margin-top: 20px; text-align: center; display: block;">
+                <strong>💀 Paciente inestable.</strong> La palabra era: <strong>${targetWord}</strong>
+                <br>
+                <button class="btn btn-secondary btn-sm" style="margin-top: 10px;" onclick="initHangmanGame(document.getElementById('game-active-area'))">Reintentar</button>
+              </div>
+            `;
+          }
+
+          container.innerHTML = gameContentHtml;
+        }
+
+        window.guessHangmanLetter = function(char, btnEl) {
+          guessedLetters.add(char);
+          btnEl.disabled = true;
+
+          if (!targetWord.includes(char)) {
+            wrongAttempts++;
+          }
+          updateHangmanUI();
+        }
+      }
+
+      // ─── 3. JUEGO DE SOPA DE LETRAS ────────────────────────────────────
+      function initWordSearchGame(container) {
+        const size = 10;
+        const targetWords = ["NURSE", "CARE", "PILL", "DRUG", "WARD", "PAIN", "FEVER", "BLOOD"];
+        const translations = {
+          NURSE: "Enfermera", CARE: "Cuidado", PILL: "Píldora", DRUG: "Medicamento",
+          WARD: "Pabellón", PAIN: "Dolor", FEVER: "Fiebre", BLOOD: "Sangre"
+        };
+        
+        let grid = Array(size).fill(null).map(() => Array(size).fill(''));
+        let foundWords = new Set();
+        let selectedCells = []; // array de objetos {r, c, letter}
+
+        // Generar grilla
+        generateGrid();
+
+        function generateGrid() {
+          // Intentar posicionar cada palabra
+          targetWords.forEach(word => {
+            let placed = false;
+            let attempts = 0;
+            while (!placed && attempts < 100) {
+              attempts++;
+              const dir = Math.floor(Math.random() * 2); // 0: horizontal, 1: vertical
+              const row = Math.floor(Math.random() * size);
+              const col = Math.floor(Math.random() * size);
+
+              if (dir === 0) { // Horizontal
+                if (col + word.length <= size) {
+                  let fits = true;
+                  for (let i = 0; i < word.length; i++) {
+                    if (grid[row][col + i] !== '' && grid[row][col + i] !== word[i]) {
+                      fits = false;
+                      break;
+                    }
+                  }
+                  if (fits) {
+                    for (let i = 0; i < word.length; i++) {
+                      grid[row][col + i] = word[i];
+                    }
+                    placed = true;
+                  }
+                }
+              } else { // Vertical
+                if (row + word.length <= size) {
+                  let fits = true;
+                  for (let i = 0; i < word.length; i++) {
+                    if (grid[row + i][col] !== '' && grid[row + i][col] !== word[i]) {
+                      fits = false;
+                      break;
+                    }
+                  }
+                  if (fits) {
+                    for (let i = 0; i < word.length; i++) {
+                      grid[row + i][col] = word[i];
+                    }
+                    placed = true;
+                  }
+                }
+              }
+            }
+          });
+
+          // Rellenar resto
+          const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+          for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+              if (grid[r][c] === '') {
+                grid[r][c] = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+              }
+            }
+          }
+        }
+
+        // Render inicial
+        renderWordSearch();
+
+        function renderWordSearch() {
+          let gridHtml = '<div class="wordsearch-grid">';
+          for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+              const isSelected = selectedCells.some(cell => cell.r === r && cell.c === c);
+              const isFound = isCellFound(r, c);
+              const classes = `wordsearch-cell ${isSelected ? 'selected' : ''} ${isFound ? 'found' : ''}`;
+              gridHtml += `<button class="${classes}" data-row="${r}" data-col="${c}" onclick="clickWordSearchCell(${r}, ${c}, this)">${grid[r][c]}</button>`;
+            }
+          }
+          gridHtml += '</div>';
+
+          // Lista de palabras
+          let wordBadgesHtml = '';
+          targetWords.forEach(word => {
+            const found = foundWords.has(word);
+            wordBadgesHtml += `<div class="word-badge ${found ? 'found' : ''}">${word} (${translations[word]})</div>`;
+          });
+
+          const currentWordSpelled = selectedCells.map(cell => cell.letter).join('');
+
+          let totalHtml = `
+            <div class="wordsearch-container">
+              ${gridHtml}
+
+              <div class="wordsearch-controls">
+                <div class="wordsearch-current">
+                  Palabra: <strong>${currentWordSpelled || '...'}</strong>
+                </div>
+                <div class="flex gap-8">
+                  <button class="btn btn-ghost btn-sm" onclick="clearWordSearchSelection()">Limpiar</button>
+                  <button class="btn btn-primary btn-sm" onclick="verifyWordSearchWord()">Verificar</button>
+                </div>
+              </div>
+
+              <div class="wordsearch-list">
+                ${wordBadgesHtml}
+              </div>
+            </div>
+          `;
+
+          container.innerHTML = totalHtml;
+        }
+
+        function isCellFound(r, c) {
+          // Retorna true si esta coordenada forma parte de una palabra ya encontrada
+          // Para hacerlo simple, guardaremos las celdas encontradas en un array global del juego
+          return window.wsFoundCells && window.wsFoundCells.some(cell => cell.r === r && cell.c === c);
+        }
+
+        window.wsFoundCells = window.wsFoundCells || [];
+
+        window.clickWordSearchCell = function(r, c, el) {
+          if (el.classList.contains('found')) return;
+
+          const index = selectedCells.findIndex(cell => cell.r === r && cell.c === c);
+          if (index > -1) {
+            // Deseleccionar
+            selectedCells.splice(index, 1);
+          } else {
+            // Seleccionar
+            selectedCells.push({ r, c, letter: grid[r][c] });
+          }
+          renderWordSearch();
+        }
+
+        window.clearWordSearchSelection = function() {
+          selectedCells = [];
+          renderWordSearch();
+        }
+
+        window.verifyWordSearchWord = function() {
+          const spelled = selectedCells.map(cell => cell.letter).join('');
+          const reverseSpelled = spelled.split('').reverse().join('');
+
+          let matchedWord = null;
+          if (targetWords.includes(spelled) && !foundWords.has(spelled)) {
+            matchedWord = spelled;
+          } else if (targetWords.includes(reverseSpelled) && !foundWords.has(reverseSpelled)) {
+            matchedWord = reverseSpelled;
+          }
+
+          if (matchedWord) {
+            foundWords.add(matchedWord);
+            // Guardar celdas como encontradas
+            selectedCells.forEach(cell => {
+              window.wsFoundCells.push({ r: cell.r, c: cell.c });
+            });
+            selectedCells = [];
+            
+            renderWordSearch();
+
+            if (foundWords.size === targetWords.length) {
+              setTimeout(() => {
+                alert('🎉 ¡Felicidades! Encontraste todas las palabras en la sopa de letras.');
+                window.wsFoundCells = []; // limpiar caché estática
+                completarJuego();
+              }, 500);
+            }
+          } else {
+            alert('❌ Palabra no válida o ya encontrada. Intenta de nuevo.');
+            selectedCells = [];
+            renderWordSearch();
+          }
+        }
+      }
+    </script>
+    <% } %>
 
     <!-- ══ EVALUACIÓN ════════════════════════════════════════ -->
     <% } else if (actividad.tipo === 'evaluacion') { %>

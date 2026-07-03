@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    /* Stats row */
+    .history-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .history-stat-card {
+      background: white;
+      border: 1px solid var(--gris-borde);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: box-shadow 0.2s;
+    }
+    .history-stat-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .stat-val {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--azul);
+      margin-bottom: 4px;
+      font-family: var(--mono);
+    }
+    .stat-name {
+      font-size: 0.85rem;
+      color: var(--texto-suave);
+      font-weight: 600;
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: white;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--gris-borde);
+    }
+    .filter-label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--texto-suave);
+    }
+    .filter-select {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1.5px solid var(--gris-borde);
+      font-family: var(--font);
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .filter-select:focus {
+      border-color: var(--verde);
+    }
+
+    /* History table / list */
+    .history-card {
+      background: white;
+      border: 1px solid var(--gris-borde);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    .history-card:hover {
+      box-shadow: var(--sombra);
+      border-color: var(--verde-claro);
+    }
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      gap: 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .history-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+    }
+    .history-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+    .history-icon.blog { background: var(--azul-claro); }
+    .history-icon.juego { background: #fef3c7; }
+    .history-icon.evaluacion { background: #fdecea; }
+    
+    .history-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--azul);
+    }
+    .history-meta {
+      font-size: 0.78rem;
+      color: var(--texto-suave);
+      margin-top: 3px;
+    }
+    .history-score {
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    .history-score.aprobado { color: var(--verde); }
+    .history-score.reprobado { color: var(--rojo); }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .status-pendiente { background: var(--gris); color: var(--texto-suave); }
+    .status-entregado { background: var(--azul-claro); color: var(--azul); }
+    .status-aprobado { background: var(--verde-claro); color: var(--verde-oscuro); }
+    .status-reprobado { background: #fdecea; color: var(--rojo); }
+
+    .toggle-arrow {
+      font-size: 0.9rem;
+      color: var(--texto-suave);
+      transition: transform 0.2s;
+    }
+    .toggle-arrow.open {
+      transform: rotate(180deg);
+    }
+
+    /* Expandable feedback / detail area */
+    .history-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+      background: #fafbfc;
+      border-top: 1px solid var(--gris-borde);
+    }
+    .history-detail.open {
+      max-height: 500px;
+    }
+    .detail-content {
+      padding: 20px 24px;
+    }
+    .feedback-section {
+      background: white;
+      border: 1px solid var(--gris-borde);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-top: 8px;
+    }
+    .feedback-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--azul);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .feedback-text {
+      font-size: 0.9rem;
+      color: var(--texto-suave);
+      line-height: 1.4;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border: 1px solid var(--gris-borde);
+      border-radius: 12px;
+      color: var(--texto-suave);
+    }
+    .empty-state .icon-big {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a href="/aprendiz" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span><%= user %></span>
+      <span class="topbar-rol" style="background:var(--azul-claro);color:var(--azul);">Aprendiz</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <% locals.currentPath = '/aprendiz/historial'; %>
+    <%- include('../partials/sidebar', { session: { userRol: 'aprendiz' } }) %>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Mi Historial</h1>
+      <p class="page-subtitle">Progreso y retroalimentación de tus actividades entregadas</p>
+    </div>
+
+    <!-- Compute stats -->
+    <%
+      let totalInteracciones = entregas.length;
+      let aprobadas = entregas.filter(e => e.estado === 'Aprobado').length;
+      let reprobadas = entregas.filter(e => e.estado === 'Reprobado').length;
+      let enRevision = entregas.filter(e => e.estado === 'Entregado').length;
+      let pendientes = entregas.filter(e => e.estado === 'Pendiente').length;
+    %>
+
+    <!-- Stats row -->
+    <div class="history-stats">
+      <div class="history-stat-card">
+        <div class="stat-val"><%= totalInteracciones %></div>
+        <div class="stat-name">Total Entregadas</div>
+      </div>
+      <div class="history-stat-card">
+        <div class="stat-val" style="color: var(--verde);"><%= aprobadas %></div>
+        <div class="stat-name">Aprobadas</div>
+      </div>
+      <div class="history-stat-card">
+        <div class="stat-val" style="color: var(--rojo);"><%= reprobadas %></div>
+        <div class="stat-name">Reprobadas</div>
+      </div>
+      <div class="history-stat-card">
+        <div class="stat-val" style="color: var(--azul);"><%= enRevision %></div>
+        <div class="stat-name">En Revisión</div>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <% if (entregas.length > 0) { %>
+      <div class="filter-bar">
+        <span class="filter-label">Filtrar por:</span>
+        <select id="filterType" class="filter-select" onchange="applyFilters()">
+          <option value="all">Todos los tipos</option>
+          <option value="blog">📖 Blogs</option>
+          <option value="juego">🎮 Juegos</option>
+          <option value="evaluacion">📝 Evaluaciones</option>
+        </select>
+
+        <select id="filterStatus" class="filter-select" onchange="applyFilters()">
+          <option value="all">Todos los estados</option>
+          <option value="Aprobado">✅ Aprobado</option>
+          <option value="Reprobado">❌ Reprobado</option>
+          <option value="Entregado">👀 En revisión</option>
+          <option value="Pendiente">⏳ Pendiente</option>
+        </select>
+      </div>
+    <% } %>
+
+    <!-- History list -->
+    <% if (entregas.length === 0) { %>
+      <div class="empty-state">
+        <div class="icon-big">📄</div>
+        <h3>No tienes historial de entregas</h3>
+        <p>Visita los módulos desbloqueados y realiza entregas para verlas aquí.</p>
+        <a href="/aprendiz" class="btn btn-primary" style="margin-top: 16px;">Ir a mi ruta</a>
+      </div>
+    <% } else { %>
+      <div id="historyList">
+        <% entregas.forEach((e, idx) => { 
+          if (!e.actividad) return;
+          const act = e.actividad;
+
+          let statusClass = 'status-pendiente';
+          let statusText = 'Pendiente';
+          let statusIcon = '⏳';
+
+          if (e.estado === 'Entregado') { statusClass = 'status-entregado'; statusText = 'En revisión'; statusIcon = '👀'; }
+          else if (e.estado === 'Aprobado') { statusClass = 'status-aprobado'; statusText = 'Aprobado'; statusIcon = '✅'; }
+          else if (e.estado === 'Reprobado') { statusClass = 'status-reprobado'; statusText = 'Reprobado'; statusIcon = '❌'; }
+        %>
+          <div class="history-card" data-type="<%= act.tipo %>" data-status="<%= e.estado %>">
+            <div class="history-header" onclick="toggleDetail(<%= idx %>)">
+              <div class="history-info">
+                <div class="history-icon <%= act.tipo %>">
+                  <%= act.tipo === 'blog' ? '📖' : (act.tipo === 'juego' ? '🎮' : '📝') %>
+                </div>
+                <div>
+                  <div class="history-title"><%= act.titulo %></div>
+                  <div class="history-meta">
+                    <span>Tipo: <%= act.tipo === 'blog' ? 'Blog' : (act.tipo === 'juego' ? 'Juego' : 'Evaluación') %></span>
+                    <% if (e.createdAt) { %>
+                      <span style="margin-left: 12px;">📅 Iniciado: <%= new Date(e.createdAt).toLocaleDateString('es-ES') %></span>
+                    <% } %>
+                    <% if (e.calificadoEn) { %>
+                      <span style="margin-left: 12px;">📅 Calificado: <%= new Date(e.calificadoEn).toLocaleDateString('es-ES') %></span>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <% if (e.porcentaje !== null) { %>
+                  <div class="history-score <%= e.estado.toLowerCase() %>">
+                    <%= e.porcentaje %>%
+                  </div>
+                <% } %>
+                <div class="status-badge <%= statusClass %>">
+                  <span><%= statusIcon %></span> <%= statusText %>
+                </div>
+                <span class="toggle-arrow" id="arrow-<%= idx %>">▼</span>
+              </div>
+            </div>
+
+            <!-- Detail / Feedback area -->
+            <div class="history-detail" id="detail-<%= idx %>">
+              <div class="detail-content">
+                <% if (act.tipo === 'blog') { %>
+                  <div>
+                    <strong>Tu Respuesta:</strong>
+                    <div style="background: #f1f3f5; padding: 12px; border-radius: 6px; font-size: 0.9rem; margin-top: 6px; white-space: pre-line;">
+                      <%= e.respuestaTexto || 'Sin respuesta de texto' %>
+                    </div>
+                    <% if (e.archivoUrl) { %>
+                      <div style="margin-top: 10px;">
+                        <strong>Archivo adjunto:</strong>
+                        <a href="<%= e.archivoUrl %>" target="_blank" class="btn btn-sm btn-outline" style="display: inline-flex; margin-left: 8px; font-size: 0.75rem;">📂 Ver Archivo</a>
+                      </div>
+                    <% } %>
+                  </div>
+                <% } else if (act.tipo === 'juego') { %>
+                  <p class="text-muted">Juego completado con éxito. Obtuviste una calificación perfecta automáticamente.</p>
+                <% } else if (act.tipo === 'evaluacion') { %>
+                  <p class="text-muted">Evaluación completada. Respuestas procesadas automáticamente.</p>
+                <% } %>
+
+                <!-- Instructor Feedback -->
+                <div class="feedback-section">
+                  <div class="feedback-title">Retroalimentación del Instructor</div>
+                  <div class="feedback-text">
+                    <%= e.retroalimentacion || 'Aún no se ha registrado ninguna retroalimentación.' %>
+                  </div>
+                </div>
+
+                <div style="margin-top: 16px; text-align: right;">
+                  <a href="/aprendiz/actividad/<%= act._id %>" class="btn btn-sm btn-ghost">🔍 Ir a la Actividad</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </main>
+</div>
+
+<script>
+  function toggleDetail(idx) {
+    const detail = document.getElementById('detail-' + idx);
+    const arrow = document.getElementById('arrow-' + idx);
+    detail.classList.toggle('open');
+    arrow.classList.toggle('open');
+  }
+
+  function applyFilters() {
+    const typeVal = document.getElementById('filterType').value;
+    const statusVal = document.getElementById('filterStatus').value;
+    const cards = document.querySelectorAll('.history-card');
+
+    cards.forEach(card => {
+      const cardType = card.getAttribute('data-type');
+      const cardStatus = card.getAttribute('data-status');
+
+      const matchesType = (typeVal === 'all' || cardType === typeVal);
+      const matchesStatus = (statusVal === 'all' || cardStatus === statusVal);
+
+      if (matchesType && matchesStatus) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+</script>
+</body>
+</html>

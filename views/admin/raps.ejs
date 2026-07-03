@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="layout">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a href="/admin" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span><%= user %></span>
+      <span class="topbar-rol">Administrador</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <% locals.currentPath = '/admin/raps'; %>
+    <%- include('../partials/sidebar', { session: { userRol: 'admin' } }) %>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Gestión de RAPs</h1>
+      <p class="page-subtitle">Crea y administra los Resultados de Aprendizaje y asígnalos a los Módulos.</p>
+    </div>
+
+    <% if (error && error.length) { %>
+      <div class="alert alert-error"><%= error[0] %></div>
+    <% } %>
+    <% if (success && success.length) { %>
+      <div class="alert alert-success"><%= success[0] %></div>
+    <% } %>
+
+    <div class="grid-2">
+      <!-- FORMULARIO DE CREACIÓN -->
+      <div class="card">
+        <div class="card-title">Crear Nuevo RAP</div>
+        <form action="/admin/raps" method="POST">
+          <div class="form-group">
+            <label>Nombre del RAP</label>
+            <input type="text" name="nombre" required placeholder="Ej. Comprender vocabulario médico básico">
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea name="descripcion" rows="3" placeholder="Descripción detallada..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Módulo al que pertenece</label>
+            <select name="modulo" required>
+              <option value="">— Seleccionar Módulo —</option>
+              <% modulos.forEach(m => { %>
+                <option value="<%= m._id %>"><%= m.nombre %></option>
+              <% }) %>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary mt-12 w-100">Crear RAP</button>
+        </form>
+      </div>
+
+      <!-- LISTA DE RAPS -->
+      <div class="card">
+        <div class="card-title">RAPs Existentes</div>
+        <% if (raps.length === 0) { %>
+          <div class="alert alert-warning">No hay RAPs creados aún.</div>
+        <% } else { %>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Orden</th>
+                  <th>Módulo</th>
+                  <th>Nombre</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% raps.forEach(r => { %>
+                  <tr>
+                    <td><span class="badge badge-gray"><%= r.orden %></span></td>
+                    <td><strong><%= r.modulo ? r.modulo.nombre : 'Sin módulo' %></strong></td>
+                    <td><%= r.nombre %></td>
+                    <td>
+                      <div class="flex gap-8">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="abrirModalEditar('<%= r._id %>', '<%= r.nombre %>', '<%= r.descripcion %>', '<%= r.modulo ? r.modulo._id : '' %>')">Editar</button>
+                        <form action="/admin/raps/<%= r._id %>/eliminar" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar este RAP?');">
+                          <button type="submit" class="btn btn-sm btn-danger">Borrar</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal de Edición (Oculto por defecto) -->
+<div id="modalEditar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center;">
+  <div class="card" style="width:400px; max-width:90%;">
+    <div class="card-title flex-between">
+      <span>Editar RAP</span>
+      <button class="btn btn-ghost btn-sm" onclick="cerrarModal()">&times;</button>
+    </div>
+    <form id="formEditar" method="POST">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" name="nombre" id="editNombre" required>
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea name="descripcion" id="editDesc" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Módulo</label>
+        <select name="modulo" id="editModulo" required>
+          <% modulos.forEach(m => { %>
+            <option value="<%= m._id %>"><%= m.nombre %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="flex gap-8 mt-20">
+        <button type="submit" class="btn btn-primary w-100">Guardar Cambios</button>
+        <button type="button" class="btn btn-ghost w-100" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function abrirModalEditar(id, nombre, desc, modId) {
+    document.getElementById('formEditar').action = '/admin/raps/' + id + '/editar';
+    document.getElementById('editNombre').value = nombre;
+    document.getElementById('editDesc').value = desc;
+    document.getElementById('editModulo').value = modId;
+    document.getElementById('modalEditar').style.display = 'flex';
+  }
+  function cerrarModal() {
+    document.getElementById('modalEditar').style.display = 'none';
+  }
+</script>
+</body>
+</html>

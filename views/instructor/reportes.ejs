@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    /* Estilos de pestañas */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--gris-borde);
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      color: var(--texto-suave);
+      font-family: var(--font);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover {
+      color: var(--verde-oscuro);
+    }
+    .tab-btn.active {
+      color: var(--verde);
+      border-bottom-color: var(--verde);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Estilos de la Sábana de Notas */
+    .matrix-table {
+      font-size: 0.8rem;
+    }
+    .matrix-table th {
+      padding: 12px 10px;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .matrix-table th.student-col {
+      text-align: left;
+      position: sticky;
+      left: 0;
+      background: var(--azul);
+      z-index: 2;
+    }
+    .matrix-table td {
+      text-align: center;
+      padding: 10px;
+    }
+    .matrix-table td.student-col {
+      text-align: left;
+      font-weight: 600;
+      position: sticky;
+      left: 0;
+      background: white;
+      z-index: 1;
+      border-right: 2px solid var(--gris-borde);
+      white-space: nowrap;
+    }
+    .matrix-table tr:hover td.student-col {
+      background: var(--gris);
+    }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-width: 70px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.72rem;
+    }
+
+    /* Opciones de exportación */
+    .export-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    @media print {
+      body {
+        background: white;
+        color: black;
+      }
+      .layout {
+        display: block;
+      }
+      .sidebar, .topbar, .export-buttons, .tabs, .tab-btn {
+        display: none !important;
+      }
+      .main {
+        padding: 0;
+      }
+      .tab-content {
+        display: block !important;
+      }
+      .card {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin-bottom: 30px;
+      }
+      .matrix-table th.student-col, .matrix-table td.student-col {
+        position: static;
+        background: transparent;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <header class="topbar">
+    <a href="/instructor" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span><%= user %></span>
+      <span class="topbar-rol">Instructor</span>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <% locals.currentPath = '/instructor/reportes'; %>
+    <%- include('../partials/sidebar', { session: { userRol: 'instructor' } }) %>
+  </nav>
+
+  <main class="main">
+    <div class="page-header flex-between">
+      <div>
+        <h1 class="page-title">Reporte de Ficha</h1>
+        <p class="page-subtitle">Resultados y rendimiento de la ficha: <strong><%= fichaActiva.nombre %> (<%= fichaActiva.codigo %>)</strong></p>
+      </div>
+      <div class="export-buttons">
+        <button onclick="exportCSV()" class="btn btn-outline">📥 Exportar CSV</button>
+        <button onclick="descargarPDF()" class="btn btn-secondary">📥 Descargar PDF</button>
+      </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <% 
+      let totalPct = 0; 
+      reporte.forEach(r => totalPct += r.pct); 
+      const avgPct = reporte.length > 0 ? Math.round(totalPct / reporte.length) : 0;
+    %>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num"><%= fichaActiva.aprendices.length %></div>
+        <div class="stat-label">Total Aprendices</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num"><%= actividades.length %></div>
+        <div class="stat-label">Actividades Creadas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color: <%= avgPct >= 70 ? 'var(--verde)' : 'var(--amarillo)' %>;"><%= avgPct %>%</div>
+        <div class="stat-label">Progreso Promedio Ficha</div>
+      </div>
+    </div>
+
+    <!-- Pestañas de Navegación -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('resumen', this)">📋 Resumen de Aprendices</button>
+      <button class="tab-btn" onclick="switchTab('sabana', this)">📊 Sábana de Calificaciones</button>
+    </div>
+
+    <!-- Contenido Pestaña 1: Resumen -->
+    <div id="resumen" class="tab-content active">
+      <div class="card">
+        <div class="card-title">Progreso de la Ruta de Aprendizaje</div>
+        <% if (reporte.length === 0) { %>
+          <p class="text-muted text-center">No hay aprendices matriculados en esta ficha.</p>
+        <% } else { %>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre Aprendiz</th>
+                  <th>Estado</th>
+                  <th style="width: 40%;">Progreso General</th>
+                  <th style="text-align: center;">Aprobadas</th>
+                  <th style="text-align: right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% reporte.forEach(r => { %>
+                  <tr>
+                    <td class="fw-600"><%= r.aprendiz.nombre %></td>
+                    <td>
+                      <span class="badge <%= r.aprendiz.estado === 'Activo' ? 'badge-success' : 'badge-gray' %>">
+                        <%= r.aprendiz.estado %>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="progress-label">
+                        <span>Aprobado</span>
+                        <span class="fw-600"><%= r.pct %>%</span>
+                      </div>
+                      <div class="progress-wrap">
+                        <div class="progress-bar" style="width: <%= r.pct %>%; background: <%= r.pct >= 70 ? '' : 'var(--amarillo)' %>;"></div>
+                      </div>
+                    </td>
+                    <td style="text-align: center; font-weight: 600; font-family: var(--mono);">
+                      <%= r.aprobadas %> / <%= r.total %>
+                    </td>
+                    <td style="text-align: right;">
+                      <button onclick="verDetalleAprendiz('<%= r.aprendiz._id %>', '<%= r.aprendiz.nombre %>')" class="btn btn-sm btn-ghost">🔍 Detalle</button>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Contenido Pestaña 2: Sábana de Notas -->
+    <div id="sabana" class="tab-content">
+      <div class="card">
+        <div class="card-title">Matriz de Rendimiento General</div>
+        <% if (reporte.length === 0 || actividades.length === 0) { %>
+          <p class="text-muted text-center">Se requieren tanto aprendices como actividades para generar la matriz de calificaciones.</p>
+        <% } else { %>
+          <div class="table-wrap">
+            <table class="matrix-table">
+              <thead>
+                <tr>
+                  <th class="student-col">Aprendiz</th>
+                  <% actividades.forEach((act, idx) => { %>
+                    <th title="<%= act.titulo %> (Módulo: <%= act.modulo ? act.modulo.nombre : '' %>)">
+                      <div>Act. <%= idx + 1 %></div>
+                      <div style="font-size: 0.65rem; font-weight: normal; opacity: 0.8;">
+                        <%= act.tipo === 'blog' ? '📖 Blog' : (act.tipo === 'juego' ? '🎮 Juego' : '📝 Eval') %>
+                      </div>
+                    </th>
+                  <% }) %>
+                </tr>
+              </thead>
+              <tbody>
+                <% fichaActiva.aprendices.forEach(ap => { %>
+                  <tr>
+                    <td class="student-col"><%= ap.nombre %></td>
+                    <% actividades.forEach(act => { 
+                      const entrega = entregas.find(e => e.aprendiz.toString() === ap._id.toString() && e.actividad.toString() === act._id.toString());
+                    %>
+                      <td>
+                        <% if (!entrega) { %>
+                          <span class="status-badge" style="background: #f1f3f5; color: #6c757d;" title="Sin entrega">
+                            ➖ Sin entrega
+                          </span>
+                        <% } else if (entrega.estado === 'Aprobado') { %>
+                          <span class="status-badge" style="background: var(--verde-claro); color: var(--verde-oscuro);" title="Aprobado. Porcentaje: <%= entrega.porcentaje %>%">
+                            ✔️ <%= entrega.porcentaje %>%
+                          </span>
+                        <% } else if (entrega.estado === 'Reprobado') { %>
+                          <span class="status-badge" style="background: #fdecea; color: var(--rojo);" title="Reprobado. Porcentaje: <%= entrega.porcentaje %>%">
+                            ❌ <%= entrega.porcentaje %>%
+                          </span>
+                        <% } else if (entrega.estado === 'Entregado') { %>
+                          <span class="status-badge" style="background: #fef3c7; color: #92400e;" title="Entregado. Pendiente de calificación.">
+                            ⏳ Calificar
+                          </span>
+                        <% } else if (entrega.estado === 'Pendiente') { %>
+                          <span class="status-badge" style="background: #e9ecef; color: #495057;" title="Habilitado para segundo intento.">
+                            🔄 Reintento
+                          </span>
+                        <% } else { %>
+                          <span class="status-badge" style="background: var(--azul-claro); color: var(--azul);" title="Calificado">
+                            📝 <%= entrega.porcentaje %>%
+                          </span>
+                        <% } %>
+                      </td>
+                    <% }) %>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal para ver el detalle de un aprendiz -->
+<div id="detalleModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+  <div class="card" style="width: 100%; max-width: 700px; max-height: 85vh; overflow-y: auto;">
+    <div class="flex-between" style="border-bottom: 2px solid var(--verde-claro); padding-bottom: 12px; margin-bottom: 16px;">
+      <h3 id="modalTitulo" style="color: var(--azul); font-weight: 700;">Detalle de Rendimiento</h3>
+      <button onclick="cerrarModal()" class="btn btn-ghost btn-sm" style="font-size: 1.2rem; padding: 2px 8px;">&times;</button>
+    </div>
+    <div id="modalCuerpo">
+      <!-- Se llena dinámicamente con JS -->
+    </div>
+    <div style="text-align: right; margin-top: 20px; border-top: 1px solid var(--gris-borde); padding-top: 12px;">
+      <button onclick="cerrarModal()" class="btn btn-secondary">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Datos locales para el Modal
+  const actividadesList = <%- JSON.stringify(actividades.map(a => ({ _id: a._id.toString(), titulo: a.titulo, tipo: a.tipo, momento: a.momentoPedagogico }))) %>;
+  const entregasList = <%- JSON.stringify(entregas.map(e => ({ aprendiz: e.aprendiz.toString(), actividad: e.actividad.toString(), estado: e.estado, porcentaje: e.porcentaje, retroalimentacion: e.retroalimentacion || '' }))) %>;
+
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function verDetalleAprendiz(aprendizId, nombre) {
+    document.getElementById('modalTitulo').innerText = 'Rendimiento de: ' + nombre;
+    const cuerpo = document.getElementById('modalCuerpo');
+    
+    let html = `
+      <table class="table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--gris-borde);">
+            <th style="text-align: left; padding: 8px;">Actividad</th>
+            <th style="text-align: center; padding: 8px;">Tipo</th>
+            <th style="text-align: center; padding: 8px;">Estado</th>
+            <th style="text-align: center; padding: 8px;">Porcentaje</th>
+            <th style="text-align: left; padding: 8px;">Retroalimentación</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    actividadesList.forEach(act => {
+      const entrega = entregasList.find(e => e.aprendiz === aprendizId && e.actividad === act._id);
+      
+      let badgeStyle = 'background: #f1f3f5; color: #6c757d;';
+      let estadoTxt = 'Sin entrega';
+      let pctTxt = '—';
+      let retroTxt = '—';
+
+      if (entrega) {
+        pctTxt = entrega.porcentaje !== null ? `${entrega.porcentaje}%` : '—';
+        retroTxt = entrega.retroalimentacion || 'Sin comentarios';
+        estadoTxt = entrega.estado;
+
+        if (entrega.estado === 'Aprobado') {
+          badgeStyle = 'background: var(--verde-claro); color: var(--verde-oscuro);';
+        } else if (entrega.estado === 'Reprobado') {
+          badgeStyle = 'background: #fdecea; color: var(--rojo);';
+        } else if (entrega.estado === 'Entregado') {
+          badgeStyle = 'background: #fef3c7; color: #92400e;';
+          estadoTxt = 'Por calificar';
+        } else if (entrega.estado === 'Pendiente') {
+          badgeStyle = 'background: #e9ecef; color: #495057;';
+          estadoTxt = 'Reintento';
+        }
+      }
+
+      const tipoIcon = act.tipo === 'blog' ? '📖 Blog' : (act.tipo === 'juego' ? '🎮 Juego' : '📝 Eval');
+
+      html += `
+        <tr style="border-bottom: 1px solid var(--gris-borde);">
+          <td style="padding: 10px 8px; font-weight: 500; color: var(--azul);">${act.titulo}</td>
+          <td style="padding: 10px 8px; text-align: center; font-size: 0.75rem;">${tipoIcon}</td>
+          <td style="padding: 10px 8px; text-align: center;">
+            <span class="status-badge" style="${badgeStyle}">${estadoTxt}</span>
+          </td>
+          <td style="padding: 10px 8px; text-align: center; font-weight: 600;">${pctTxt}</td>
+          <td style="padding: 10px 8px; font-size: 0.8rem; color: var(--texto-suave); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${retroTxt}">${retroTxt}</td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+    `;
+
+    cuerpo.innerHTML = html;
+    document.getElementById('detalleModal').style.display = 'flex';
+  }
+
+  function cerrarModal() {
+    document.getElementById('detalleModal').style.display = 'none';
+  }
+
+  // Cerrar modal al hacer click fuera
+  window.onclick = function(event) {
+    const modal = document.getElementById('detalleModal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  function descargarPDF() {
+    const element = document.querySelector('.main');
+    
+    // Ocultar botones y pestañas temporalmente
+    const exportBtns = document.querySelector('.export-buttons');
+    const tabsHeader = document.querySelector('.tabs');
+    if (exportBtns) exportBtns.style.display = 'none';
+    if (tabsHeader) tabsHeader.style.display = 'none';
+
+    // Mostrar ambos contenidos de pestañas en el PDF
+    const tabContents = document.querySelectorAll('.tab-content');
+    const originalDisplay = [];
+    tabContents.forEach(c => {
+      originalDisplay.push({ element: c, active: c.classList.contains('active'), styleDisplay: c.style.display });
+      c.style.display = 'block';
+      c.classList.add('active');
+    });
+
+    const opt = {
+      margin:      10,
+      filename:    'Reporte_Ficha_<%= fichaActiva.codigo %>.pdf',
+      image:       { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      // Restaurar estado original
+      if (exportBtns) exportBtns.style.display = 'flex';
+      if (tabsHeader) tabsHeader.style.display = 'flex';
+      originalDisplay.forEach(item => {
+        item.element.style.display = item.styleDisplay;
+        if (!item.active) {
+          item.element.classList.remove('active');
+        }
+      });
+    });
+  }
+
+  function exportCSV() {
+    let csv = 'Aprendiz,Estado,Aprobadas,Total,Porcentaje\n';
+    <% reporte.forEach(r => { %>
+      csv += '"<%= r.aprendiz.nombre %>","<%= r.aprendiz.estado %>",<%= r.aprobadas %>,<%= r.total %>,<%= r.pct %>%\n';
+    <% }) %>
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Reporte_Ficha_<%= fichaActiva.codigo %>.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+</script>
+</body>
+</html>
