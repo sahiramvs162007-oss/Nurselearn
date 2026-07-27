@@ -661,8 +661,13 @@ input:checked + .slider::before { transform: translateX(18px); }
   object-fit: contain;
   z-index: 2;
   filter: drop-shadow(0 15px 30px rgba(0,0,0,0.35));
-  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+  /* Difuminar bordes izquierdo, derecho e inferior para una mezcla imperceptible */
+  mask-image: linear-gradient(to bottom, black 85%, transparent 100%), 
+              linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%), 
+                      linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
 }
 
 .info-card {
@@ -708,16 +713,16 @@ input:checked + .slider::before { transform: translateX(18px); }
   font-size: 0.75rem;
 }
 
-/* Posición Tarjeta 1 */
+/* Posición Tarjeta 1 (Instructores Bilingües) */
 .card-instructor {
-  top: 45%;
-  left: -10%;
+  top: 72%;
+  left: -18%;
 }
 
-/* Posición Tarjeta 2 */
+/* Posición Tarjeta 2 (+500 Aprendices) */
 .card-users {
-  top: 20%;
-  right: -5%;
+  top: 22%;
+  right: -16%;
 }
 
 .avatars-group {
