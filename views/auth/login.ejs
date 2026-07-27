@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -7,32 +7,96 @@
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
-<div class="login-page">
-  <div class="login-card">
-    <div class="login-logo">
-      <h1>Nurse<span>Learn</span></h1>
-      <p>Sistema de Gestión de Actividades · Enfermería</p>
+<div class="login-wrapper">
+  <!-- Cabecera / Navegación superior -->
+  <header class="login-header">
+    <a href="#" class="login-header-logo">Nurse<span>Learn</span></a>
+    <nav class="login-nav-links">
+      <a href="#" class="active">Inicio</a>
+      <a href="#">Sobre el Sistema</a>
+      <a href="#">Módulos</a>
+      <a href="#">Soporte</a>
+    </nav>
+    <a href="https://www.sena.edu.co" target="_blank" class="btn-top-sena">SENA</a>
+  </header>
+
+  <!-- Contenido Principal (Héroe) -->
+  <main class="login-main">
+    <!-- Lado Izquierdo: Textos -->
+    <div class="login-content-left">
+      <div class="badge-medical">Hospital & Aprendizaje</div>
+      <h1 class="main-title">
+        Advanced <span>English Learning</span> & <span>Nursing</span> Training
+      </h1>
+      <p class="main-desc">
+        Plataforma virtual para el fortalecimiento de habilidades de inglés técnico aplicadas a aprendices y profesionales del área de enfermería.
+      </p>
+      
+      <div class="cta-actions">
+        <a href="#login-form" class="btn-get-started">Comenzar Ahora <span class="arrow">›</span></a>
+        <div class="emergency-contact">
+          <div class="contact-icon">📞</div>
+          <div class="contact-text">
+            <span>Mesa de Ayuda</span>
+            <strong>+57 (601) 546-1500</strong>
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- Lado Derecho: Imagen de Enfermera y Tarjetas Flotantes -->
+    <div class="login-content-right">
+      <img src="/img/enfermera.png" alt="Enfermera NurseLearn" class="nurse-img">
+      
+      <!-- Tarjeta Flotante 1 -->
+      <div class="info-card card-instructor animate-float-delay-1">
+        <div class="avatar">👩‍⚕️</div>
+        <div class="details">
+          <strong>Instructores Bilingües</strong>
+          <span>Seguimiento y apoyo activo</span>
+        </div>
+      </div>
+      
+      <!-- Tarjeta Flotante 2 -->
+      <div class="info-card card-users animate-float-delay-2">
+        <div class="avatars-group">
+          <div class="avatar-sm">👤</div>
+          <div class="avatar-sm">👤</div>
+          <div class="avatar-sm">👤</div>
+        </div>
+        <div class="details">
+          <strong>+500 Aprendices</strong>
+          <span>En formación continua</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Barra de Login Inferior (Glassmorphism) -->
+  <div class="login-bar-container">
     <% if (error && error.length) { %>
-      <div class="alert alert-error">⚠️ <%= error[0] %></div>
+      <div class="alert alert-error login-alert">⚠️ <%= error[0] %></div>
     <% } %>
     <% if (success && success.length) { %>
-      <div class="alert alert-success">✅ <%= success[0] %></div>
+      <div class="alert alert-success login-alert">✅ <%= success[0] %></div>
     <% } %>
 
-    <form action="/auth/login" method="POST">
-      <div class="form-group">
+    <form id="login-form" action="/auth/login" method="POST" class="login-bar-form">
+      <div class="bar-input-group">
         <label for="email">Correo electrónico</label>
-        <input type="email" id="email" name="email" required placeholder="correo@nurselearn.edu" autofocus>
+        <input type="email" id="email" name="email" required placeholder="correo@sena.edu.co" autofocus autocomplete="email">
       </div>
-      <div class="form-group">
+      
+      <div class="bar-input-group">
         <label for="password">Contraseña</label>
-        <input type="password" id="password" name="password" required placeholder="••••••••">
+        <input type="password" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
       </div>
-      <button type="submit" class="btn btn-primary w-100" style="justify-content:center; padding:12px;">
-        Ingresar al sistema
-      </button>
+
+      <div class="bar-submit-group">
+        <button type="submit" class="btn-login-submit">
+          Ingresar al Sistema
+        </button>
+      </div>
     </form>
   </div>
 </div>

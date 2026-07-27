@@ -438,137 +438,472 @@ input:checked + .slider { background: var(--verde); }
 input:checked + .slider::before { transform: translateX(18px); }
 
 /* ── LOGIN PAGE ──────────────────────────────────────── */
-.login-page {
+.login-wrapper {
   min-height: 100vh;
   position: relative;
-  background: radial-gradient(circle at 10% 20%, rgba(0, 61, 107, 0.95) 0%, rgba(0, 31, 56, 0.98) 90%);
+  background-image: linear-gradient(135deg, rgba(0, 31, 56, 0.9) 0%, rgba(0, 15, 28, 0.95) 100%), url('/img/hospital_bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 8%;
+  overflow-x: hidden;
+}
+
+/* --- HEADER --- */
+.login-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  padding: 20px;
-  overflow: hidden;
+  height: 80px;
+  z-index: 10;
+  animation: slideDown 0.6s ease-out both;
 }
 
-/* Efectos visuales de fondo (esferas de color difusas) */
-.login-page::before, .login-page::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  z-index: 1;
-  opacity: 0.45;
-  pointer-events: none;
-}
-
-.login-page::before {
-  width: 400px;
-  height: 400px;
-  background: var(--verde);
-  top: -10%;
-  left: -10%;
-  animation: floatBG 15s ease-in-out infinite alternate;
-}
-
-.login-page::after {
-  width: 500px;
-  height: 500px;
-  background: var(--azul);
-  bottom: -15%;
-  right: -10%;
-  animation: floatBG 20s ease-in-out infinite alternate-reverse;
-}
-
-@keyframes floatBG {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(50px, 40px) scale(1.1); }
-}
-
-@keyframes slideUpFade {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.login-card {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 20px;
-  padding: 45px 40px;
-  width: 100%;
-  max-width: 420px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 25px 55px rgba(0, 0, 0, 0.25), 
-              0 0 0 1px rgba(255, 255, 255, 0.1) inset;
-  z-index: 2;
-  animation: slideUpFade 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.login-logo {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.login-logo h1 {
-  font-size: 2rem;
+.login-header-logo {
+  font-size: 1.8rem;
   font-weight: 700;
-  color: var(--azul);
-  letter-spacing: -0.03em;
+  color: var(--blanco);
+  text-decoration: none;
+  letter-spacing: -0.02em;
 }
 
-.login-logo h1 span {
+.login-header-logo span {
+  color: var(--verde);
+}
+
+.login-nav-links {
+  display: flex;
+  gap: 30px;
+}
+
+.login-nav-links a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  padding-bottom: 5px;
+  transition: all 0.25s ease;
+}
+
+.login-nav-links a:hover, .login-nav-links a.active {
+  color: var(--blanco);
+}
+
+.login-nav-links a.active {
+  border-bottom: 2.5px solid var(--verde);
+  font-weight: 600;
+}
+
+.btn-top-sena {
+  background: var(--verde);
+  color: var(--blanco);
+  padding: 8px 24px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.btn-top-sena:hover {
+  background: var(--verde-oscuro);
+  box-shadow: 0 4px 15px rgba(57, 169, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+/* --- MAIN --- */
+.login-main {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  align-items: center;
+  gap: 40px;
+  flex-grow: 1;
+  padding: 30px 0 120px 0; /* Espacio abajo para la barra flotante */
+  z-index: 5;
+}
+
+.login-content-left {
+  color: var(--blanco);
+  animation: slideRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.badge-medical {
+  display: inline-block;
+  background: rgba(57, 169, 0, 0.15);
+  border: 1px solid rgba(57, 169, 0, 0.3);
+  color: #a3ff73;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 20px;
+}
+
+.main-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+
+.main-title span {
+  color: var(--blanco);
+}
+
+.main-title span:first-of-type {
+  font-weight: 300;
+}
+
+.main-title span:last-of-type {
   color: var(--verde);
   position: relative;
 }
 
-.login-logo h1 span::after {
-  content: '';
+.main-desc {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.7;
+  max-width: 520px;
+  margin-bottom: 35px;
+}
+
+.cta-actions {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.btn-get-started {
+  background: var(--blanco);
+  color: var(--azul);
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-get-started .arrow {
+  font-size: 1.3rem;
+  line-height: 1;
+  transition: transform 0.25s ease;
+}
+
+.btn-get-started:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  background: var(--gris);
+}
+
+.btn-get-started:hover .arrow {
+  transform: translateX(4px);
+}
+
+.emergency-contact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.contact-icon {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.contact-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-text span {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.contact-text strong {
+  font-size: 0.95rem;
+  color: var(--blanco);
+}
+
+/* --- RIGHT SIDE: NURSE & CARDS --- */
+.login-content-right {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 100%;
+  min-height: 420px;
+  animation: slideLeftAnim 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.nurse-img {
+  max-height: 480px;
+  object-fit: contain;
+  z-index: 2;
+  filter: drop-shadow(0 15px 30px rgba(0,0,0,0.35));
+  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+}
+
+.info-card {
   position: absolute;
-  bottom: -4px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+  z-index: 3;
+}
+
+.info-card .avatar {
+  background: var(--blanco);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.info-card .details {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-card .details strong {
+  color: var(--blanco);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.info-card .details span {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+}
+
+/* Posición Tarjeta 1 */
+.card-instructor {
+  top: 45%;
+  left: -10%;
+}
+
+/* Posición Tarjeta 2 */
+.card-users {
+  top: 20%;
+  right: -5%;
+}
+
+.avatars-group {
+  display: flex;
+  align-items: center;
+}
+
+.avatar-sm {
+  background: rgba(255,255,255,0.2);
+  border: 1.5px solid var(--blanco);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  margin-left: -8px;
+  color: white;
+}
+
+.avatar-sm:first-child {
+  margin-left: 0;
+}
+
+/* --- BARRA DE LOGIN INFERIOR --- */
+.login-bar-container {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 24px 35px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35),
+              0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  z-index: 10;
+  margin-bottom: 10px;
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+  position: relative;
+}
+
+.login-alert {
+  position: absolute;
+  top: -65px;
   left: 0;
   width: 100%;
-  height: 3px;
-  background: var(--verde);
-  border-radius: 10px;
+  margin-bottom: 0;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  z-index: 12;
 }
 
-.login-logo p {
-  color: var(--texto-suave);
-  font-size: 0.85rem;
-  margin-top: 10px;
-  font-weight: 500;
+.login-bar-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 240px;
+  gap: 30px;
+  align-items: flex-end;
 }
 
-/* Transiciones interactivas en inputs de login */
-.login-card .form-group input {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  border-width: 1.5px;
+.bar-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.login-card .form-group input:focus {
+.bar-input-group label {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.bar-input-group input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  color: var(--blanco);
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+  outline: none;
+}
+
+.bar-input-group input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.bar-input-group input:focus {
+  background: rgba(255, 255, 255, 0.15);
   border-color: var(--verde);
-  box-shadow: 0 0 0 4px rgba(57, 169, 0, 0.15);
+  box-shadow: 0 0 0 4px rgba(57, 169, 0, 0.25);
   transform: translateY(-1px);
 }
 
-.login-card .btn-primary {
+.btn-login-submit {
+  width: 100%;
+  background: var(--verde);
+  color: var(--blanco);
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(57, 169, 0, 0.2);
 }
 
-.login-card .btn-primary:hover {
+.btn-login-submit:hover {
+  background: var(--verde-oscuro);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(57, 169, 0, 0.3);
+  box-shadow: 0 8px 25px rgba(57, 169, 0, 0.4);
 }
 
-.login-card .btn-primary:active {
+.btn-login-submit:active {
   transform: translateY(0);
+}
+
+/* --- ANIMACIONES DE HOVER Y FLOAT --- */
+@keyframes float {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-10px); }
+}
+
+.animate-float-delay-1 {
+  animation: float 4s ease-in-out infinite alternate;
+}
+
+.animate-float-delay-2 {
+  animation: float 4.5s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideLeftAnim {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- RESPONSIVIDAD ESPECÍFICA --- */
+@media (max-width: 1024px) {
+  .login-wrapper {
+    padding: 20px 4%;
+  }
+  .login-main {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding-bottom: 160px;
+  }
+  .login-content-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .main-desc {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cta-actions {
+    justify-content: center;
+  }
+  .login-content-right {
+    display: none; /* Oculta enfermera en tablets para espacio */
+  }
+  .login-bar-form {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  .login-alert {
+    position: static;
+    margin-bottom: 15px;
+  }
 }
 
 /* ── RICH TEXT CONTENT ───────────────────────────────── */
