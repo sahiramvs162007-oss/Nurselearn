@@ -20,26 +20,66 @@
 
   <!-- Contenido Principal (Héroe) -->
   <main class="login-main">
-    <!-- Lado Izquierdo: Textos -->
+    <!-- Lado Izquierdo: Contenido Dinámico -->
     <div class="login-content-left">
-      <div class="badge-medical">Hospital & Aprendizaje</div>
-      <h1 class="main-title">
-        English Skills <span>for Future &</span> <br><span>Nurses</span>
-      </h1>
-      <p class="main-desc">
-        Desarrolla competencias en inglés para el sector salud mediante una plataforma interactiva, práctica y diseñada para fortalecer tu desempeño profesional.
-      </p>
       
-      <div class="cta-actions">
-        <a href="#login-form" class="btn-get-started">Comenzar Ahora <span class="arrow">›</span></a>
-        <div class="emergency-contact">
-          <div class="contact-icon">📞</div>
-          <div class="contact-text">
-            <span>Mesa de Ayuda</span>
-            <strong>+57 (601) 546-1500</strong>
+      <!-- Bloque 1: Bienvenida (Visible por defecto) -->
+      <div class="login-intro-block">
+        <div class="badge-medical">Hospital & Aprendizaje</div>
+        <h1 class="main-title">
+          English Skills <span>for Future &</span> <br><span>Nurses</span>
+        </h1>
+        <p class="main-desc">
+          Desarrolla competencias en inglés para el sector salud mediante una plataforma interactiva, práctica y diseñada para fortalecer tu desempeño profesional.
+        </p>
+        
+        <div class="cta-actions">
+          <button class="btn-get-started">Comenzar Ahora <span class="arrow">›</span></button>
+          <div class="emergency-contact">
+            <div class="contact-icon">📞</div>
+            <div class="contact-text">
+              <span>Mesa de Ayuda</span>
+              <strong>+57 (601) 546-1500</strong>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Bloque 2: Formulario de Login (Oculto por defecto, reemplaza al Bloque 1) -->
+      <div class="login-form-block" style="display: none;">
+        <% if (error && error.length) { %>
+          <div class="alert alert-error login-alert">⚠️ <%= error[0] %></div>
+        <% } %>
+        <% if (success && success.length) { %>
+          <div class="alert alert-success login-alert">✅ <%= success[0] %></div>
+        <% } %>
+
+        <div class="login-box">
+          <h2 class="login-box-title">Iniciar Sesión</h2>
+          <p class="login-box-subtitle">Ingresa tus credenciales para acceder a la plataforma</p>
+
+          <form id="login-form" action="/auth/login" method="POST">
+            <div class="form-group">
+              <label for="email">Correo electrónico</label>
+              <input type="email" id="email" name="email" required placeholder="correo@sena.edu.co" autocomplete="email">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 25px;">
+              <label for="password">Contraseña</label>
+              <input type="password" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn-login-submit">
+              Ingresar al Sistema
+            </button>
+          </form>
+
+          <button class="btn-back-intro">
+            ← Volver al inicio
+          </button>
+        </div>
+      </div>
+
     </div>
 
     <!-- Lado Derecho: Imagen de Enfermera y Tarjetas Flotantes -->
@@ -69,59 +109,58 @@
       </div>
     </div>
   </main>
-
-  <!-- Barra de Login Inferior (Glassmorphism) -->
-  <div class="login-bar-container">
-    <% if (error && error.length) { %>
-      <div class="alert alert-error login-alert">⚠️ <%= error[0] %></div>
-    <% } %>
-    <% if (success && success.length) { %>
-      <div class="alert alert-success login-alert">✅ <%= success[0] %></div>
-    <% } %>
-
-    <form id="login-form" action="/auth/login" method="POST" class="login-bar-form">
-      <div class="bar-input-group">
-        <label for="email">Correo electrónico</label>
-        <input type="email" id="email" name="email" required placeholder="correo@sena.edu.co" autofocus autocomplete="email">
-      </div>
-      
-      <div class="bar-input-group">
-        <label for="password">Contraseña</label>
-        <input type="password" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
-      </div>
-
-      <div class="bar-submit-group">
-        <button type="submit" class="btn-login-submit">
-          Ingresar al Sistema
-        </button>
-      </div>
-    </form>
-  </div>
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const btnGetStarted = document.querySelector('.btn-get-started');
-    const loginBar = document.querySelector('.login-bar-container');
+    const btnBackIntro = document.querySelector('.btn-back-intro');
+    const introBlock = document.querySelector('.login-intro-block');
+    const formBlock = document.querySelector('.login-form-block');
     const emailInput = document.getElementById('email');
 
-    // Si existen mensajes de error o éxito al recargar, la barra se muestra de inmediato
+    // Función para ocultar intro y mostrar formulario
+    const showLoginForm = () => {
+      introBlock.classList.add('hide');
+      setTimeout(() => {
+        introBlock.style.display = 'none';
+        formBlock.style.display = 'block';
+        setTimeout(() => {
+          formBlock.classList.add('show');
+          emailInput.focus();
+        }, 50);
+      }, 400);
+    };
+
+    // Función para ocultar formulario y mostrar intro
+    const showIntroText = () => {
+      formBlock.classList.remove('show');
+      setTimeout(() => {
+        formBlock.style.display = 'none';
+        introBlock.style.display = 'block';
+        setTimeout(() => {
+          introBlock.classList.remove('hide');
+        }, 50);
+      }, 400);
+    };
+
+    // Si existen mensajes de error o éxito al recargar, se muestra el formulario de inmediato
     const hasAlert = document.querySelector('.login-alert');
     if (hasAlert) {
-      loginBar.classList.add('show');
+      introBlock.style.display = 'none';
+      introBlock.classList.add('hide');
+      formBlock.style.display = 'block';
+      formBlock.classList.add('show');
     }
 
     btnGetStarted.addEventListener('click', (e) => {
       e.preventDefault();
-      loginBar.classList.add('show');
-      
-      // Desplazamiento suave para asegurar la visualización en pantallas pequeñas
-      loginBar.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      
-      // Enfocar campo de correo electrónico
-      setTimeout(() => {
-        emailInput.focus();
-      }, 500);
+      showLoginForm();
+    });
+
+    btnBackIntro.addEventListener('click', (e) => {
+      e.preventDefault();
+      showIntroText();
     });
   });
 </script>
