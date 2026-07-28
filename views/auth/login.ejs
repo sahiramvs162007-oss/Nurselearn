@@ -14,8 +14,6 @@
     <nav class="login-nav-links">
       <a href="#" class="active">Inicio</a>
       <a href="#">Sobre el Sistema</a>
-      <a href="#">Módulos</a>
-      <a href="#">Soporte</a>
     </nav>
     <a href="https://www.sena.edu.co" target="_blank" class="btn-top-sena">SENA</a>
   </header>
@@ -26,10 +24,10 @@
     <div class="login-content-left">
       <div class="badge-medical">Hospital & Aprendizaje</div>
       <h1 class="main-title">
-        Advanced <span>English Learning</span> & <span>Nursing</span> Training
+        English Skills <span>for Future &</span> <br><span>Nurses</span>
       </h1>
       <p class="main-desc">
-        Plataforma virtual para el fortalecimiento de habilidades de inglés técnico aplicadas a aprendices y profesionales del área de enfermería.
+        Desarrolla competencias en inglés para el sector salud mediante una plataforma interactiva, práctica y diseñada para fortalecer tu desempeño profesional.
       </p>
       
       <div class="cta-actions">
@@ -52,8 +50,8 @@
       <div class="info-card card-instructor animate-float-delay-1">
         <div class="avatar">👩‍⚕️</div>
         <div class="details">
-          <strong>Instructores Bilingües</strong>
-          <span>Seguimiento y apoyo activo</span>
+          <strong>Expert Instructors</strong>
+          <span>Personalized guidance</span>
         </div>
       </div>
       
@@ -65,8 +63,8 @@
           <div class="avatar-sm">👤</div>
         </div>
         <div class="details">
-          <strong>+500 Aprendices</strong>
-          <span>En formación continua</span>
+          <strong>+500 Active</strong>
+          <span>Learners Learning every day</span>
         </div>
       </div>
     </div>
@@ -100,5 +98,32 @@
     </form>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnGetStarted = document.querySelector('.btn-get-started');
+    const loginBar = document.querySelector('.login-bar-container');
+    const emailInput = document.getElementById('email');
+
+    // Si existen mensajes de error o éxito al recargar, la barra se muestra de inmediato
+    const hasAlert = document.querySelector('.login-alert');
+    if (hasAlert) {
+      loginBar.classList.add('show');
+    }
+
+    btnGetStarted.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginBar.classList.add('show');
+      
+      // Desplazamiento suave para asegurar la visualización en pantallas pequeñas
+      loginBar.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      
+      // Enfocar campo de correo electrónico
+      setTimeout(() => {
+        emailInput.focus();
+      }, 500);
+    });
+  });
+</script>
 </body>
 </html>
