@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -7,14 +7,14 @@
 </head>
 <body>
 <div class="layout">
-  <header class="topbar">
-    <a href="/instructor" class="topbar-logo">Nurse<span>Learn</span></a>
-    <div class="topbar-spacer"></div>
-    <div class="topbar-user"><span><%= user %></span><span class="topbar-rol">Instructor</span></div>
-  </header>
+  <!-- SIDEBAR -->
   <nav class="sidebar">
+    <% locals.currentPath = '/instructor'; %>
     <%- include('../partials/sidebar', { session: { userRol: 'instructor' } }) %>
   </nav>
+
+  <!-- TOPBAR -->
+  <%- include('../partials/topbar', { user: user, userRol: 'Instructor' }) %>
   <main class="main">
     <div class="page-header">
       <h1 class="page-title">Bienvenido, <%= user.split(' ')[0] %></h1>

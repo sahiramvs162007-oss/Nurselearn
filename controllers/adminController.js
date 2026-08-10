@@ -8,14 +8,19 @@ const Actividad = require('../models/Actividad');
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 exports.getDashboard = async (req, res, next) => {
   try {
-    const [totalFichas, totalUsers, totalModulos] = await Promise.all([
+    const [totalFichas, totalUsers, totalModulos, totalInstructors, recentUsers] = await Promise.all([
       Ficha.countDocuments(),
       User.countDocuments({ rol: { $ne: 'admin' } }),
-      Modulo.countDocuments()
+      Modulo.countDocuments(),
+      User.countDocuments({ rol: 'instructor' }),
+      User.find().sort('-_id').limit(6).lean()
     ]);
     res.render('admin/dashboard', {
-      titulo: 'Panel Administrador', user: req.session.userName,
-      stats: { totalFichas, totalUsers, totalModulos }
+      titulo: 'Panel Administrador', 
+      user: req.session.userName,
+      userRol: req.session.userRol || 'Administrador',
+      stats: { totalFichas, totalUsers, totalModulos, totalInstructors },
+      recentUsers
     });
   } catch (err) { next(err); }
 };

@@ -1,68 +1,216 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= titulo %> — NurseLearn</title>
-  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/main.css?v=11">
 </head>
 <body>
 <div class="layout">
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <a href="/admin" class="topbar-logo">Nurse<span>Learn</span></a>
-    <div class="topbar-spacer"></div>
-    <div class="topbar-user">
-      <span><%= user %></span>
-      <span class="topbar-rol">Administrador</span>
-    </div>
-  </header>
-
   <!-- SIDEBAR -->
   <nav class="sidebar">
     <% locals.currentPath = '/admin'; %>
     <%- include('../partials/sidebar', { session: { userRol: 'admin' } }) %>
   </nav>
 
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-portal-title">SENA Nursing English</div>
+    <div class="topbar-right">
+      <button class="topbar-icon-btn" title="Notificaciones">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </button>
+
+      <div class="user-avatar-pill">
+        <% const initials = (user || 'Admin').split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase(); %>
+        <div class="user-avatar-circle"><%= initials %></div>
+        <div class="user-avatar-info">
+          <span class="user-avatar-name"><%= user %></span>
+          <span class="user-avatar-rol"><%= userRol || 'Administrador' %></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
   <!-- MAIN -->
   <main class="main">
-    <div class="page-header">
-      <h1 class="page-title">Panel de Administración</h1>
-      <p class="page-subtitle">Gestión global del sistema NurseLearn</p>
+    <!-- PAGE HEADER -->
+    <div class="page-header-container">
+      <div>
+        <div class="page-category-label">Management Console</div>
+        <h1 class="page-title">User Directory & Dashboard</h1>
+        <p class="page-subtitle">
+          Oversee and manage the access levels of students and clinical instructors within the Nursing English portal. Manage roles to ensure compliance with clinical training protocols.
+        </p>
+      </div>
+      <div class="page-header-actions">
+        <a href="/admin/reportes" class="btn btn-teal-soft">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Import Users (CSV)
+        </a>
+        <a href="/admin/usuarios" class="btn btn-secondary" style="border-radius: var(--radio-pill);">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Add New User
+        </a>
+      </div>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-num"><%= stats.totalFichas %></div>
-        <div class="stat-label">Fichas activas</div>
+    <!-- STAT CARDS SAAS -->
+    <div class="stats-grid-saas">
+      <!-- CARD 1: APRENDICES -->
+      <div class="stat-card-saas">
+        <div class="stat-card-header">
+          <span class="stat-card-label">Total Students</span>
+          <div class="stat-card-icon-box">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+        </div>
+        <div class="stat-card-value"><%= stats.totalUsers %></div>
       </div>
-      <div class="stat-card">
-        <div class="stat-num"><%= stats.totalUsers %></div>
-        <div class="stat-label">Usuarios registrados</div>
+
+      <!-- CARD 2: INSTRUCTORES -->
+      <div class="stat-card-saas">
+        <div class="stat-card-header">
+          <span class="stat-card-label">Instructors</span>
+          <div class="stat-card-icon-box" style="background:#e0f2fe; color:#0369a1;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+            </svg>
+          </div>
+        </div>
+        <div class="stat-card-value"><%= stats.totalInstructors || 1 %></div>
+        <div class="stat-card-avatars">
+          <div class="avatar-stack-item" style="background: #0284c7;">DR</div>
+          <div class="avatar-stack-item" style="background: #0d9488;">JS</div>
+          <div class="avatar-stack-item" style="background: #e11d48;">AM</div>
+          <div class="avatar-stack-item" style="background: #64748b; font-size:0.6rem;">+<%= stats.totalInstructors > 3 ? stats.totalInstructors - 3 : 0 %></div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-num"><%= stats.totalModulos %></div>
-        <div class="stat-label">Módulos creados</div>
+
+      <!-- CARD 3: FICHAS ACTIVAS -->
+      <div class="stat-card-saas">
+        <div class="stat-card-header">
+          <span class="stat-card-label">Active Cohorts</span>
+          <div class="stat-card-icon-box" style="background:#dcfce7; color:#15803d;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="stat-card-value"><%= stats.totalFichas %></div>
+        <div class="stat-card-badge-sub">
+          <span style="color:#15803d; font-weight:600;">● Active</span> &middot; <%= stats.totalModulos %> modules created
+        </div>
       </div>
     </div>
 
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Accesos rápidos</div>
-        <div class="flex" style="flex-direction:column; gap:10px;">
-          <a href="/admin/usuarios" class="btn btn-primary">👥 Crear usuario</a>
-          <a href="/admin/fichas" class="btn btn-secondary">🗂️ Nueva ficha</a>
-          <a href="/admin/asignaciones" class="btn btn-outline">🔗 Asignar instructor</a>
-          <a href="/admin/reportes" class="btn btn-ghost">📊 Ver reportes globales</a>
+    <!-- USER DIRECTORY TABLE CONTAINER -->
+    <div class="card-table-container">
+      <div class="table-toolbar">
+        <div class="search-input-pill">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" placeholder="Search by name, email or ID...">
         </div>
+
+        <button class="btn-filter-pill">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filter
+        </button>
       </div>
-      <div class="card">
-        <div class="card-title">Contenido pedagógico</div>
-        <div class="flex" style="flex-direction:column; gap:10px;">
-          <a href="/admin/modulos" class="btn btn-outline">📚 Gestionar módulos</a>
-          <a href="/admin/raps" class="btn btn-outline">🎯 Gestionar RAPs</a>
-        </div>
-        <div class="alert alert-warning" style="margin-top:16px;">
-          ⚠️ Los módulos y RAPs son el esqueleto pedagógico global de NurseLearn. Cambiarlos afecta todas las fichas.
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (locals.recentUsers && recentUsers.length) { %>
+              <% recentUsers.forEach((u, i) => { 
+                const uInit = u.nombre.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+                const colors = ['#0284c7', '#0d9488', '#e11d48', '#d97706', '#7c3aed'];
+                const bgCol = colors[i % colors.length];
+                const roleClass = u.rol === 'admin' ? 'badge-role-admin' : u.rol === 'instructor' ? 'badge-role-instructor' : 'badge-role-student';
+              %>
+                <tr>
+                  <td>
+                    <div class="user-cell">
+                      <div class="user-cell-avatar" style="background: <%= bgCol %>; color: white;">
+                        <%= uInit %>
+                      </div>
+                      <div class="user-cell-info">
+                        <span class="user-cell-name"><%= u.nombre %></span>
+                        <span class="user-cell-sub">ID SENA-<%= String(u._id).substring(18,24).toUpperCase() %></span>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="color: var(--texto-suave); font-family: var(--font);"><%= u.email %></td>
+                  <td>
+                    <span class="badge-role <%= roleClass %>">
+                      <%= u.rol === 'aprendiz' ? 'STUDENT' : u.rol.toUpperCase() %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-pill">
+                      <span class="status-dot <%= (u.estado || 'Activo') === 'Activo' ? 'active' : 'inactive' %>"></span>
+                      <%= (u.estado || 'Activo') === 'Activo' ? 'Active' : 'Inactive' %>
+                    </span>
+                  </td>
+                  <td style="text-align: right;">
+                    <a href="/admin/usuarios" class="btn btn-ghost btn-sm" title="Editar usuario">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="5" style="text-align:center; padding:30px; color:var(--texto-muted);">
+                  No hay usuarios registrados aún.
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TABLE FOOTER PAGINATION -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-size: 0.82rem; color: var(--texto-suave);">
+        <span>Showing <%= locals.recentUsers ? recentUsers.length : 0 %> of <%= stats.totalUsers + (stats.totalInstructors || 0) %> entries</span>
+        <div style="display: flex; gap: 6px;">
+          <button class="btn btn-secondary btn-sm" style="min-width: 28px; padding: 4px 10px;">1</button>
+          <button class="btn btn-ghost btn-sm" style="min-width: 28px; padding: 4px 10px;">2</button>
+          <button class="btn btn-ghost btn-sm" style="min-width: 28px; padding: 4px 10px;">3</button>
         </div>
       </div>
     </div>

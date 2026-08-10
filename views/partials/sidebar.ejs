@@ -1,41 +1,83 @@
-﻿<%
+<%
 const rol = session.userRol;
 const adminLinks = [
-  { href: '/admin', icon: '🏠', label: 'Dashboard' },
-  { href: '/admin/modulos', icon: '📚', label: 'Módulos' },
-  { href: '/admin/raps', icon: '🎯', label: 'RAPs' },
-  { href: '/admin/fichas', icon: '🗂️', label: 'Fichas' },
-  { href: '/admin/usuarios', icon: '👥', label: 'Usuarios' },
-  { href: '/admin/asignaciones', icon: '🔗', label: 'Asignaciones' },
-  { href: '/admin/reportes', icon: '📊', label: 'Reportes' },
+  { href: '/admin', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>', label: 'Dashboard' },
+  { href: '/admin/modulos', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>', label: 'Módulos' },
+  { href: '/admin/raps', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>', label: 'RAPs' },
+  { href: '/admin/fichas', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>', label: 'Fichas' },
+  { href: '/admin/usuarios', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', label: 'Usuarios' },
+  { href: '/admin/asignaciones', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>', label: 'Asignaciones' },
+  { href: '/admin/reportes', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>', label: 'Reportes' },
 ];
 const instrLinks = [
-  { href: '/instructor', icon: '🏠', label: 'Dashboard' },
-  { href: '/instructor/actividades', icon: '📝', label: 'Actividades' },
-  { href: '/instructor/entregas', icon: '📬', label: 'Entregas' },
-  { href: '/instructor/clonar', icon: '📋', label: 'Clonar actividades' },
-  { href: '/instructor/reportes', icon: '📊', label: 'Reportes' },
+  { href: '/instructor', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>', label: 'Dashboard' },
+  { href: '/instructor/actividades', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>', label: 'Actividades' },
+  { href: '/instructor/entregas', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>', label: 'Entregas' },
+  { href: '/instructor/clonar', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>', label: 'Clonar actividades' },
+  { href: '/instructor/reportes', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>', label: 'Reportes' },
 ];
 const aprendizLinks = [
-  { href: '/aprendiz', icon: '🏠', label: 'Mi ruta' },
-  { href: '/aprendiz/historial', icon: '📄', label: 'Historial' },
+  { href: '/aprendiz', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>', label: 'Mi ruta' },
+  { href: '/aprendiz/historial', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>', label: 'Historial' },
 ];
 const links = rol === 'admin' ? adminLinks : rol === 'instructor' ? instrLinks : aprendizLinks;
 const currentPath = locals.currentPath || '';
+const homeHref = rol === 'admin' ? '/admin' : rol === 'instructor' ? '/instructor' : '/aprendiz';
 %>
-<div class="sidebar-section">
-  <div class="sidebar-label">Navegación</div>
-  <% links.forEach(l => { %>
-    <a href="<%= l.href %>" class="<%= currentPath === l.href ? 'active' : '' %>">
-      <span class="icon"><%= l.icon %></span>
-      <%= l.label %>
-    </a>
-  <% }) %>
+
+<div>
+  <!-- BRAND HEADER -->
+  <a href="<%= homeHref %>" class="sidebar-brand">
+    <div class="sidebar-logo-icon">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+    <div class="sidebar-brand-text">
+      <span class="sidebar-brand-name">NurseLearn</span>
+      <span class="sidebar-brand-sub">LEARNING PORTAL</span>
+    </div>
+  </a>
+
+  <!-- NAV LINKS -->
+  <div class="sidebar-nav-container">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Navigation</div>
+      <% links.forEach(l => { %>
+        <a href="<%= l.href %>" class="<%= currentPath === l.href ? 'active' : '' %>">
+          <span class="icon"><%- l.icon %></span>
+          <%= l.label %>
+        </a>
+      <% }) %>
+    </div>
+  </div>
 </div>
-<div class="sidebar-logout">
-  <form action="/auth/logout" method="POST">
-    <button type="submit" class="btn btn-ghost w-100" style="justify-content:center;">
-      🚪 Cerrar sesión
-    </button>
-  </form>
+
+<div>
+  <!-- FOOTER WIDGET -->
+  <div class="sidebar-widget">
+    <div class="sidebar-widget-title">Overall RAPs Completion</div>
+    <div class="sidebar-widget-progress">
+      <span>85%</span>
+      <span style="font-weight: 500; font-size: 0.7rem; color: var(--texto-muted);">42/50 Tasks</span>
+    </div>
+    <div class="sidebar-widget-bar">
+      <div class="sidebar-widget-fill" style="width: 85%;"></div>
+    </div>
+  </div>
+
+  <!-- LOGOUT BUTTON -->
+  <div class="sidebar-logout">
+    <form action="/auth/logout" method="POST">
+      <button type="submit" class="btn btn-ghost w-100" style="justify-content:center; gap:8px;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Cerrar sesión
+      </button>
+    </form>
+  </div>
 </div>
