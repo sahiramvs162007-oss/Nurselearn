@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .mod-group { margin-bottom: 24px; border: 1px solid var(--gris-borde); border-radius: 12px; background: white; overflow: hidden; }
+    .mod-header { background: var(--azul-claro); padding: 14px 20px; font-weight: 700; color: var(--azul); font-size: 1.1rem; }
+    .rap-group { padding: 16px 20px; border-top: 1px solid var(--gris-borde); }
+    .rap-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; color: var(--verde-oscuro); display: flex; align-items: center; gap: 8px; }
+    .rap-title::before { content: '🎯'; font-size: 1.2rem; }
+    .empty-state { padding: 20px; text-align: center; color: var(--texto-suave); font-style: italic; }
+    .leccion-item { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border:1px solid var(--gris-borde); border-radius:10px; margin-bottom:10px; background:#fff; }
+    .leccion-badges { display:flex; gap:8px; margin-top:4px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <header class="topbar">
+    <a href="/instructor" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span><%= user %></span>
+      <span class="topbar-rol">Instructor</span>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <% locals.currentPath = '/instructor/lecciones'; %>
+    <%- include('../partials/sidebar', { session: { userRol: 'instructor' } }) %>
+  </nav>
+
+  <main class="main">
+    <div class="page-header flex-between">
+      <div>
+        <h1 class="page-title">Mis Lecciones</h1>
+        <p class="page-subtitle">Gestiona las lecciones para la ficha: <strong><%= fichaActiva.nombre %></strong></p>
+      </div>
+      <a href="/instructor/lecciones/crear" class="btn btn-primary">+ Nueva lección</a>
+    </div>
+
+    <% if (error && error.length) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
+    <% if (success && success.length) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
+
+    <% if (lecciones.length === 0) { %>
+      <div class="card text-center">
+        <h3>Aún no has creado lecciones para esta ficha.</h3>
+        <p class="text-muted mt-12 mb-16">Una lección agrupa el contenido (texto, video, imágenes...) y las actividades que el aprendiz realizará.</p>
+        <div class="flex gap-12" style="justify-content:center;">
+          <a href="/instructor/lecciones/crear" class="btn btn-primary">Crear Nueva</a>
+          <a href="/instructor/clonar" class="btn btn-outline">Importar Lecciones</a>
+        </div>
+      </div>
+    <% } else { %>
+
+      <%
+        const leccPorRap = {};
+        lecciones.forEach(l => {
+          if (!leccPorRap[l.rap]) leccPorRap[l.rap] = [];
+          leccPorRap[l.rap].push(l);
+        });
+
+        const rapsPorMod = {};
+        raps.forEach(r => {
+          const modId = r.modulo._id.toString();
+          if (!rapsPorMod[modId]) rapsPorMod[modId] = [];
+          rapsPorMod[modId].push(r);
+        });
+      %>
+
+      <% modulos.forEach(m => {
+        const misRapsEnMod = rapsPorMod[m._id.toString()] || [];
+        if (misRapsEnMod.length === 0) return;
+      %>
+        <div class="mod-group">
+          <div class="mod-header">Módulo: <%= m.nombre %></div>
+
+          <% misRapsEnMod.forEach(r => {
+            const leccs = leccPorRap[r._id.toString()] || [];
+          %>
+            <div class="rap-group">
+              <div class="rap-title">RAP: <%= r.nombre %></div>
+
+              <% if (leccs.length === 0) { %>
+                <div class="empty-state">No hay lecciones en este RAP.</div>
+              <% } else { %>
+                <% leccs.forEach(l => { %>
+                  <div class="leccion-item" style="<%= l.visible ? '' : 'opacity:0.6; filter:grayscale(1);' %>" id="lec-<%= l._id %>">
+                    <a href="/instructor/lecciones/<%= l._id %>" style="text-decoration:none; color:inherit; flex:1;">
+                      <div style="font-weight:600; color:var(--azul);">📖 <%= l.titulo %></div>
+                      <div class="leccion-badges">
+                        <span class="badge badge-gray" style="font-size:0.7rem;"><%= l.momentoPedagogico %></span>
+                        <span class="badge badge-info" style="font-size:0.7rem;"><%= l._numBloques %> bloque<%= l._numBloques === 1 ? '' : 's' %></span>
+                        <span class="badge badge-warning" style="font-size:0.7rem;"><%= l._numActividades %> actividad<%= l._numActividades === 1 ? '' : 'es' %></span>
+                      </div>
+                    </a>
+                    <div class="flex gap-12 align-center">
+                      <div class="switch-wrap" title="Alternar visibilidad">
+                        <label class="switch">
+                          <input type="checkbox" <%= l.visible ? 'checked' : '' %> onchange="toggleVisibilidad('<%= l._id %>')">
+                          <span class="slider"></span>
+                        </label>
+                      </div>
+                      <form action="/instructor/lecciones/<%= l._id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar lección? Se borrará también su contenido y actividades.');">
+                        <button type="submit" class="btn btn-sm btn-ghost" style="color:var(--rojo);" title="Eliminar">🗑️</button>
+                      </form>
+                    </div>
+                  </div>
+                <% }) %>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+      <% }) %>
+
+    <% } %>
+  </main>
+</div>
+
+<script>
+  async function toggleVisibilidad(id) {
+    try {
+      const res = await fetch('/instructor/lecciones/' + id + '/visibilidad', { method: 'POST' });
+      const data = await res.json();
+      const el = document.getElementById('lec-' + id);
+      if (data.visible) {
+        el.style.opacity = '1';
+        el.style.filter = 'none';
+      } else {
+        el.style.opacity = '0.6';
+        el.style.filter = 'grayscale(1)';
+      }
+    } catch(e) {
+      alert('Error al cambiar visibilidad');
+      window.location.reload();
+    }
+  }
+</script>
+</body>
+</html>

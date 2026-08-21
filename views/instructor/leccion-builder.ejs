@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .tipo-selector { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px; }
+    .tipo-btn { border:2px solid var(--gris-borde); border-radius:10px; padding:12px 8px; cursor:pointer; text-align:center; transition:all 0.18s; background:white; }
+    .tipo-btn:hover, .tipo-btn.selected { border-color:var(--verde); background:var(--verde-claro); }
+    .tipo-btn .ico { font-size:1.5rem; display:block; margin-bottom:4px; }
+    .tipo-btn .lbl { font-weight:600; font-size:0.78rem; color:var(--azul); }
+    .section { display:none; }
+    .section.visible { display:block; }
+    .pregunta-item { border:1px solid var(--gris-borde); border-radius:8px; padding:16px; margin-bottom:12px; }
+    .par-item, .faq-item { display:flex; gap:8px; margin-bottom:8px; }
+    .par-item input, .faq-item input { flex:1; }
+
+    .bloque-card, .act-card { border:1px solid var(--gris-borde); border-radius:10px; padding:14px 16px; margin-bottom:10px; background:#fff; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .bloque-card .bloque-body { flex:1; min-width:0; }
+    .bloque-tipo-tag { font-size:0.7rem; font-weight:700; color:var(--verde-oscuro); text-transform:uppercase; letter-spacing:0.03em; }
+    .bloque-preview { color:var(--texto-suave); font-size:0.85rem; margin-top:4px; max-height:3.2em; overflow:hidden; }
+    .add-block-panel, .add-act-panel { border:2px dashed var(--gris-borde); border-radius:12px; padding:20px; margin-top:14px; display:none; }
+    .add-block-panel.visible, .add-act-panel.visible { display:block; }
+    .section-block { margin-bottom:30px; }
+    .section-block-title { font-weight:700; font-size:1.05rem; color:var(--azul); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  </style>
+</head>
+<%
+  function iconoBloque(tipo) {
+    const iconos = {
+      texto: '📝', video: '🎥', imagen: '🖼', audio: '🎧', pdf: '📄',
+      tarjetas: '📚', faq: '❓', nota: '📌', descargable: '📂',
+      enlace: '🔗', tabla: '📊', separador: '➖'
+    };
+    return iconos[tipo] || '📦';
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function previewBloque(b) {
+    const c = b.contenido || {};
+    switch (b.tipo) {
+      case 'texto': return escapeHtml(c.html).slice(0, 160);
+      case 'video': return `<a href="${escapeHtml(c.url)}" target="_blank">${escapeHtml(c.url)}</a>`;
+      case 'imagen': return `${escapeHtml(c.url)} ${c.alt ? '(' + escapeHtml(c.alt) + ')' : ''}`;
+      case 'audio': return escapeHtml(c.url);
+      case 'pdf': return escapeHtml(c.nombre || c.url);
+      case 'descargable': return escapeHtml(c.nombre || c.url);
+      case 'enlace': return `${escapeHtml(c.titulo || c.url)}`;
+      case 'nota': return escapeHtml(c.texto).slice(0, 160);
+      case 'tarjetas': return `${(c.pares || []).length} tarjeta(s): ` + (c.pares || []).slice(0, 3).map(p => escapeHtml(p.frente) + ' → ' + escapeHtml(p.reverso)).join(', ');
+      case 'faq': return `${(c.items || []).length} pregunta(s) frecuente(s)`;
+      case 'tabla': return `${(c.encabezados || []).length} columnas, ${(c.filas || []).length} filas`;
+      case 'separador': return '(separador visual)';
+      default: return '';
+    }
+  }
+%>
+
+<body>
+<div class="layout">
+  <header class="topbar">
+    <a href="/instructor" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user"><span><%= user %></span><span class="topbar-rol">Instructor</span></div>
+  </header>
+
+  <nav class="sidebar">
+    <% locals.currentPath = '/instructor/lecciones'; %>
+    <%- include('../partials/sidebar', { session: { userRol: 'instructor' } }) %>
+  </nav>
+
+  <main class="main">
+    <div class="page-header flex-between">
+      <div>
+        <h1 class="page-title">📖 <%= leccion.titulo %></h1>
+        <p class="page-subtitle">
+          RAP: <strong><%= leccion.rap.nombre %></strong> · Momento: <strong><%= leccion.momentoPedagogico %></strong>
+        </p>
+      </div>
+      <a href="/instructor/lecciones" class="btn btn-ghost">← Volver a lecciones</a>
+    </div>
+
+    <% if (error && error.length) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
+    <% if (success && success.length) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
+
+    <!-- ══════════ CONTENIDO (BLOQUES) ══════════ -->
+    <div class="section-block">
+      <div class="section-block-title">🧱 Construcción de la lección</div>
+
+      <% if (bloques.length === 0) { %>
+        <div class="card text-center" style="padding:24px;">
+          <p class="text-muted">Aún no hay contenido. Agrega el primer bloque.</p>
+        </div>
+      <% } else { %>
+        <% bloques.forEach(b => { %>
+          <div class="bloque-card">
+            <div class="bloque-body">
+              <span class="bloque-tipo-tag"><%= iconoBloque(b.tipo) %> <%= b.tipo %></span>
+              <div class="bloque-preview"><%- previewBloque(b) %></div>
+            </div>
+            <form action="/instructor/lecciones/<%= leccion._id %>/bloques/<%= b._id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar este bloque?');">
+              <button type="submit" class="btn btn-sm btn-ghost" style="color:var(--rojo);" title="Eliminar">🗑️</button>
+            </form>
+          </div>
+        <% }) %>
+      <% } %>
+
+      <button type="button" class="btn btn-outline mt-12" onclick="togglePanel('add-block-panel')">+ Agregar bloque</button>
+
+      <div class="add-block-panel" id="add-block-panel">
+        <form action="/instructor/lecciones/<%= leccion._id %>/bloques" method="POST" id="form-bloque">
+          <div class="tipo-selector">
+            <div class="tipo-btn" onclick="seleccionarBloque('texto')" id="btn-b-texto"><span class="ico">📝</span><span class="lbl">Texto</span></div>
+            <div class="tipo-btn" onclick="seleccionarBloque('video')" id="btn-b-video"><span class="ico">🎥</span><span class="lbl">Video</span></div>
+            <div class="tipo-btn" onclick="seleccionarBloque('imagen')" id="btn-b-imagen"><span class="ico">🖼</span><span class="lbl">Imagen</span></div>
+            <div class="tipo-btn" onclick="seleccionarBloque('audio')" id="btn-b-audio"><span class="ico">🎧</span><span class="lbl">Audio</span></div>
+            <div class="tipo-btn" onclick="seleccionarBloque('pdf')" id="btn-b-pdf"><span class="ico">📄</span><span class="lbl">PDF</span></div>
+            <div class="tipo-btn" onclick="seleccionarBloque('tarjetas')" id="btn-b-tarjetas"><span class="ico">📚</span><span class="lbl">Tarjetas</span></div>
+            <div class="tipo-btn" onclick="seleccionarBloque('faq')" id="btn-b-faq"><span class="ico">❓</span><span class="lbl">Preg. frecuentes</span></div>
+            <div class="tipo-btn" onclick="seleccionarBloque('nota')" id="btn-b-nota"><span class="ico">📌</span><span class="lbl">Nota</span></div>
+            <div class="tipo-btn" onclick="seleccionarBloque('descargable')" id="btn-b-descargable"><span class="ico">📂</span><span class="lbl">Descargable</span></div>
+            <div class="tipo-btn" onclick="seleccionarBloque('enlace')" id="btn-b-enlace"><span class="ico">🔗</span><span class="lbl">Enlace externo</span></div>
+            <div class="tipo-btn" onclick="seleccionarBloque('tabla')" id="btn-b-tabla"><span class="ico">📊</span><span class="lbl">Tabla</span></div>
+            <div class="tipo-btn" onclick="seleccionarBloque('separador')" id="btn-b-separador"><span class="ico">➖</span><span class="lbl">Separador</span></div>
+          </div>
+          <input type="hidden" name="tipo" id="bloque-tipo-input" required>
+
+          <div class="section" id="bsec-texto">
+            <div class="form-group"><label>Texto (HTML permitido)</label><textarea name="html" rows="6" placeholder="Welcome to this lesson..."></textarea></div>
+          </div>
+          <div class="section" id="bsec-video">
+            <div class="form-group"><label>URL del video (embed)</label><input name="url" placeholder="https://www.youtube.com/embed/VIDEO_ID"></div>
+          </div>
+          <div class="section" id="bsec-imagen">
+            <div class="form-group"><label>URL de la imagen</label><input name="url" placeholder="https://.../human-body.png"></div>
+            <div class="form-group"><label>Texto alternativo</label><input name="alt" placeholder="Descripción de la imagen"></div>
+          </div>
+          <div class="section" id="bsec-audio">
+            <div class="form-group"><label>URL del audio</label><input name="url" placeholder="https://.../pronunciation.mp3"></div>
+          </div>
+          <div class="section" id="bsec-pdf">
+            <div class="form-group"><label>URL del PDF</label><input name="url" placeholder="https://..."></div>
+            <div class="form-group"><label>Nombre a mostrar</label><input name="nombre" placeholder="Guía de medicamentos.pdf"></div>
+          </div>
+          <div class="section" id="bsec-tarjetas">
+            <div id="tarjetas-container"></div>
+            <button type="button" class="btn btn-sm btn-outline" onclick="agregarTarjeta()">+ Agregar tarjeta</button>
+          </div>
+          <div class="section" id="bsec-faq">
+            <div id="faq-container"></div>
+            <button type="button" class="btn btn-sm btn-outline" onclick="agregarFaq()">+ Agregar pregunta</button>
+          </div>
+          <div class="section" id="bsec-nota">
+            <div class="form-group"><label>Nota importante</label><textarea name="texto" rows="2" placeholder="Remember to wash your hands."></textarea></div>
+          </div>
+          <div class="section" id="bsec-descargable">
+            <div class="form-group"><label>URL del archivo</label><input name="url" placeholder="https://..."></div>
+            <div class="form-group"><label>Nombre a mostrar</label><input name="nombre" placeholder="Formato de registro.docx"></div>
+          </div>
+          <div class="section" id="bsec-enlace">
+            <div class="form-group"><label>URL</label><input name="url" placeholder="https://..."></div>
+            <div class="form-group"><label>Título del enlace</label><input name="enlaceTitulo" placeholder="Sitio oficial OMS"></div>
+          </div>
+          <div class="section" id="bsec-tabla">
+            <div class="form-group"><label>Encabezados (separados por coma)</label><input name="encabezados" placeholder="Medicamento, Dosis, Vía"></div>
+            <div class="form-group"><label>Filas (una por línea, valores separados por coma)</label><textarea name="filas" rows="4" placeholder="Paracetamol, 500mg, Oral"></textarea></div>
+          </div>
+          <div class="section" id="bsec-separador">
+            <p class="text-muted">Este bloque no necesita configuración, solo separa visualmente el contenido.</p>
+          </div>
+
+          <div class="mt-16" style="margin-top:16px;">
+            <button type="submit" class="btn btn-primary">Agregar bloque</button>
+            <button type="button" class="btn btn-ghost" onclick="togglePanel('add-block-panel')" style="margin-left:8px;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ══════════ ACTIVIDADES ══════════ -->
+    <div class="section-block">
+      <div class="section-block-title">🎯 Actividades</div>
+
+      <% if (actividades.length === 0) { %>
+        <div class="card text-center" style="padding:24px;">
+          <p class="text-muted">Aún no hay actividades. El aprendiz solo verá el contenido hasta que agregues una.</p>
+        </div>
+      <% } else { %>
+        <% actividades.forEach(act => { %>
+          <div class="act-card" id="act-<%= act._id %>" style="<%= act.visible ? '' : 'opacity:0.6; filter:grayscale(1);' %>">
+            <div class="flex gap-12 align-center" style="flex:1;">
+              <div class="act-icon <%= act.tipo %>"><%= act.tipo === 'blog' ? '✏️' : (act.tipo === 'juego' ? '🎮' : '📝') %></div>
+              <div>
+                <div style="font-weight:600; color:var(--azul);"><%= act.titulo %></div>
+                <div style="font-size:0.75rem; color:var(--texto-suave);">
+                  <%= act.tipo === 'blog' ? 'Actividad escrita' : (act.tipo === 'juego' ? 'Juego' : 'Evaluación') %>
+                  <% if (act.esCierreModulo) { %> | <span style="color:var(--rojo);font-weight:600;">Cierre Módulo</span><% } %>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-12 align-center">
+              <div class="switch-wrap" title="Alternar visibilidad">
+                <label class="switch">
+                  <input type="checkbox" <%= act.visible ? 'checked' : '' %> onchange="toggleActVisibilidad('<%= act._id %>')">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <form action="/instructor/actividades/<%= act._id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar actividad?');">
+                <button type="submit" class="btn btn-sm btn-ghost" style="color:var(--rojo);" title="Eliminar">🗑️</button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+
+      <button type="button" class="btn btn-outline mt-12" onclick="togglePanel('add-act-panel')">+ Agregar actividad</button>
+
+      <div class="add-act-panel" id="add-act-panel">
+        <form action="/instructor/lecciones/<%= leccion._id %>/actividades" method="POST" id="form-actividad">
+          <div class="tipo-selector" style="grid-template-columns:repeat(3,1fr);">
+            <div class="tipo-btn" onclick="seleccionarActividad('blog')" id="abtn-blog"><span class="ico">✏️</span><span class="lbl">Actividad escrita</span></div>
+            <div class="tipo-btn" onclick="seleccionarActividad('juego')" id="abtn-juego"><span class="ico">🎮</span><span class="lbl">Juego</span></div>
+            <div class="tipo-btn" onclick="seleccionarActividad('evaluacion')" id="abtn-evaluacion"><span class="ico">📝</span><span class="lbl">Evaluación</span></div>
+          </div>
+          <input type="hidden" name="tipo" id="act-tipo-input" required>
+
+          <div class="form-group"><label>Título</label><input name="titulo" required placeholder="Ej. Quiz final"></div>
+
+          <div class="asec" id="asec-blog">
+            <div class="form-group">
+              <label>Tipo de entrega del aprendiz</label>
+              <select name="tipoEntrega">
+                <option value="">Sin entrega</option>
+                <option value="texto">Texto</option>
+                <option value="archivo">Archivo</option>
+              </select>
+            </div>
+            <div class="form-group switch-wrap">
+              <label class="switch"><input type="checkbox" name="segundoIntentoAutomatico"><span class="slider"></span></label>
+              <span>Habilitar segundo intento automáticamente al reprobar</span>
+            </div>
+          </div>
+
+          <div class="asec" id="asec-juego" style="display:none;">
+            <div class="form-group"><label>Descripción</label><textarea name="descripcion" rows="3" placeholder="Describe brevemente el juego..."></textarea></div>
+            <div class="form-group">
+              <label>Tipo de juego</label>
+              <select name="tipoJuego">
+                <option value="juego_emparejar">🃏 Emparejar</option>
+                <option value="juego_ahorcado_salud">💊 Ahorcado (Salud)</option>
+                <option value="juego_sopa_letras">🔤 Sopa de letras</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="asec" id="asec-evaluacion" style="display:none;">
+            <div class="form-group switch-wrap">
+              <label class="switch"><input type="checkbox" name="esCierreModulo"><span class="slider"></span></label>
+              <span>Esta es la Evaluación de Cierre de Módulo</span>
+            </div>
+            <div id="preguntas-container"></div>
+            <button type="button" class="btn btn-sm btn-outline" onclick="agregarPregunta()">+ Agregar pregunta</button>
+          </div>
+
+          <div class="mt-16" style="margin-top:16px;">
+            <button type="submit" class="btn btn-primary">Agregar actividad</button>
+            <button type="button" class="btn btn-ghost" onclick="togglePanel('add-act-panel')" style="margin-left:8px;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+function togglePanel(id) {
+  document.getElementById(id).classList.toggle('visible');
+}
+
+// ── Bloques ──
+function seleccionarBloque(tipo) {
+  ['texto','video','imagen','audio','pdf','tarjetas','faq','nota','descargable','enlace','tabla','separador'].forEach(t => {
+    document.getElementById('btn-b-'+t).classList.remove('selected');
+    document.getElementById('bsec-'+t).classList.remove('visible');
+  });
+  document.getElementById('btn-b-'+tipo).classList.add('selected');
+  document.getElementById('bsec-'+tipo).classList.add('visible');
+  document.getElementById('bloque-tipo-input').value = tipo;
+}
+
+let numTarjetas = 0;
+function agregarTarjeta() {
+  const i = numTarjetas++;
+  const container = document.getElementById('tarjetas-container');
+  const div = document.createElement('div');
+  div.className = 'par-item';
+  div.innerHTML = `
+    <input name="frente" placeholder="Injection">
+    <span style="align-self:center;">→</span>
+    <input name="reverso" placeholder="Inyección">
+    <button type="button" class="btn btn-sm btn-ghost" onclick="this.closest('.par-item').remove()">✕</button>
+  `;
+  container.appendChild(div);
+}
+
+let numFaq = 0;
+function agregarFaq() {
+  const i = numFaq++;
+  const container = document.getElementById('faq-container');
+  const div = document.createElement('div');
+  div.className = 'faq-item';
+  div.innerHTML = `
+    <input name="pregunta" placeholder="¿Pregunta?">
+    <input name="respuesta" placeholder="Respuesta">
+    <button type="button" class="btn btn-sm btn-ghost" onclick="this.closest('.faq-item').remove()">✕</button>
+  `;
+  container.appendChild(div);
+}
+
+// ── Actividades ──
+function seleccionarActividad(tipo) {
+  ['blog','juego','evaluacion'].forEach(t => {
+    document.getElementById('abtn-'+t).classList.remove('selected');
+    document.getElementById('asec-'+t).style.display = 'none';
+  });
+  document.getElementById('abtn-'+tipo).classList.add('selected');
+  document.getElementById('asec-'+tipo).style.display = 'block';
+  document.getElementById('act-tipo-input').value = tipo;
+}
+
+let numPreguntas = 0;
+function agregarPregunta() {
+  const i = numPreguntas++;
+  const container = document.getElementById('preguntas-container');
+  const div = document.createElement('div');
+  div.className = 'pregunta-item';
+  div.innerHTML = `
+    <div class="flex-between mb-16"><strong>Pregunta ${i+1}</strong>
+      <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.pregunta-item').remove()">Eliminar</button>
+    </div>
+    <div class="form-group"><label>Enunciado</label><input name="enunciados" required></div>
+    <div class="grid-2">
+      ${[0,1,2,3].map(j => `<div class="form-group"><label>Opción ${j+1}</label><input name="opcion_${i}_${j}" required></div>`).join('')}
+    </div>
+    <div class="form-group">
+      <label>Respuesta correcta</label>
+      <select name="respuestas">
+        <option value="0">Opción 1</option><option value="1">Opción 2</option>
+        <option value="2">Opción 3</option><option value="3">Opción 4</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Puntaje (dejar vacío = equitativo)</label><input type="number" name="puntajes" min="0" max="100"></div>
+  `;
+  container.appendChild(div);
+}
+
+// Selección inicial por defecto
+seleccionarBloque('texto');
+seleccionarActividad('blog');
+
+async function toggleActVisibilidad(id) {
+  try {
+    const res = await fetch('/instructor/actividades/' + id + '/visibilidad', { method: 'POST' });
+    const data = await res.json();
+    const el = document.getElementById('act-' + id);
+    el.style.opacity = data.visible ? '1' : '0.6';
+    el.style.filter = data.visible ? 'none' : 'grayscale(1)';
+  } catch(e) {
+    alert('Error al cambiar visibilidad');
+    window.location.reload();
+  }
+}
+</script>
+</body>
+</html>

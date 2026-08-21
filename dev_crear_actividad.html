@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>DEV - Crear Actividad — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .tipo-selector { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    .tipo-btn {
+      border:2px solid var(--gris-borde); border-radius:10px; padding:16px; cursor:pointer;
+      text-align:center; transition:all 0.18s; background:white;
+    }
+    .tipo-btn:hover, .tipo-btn.selected { border-color:var(--verde); background:var(--verde-claro); }
+    .tipo-btn .ico { font-size:1.8rem; display:block; margin-bottom:6px; }
+    .tipo-btn .lbl { font-weight:600; font-size:0.85rem; color:var(--azul); }
+    .section { display:none; }
+    .section.visible { display:block; }
+    .pregunta-item { border:1px solid var(--gris-borde); border-radius:8px; padding:16px; margin-bottom:12px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <!-- CKEditor 5 Classic build (CDN) -->
+  <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+  <script>
+    let editorInstance = null;
+    const previewEl = document.createElement('div');
+    previewEl.className = 'editor-preview';
+    previewEl.innerHTML = '<strong>Preview (contenido actual)</strong><div id="preview-body"></div>';
+
+    function updatePreview() {
+      if (!editorInstance) return;
+      const html = editorInstance.getData();
+      const previewBody = document.getElementById('preview-body');
+      if (previewBody) {
+        previewBody.innerHTML = html || '<em>(vacío)</em>';
+      }
+      if (html.indexOf('<img') !== -1) console.log('Editor contiene imágenes');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const secBlog = document.getElementById('sec-blog');
+      if (secBlog) {
+        secBlog.appendChild(previewEl);
+      }
+
+      ClassicEditor.create(document.querySelector('#contenidoRico'), {
+        simpleUpload: {
+          uploadUrl: '/instructor/uploads',
+          withCredentials: true,
+        },
+        toolbar: [
+          'heading', '|', 'bold', 'italic', 'underline', 'link',
+          'bulletedList', 'numberedList', 'blockQuote', 'insertTable',
+          'undo', 'redo', 'imageUpload', 'mediaEmbed',
+        ],
+        image: {
+          toolbar: [
+            'imageTextAlternative', 'imageStyle:full', 'imageStyle:side', 'resizeImage',
+          ],
+          resizeOptions: [
+            { name: 'resizeImage:original', value: null, label: 'Original' },
+            { name: 'resizeImage:50', value: '50', label: '50%' },
+            { name: 'resizeImage:75', value: '75', label: '75%' },
+          ],
+        },
+      })
+        .then((editor) => {
+          editorInstance = editor;
+          editor.plugins.get('FileRepository').on('change:uploadTotal', () => {});
+          editor.model.document.on('change:data', updatePreview);
+          updatePreview();
+        })
+        .catch((error) => {
+          console.error('CKEditor init error:', error);
+        });
+
+      document.getElementById('form-actividad').addEventListener('submit', function () {
+        if (editorInstance) {
+          const data = editorInstance.getData();
+          document.querySelector('#contenidoRico').value = data;
+        }
+      });
+
+      if (typeof seleccionarTipo === 'function') {
+        
+          seleccionarTipo('blog');
+        
+      }
+    });
+  </script>
+  <style>
+    /* Preview pequeño debajo del editor para diagnosticar inserciones */
+    .editor-preview { margin-top:12px; padding:12px; border:1px dashed var(--gris-borde); background:#fff; border-radius:8px; }
+    .editor-preview img { max-width:100%; height:auto; display:block; margin:8px 0; }
+  </style>
+</body>
+</html>
+          <div class="card-title">Configuración del juego</div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea name="descripcion" rows="3" placeholder="Describe brevemente el juego..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Tipo de juego</label>
+            <select name="tipoJuego">
+              <option value="juego_emparejar" >🃏 Emparejar</option>
+              <option value="juego_ahorcado_salud" >💊 Ahorcado (Salud)</option>
+              <option value="juego_sopa_letras" >🔤 Sopa de letras</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SECCIÓN EVALUACIÓN -->
+        <div class="section" id="sec-evaluacion">
+          <div class="card-title">Preguntas de evaluación</div>
+          <div class="form-group switch-wrap">
+            <label class="switch"><input type="checkbox" name="esCierreModulo"><span class="slider"></span></label>
+            <span>Esta es la Evaluación de Cierre de Módulo</span>
+          </div>
+          <div id="preguntas-container"></div>
+          <button type="button" class="btn btn-outline" onclick="agregarPregunta()">+ Agregar pregunta</button>
+        </div>
+
+        <div class="mt-20" style="margin-top:24px;border-top:1px solid var(--gris-borde);padding-top:20px;">
+          <button type="submit" class="btn btn-primary">Crear actividad</button>
+          <a href="/instructor/actividades" class="btn btn-ghost" style="margin-left:8px;">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+<script>
+let numPreguntas = 0;
+
+function seleccionarTipo(tipo) {
+  ['blog','juego','evaluacion'].forEach(t => {
+    document.getElementById('btn-'+t).classList.remove('selected');
+    document.getElementById('sec-'+t).classList.remove('visible');
+  });
+  document.getElementById('btn-'+tipo).classList.add('selected');
+  document.getElementById('sec-'+tipo).classList.add('visible');
+  document.getElementById('tipo-input').value = tipo;
+}
+
+function agregarPregunta() {
+  const i = numPreguntas++;
+  const container = document.getElementById('preguntas-container');
+  const div = document.createElement('div');
+  div.className = 'pregunta-item';
+  div.innerHTML = `
+    <div class="flex-between mb-16"><strong>Pregunta ${i+1}</strong>
+      <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.pregunta-item').remove()">Eliminar</button>
+    </div>
+    <div class="form-group"><label>Enunciado</label><input name="enunciados" required></div>
+    <div class="grid-2">
+      ${[0,1,2,3].map(j => `<div class="form-group"><label>Opción ${j+1}</label><input name="opcion_${i}_${j}" required></div>`).join('')}
+    </div>
+    <div class="form-group">
+      <label>Respuesta correcta</label>
+      <select name="respuestas">
+        <option value="0">Opción 1</option><option value="1">Opción 2</option>
+        <option value="2">Opción 3</option><option value="3">Opción 4</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Puntaje (dejar vacío = equitativo)</label><input type="number" name="puntajes" min="0" max="100"></div>
+  `;
+  container.appendChild(div);
+}
+</script>
+  <!-- CKEditor 5 Classic build (CDN) -->
+  <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+  <script>
+    let editorInstance = null;
+    const previewEl = document.createElement('div');
+    previewEl.className = 'editor-preview';
+    previewEl.innerHTML = '<strong>Preview (contenido actual)</strong><div id="preview-body"></div>';
+
+    function updatePreview() {
+      if (!editorInstance) return;
+      const html = editorInstance.getData();
+      const previewBody = document.getElementById('preview-body');
+      if (previewBody) {
+        previewBody.innerHTML = html || '<em>(vacío)</em>';
+      }
+      if (html.indexOf('<img') !== -1) console.log('Editor contiene imágenes');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const secBlog = document.getElementById('sec-blog');
+      if (secBlog) {
+        secBlog.appendChild(previewEl);
+      }
+
+      ClassicEditor.create(document.querySelector('#contenidoRico'), {
+        simpleUpload: {
+          uploadUrl: '/instructor/uploads',
+          withCredentials: true,
+        },
+        toolbar: [
+          'heading', '|', 'bold', 'italic', 'underline', 'link',
+          'bulletedList', 'numberedList', 'blockQuote', 'insertTable',
+          'undo', 'redo', 'imageUpload', 'mediaEmbed',
+        ],
+        image: {
+          toolbar: [
+            'imageTextAlternative', 'imageStyle:full', 'imageStyle:side', 'resizeImage',
+          ],
+          resizeOptions: [
+            { name: 'resizeImage:original', value: null, label: 'Original' },
+            { name: 'resizeImage:50', value: '50', label: '50%' },
+            { name: 'resizeImage:75', value: '75', label: '75%' },
+          ],
+        },
+      })
+        .then((editor) => {
+          editorInstance = editor;
+          editor.model.document.on('change:data', updatePreview);
+          updatePreview();
+        })
+        .catch((error) => {
+          console.error('CKEditor init error:', error);
+        });
+
+      document.getElementById('form-actividad').addEventListener('submit', function () {
+        if (editorInstance) {
+          const data = editorInstance.getData();
+          document.querySelector('#contenidoRico').value = data;
+        }
+      });
+
+      if (typeof seleccionarTipo === 'function') {
+        
+          seleccionarTipo('blog');
+        
+      }
+    });
+  </script>
+  <style>
+    /* Preview pequeño debajo del editor para diagnosticar inserciones */
+    .editor-preview { margin-top:12px; padding:12px; border:1px dashed var(--gris-borde); background:#fff; border-radius:8px; }
+    .editor-preview img { max-width:100%; height:auto; display:block; margin:8px 0; }
+  </style>
+</body>
+</html>

@@ -13,18 +13,19 @@ const instrLinks = [
   { href: '/instructor', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>', label: 'Dashboard' },
   { href: '/instructor/actividades', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>', label: 'Actividades' },
   { href: '/instructor/entregas', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>', label: 'Entregas' },
+  { href: '/notificaciones', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>', label: 'Notificaciones' },
   { href: '/instructor/clonar', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>', label: 'Clonar actividades' },
   { href: '/instructor/reportes', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>', label: 'Reportes' },
 ];
 const aprendizLinks = [
   { href: '/aprendiz', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>', label: 'Mi ruta' },
   { href: '/aprendiz/historial', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>', label: 'Historial' },
+  { href: '/notificaciones', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>', label: 'Notificaciones' },
 ];
 const links = rol === 'admin' ? adminLinks : rol === 'instructor' ? instrLinks : aprendizLinks;
 const currentPath = locals.currentPath || '';
 const homeHref = rol === 'admin' ? '/admin' : rol === 'instructor' ? '/instructor' : '/aprendiz';
 %>
-
 <div>
   <!-- BRAND HEADER -->
   <a href="<%= homeHref %>" class="sidebar-brand">
@@ -47,7 +48,10 @@ const homeHref = rol === 'admin' ? '/admin' : rol === 'instructor' ? '/instructo
       <% links.forEach(l => { %>
         <a href="<%= l.href %>" class="<%= currentPath === l.href ? 'active' : '' %>">
           <span class="icon"><%- l.icon %></span>
-          <%= l.label %>
+          <span><%= l.label %></span>
+          <% if (l.href === '/notificaciones' && typeof unreadNotifications !== 'undefined' && unreadNotifications > 0) { %>
+            <span class="badge badge-info" style="margin-left: auto;"><%= unreadNotifications %></span>
+          <% } %>
         </a>
       <% }) %>
     </div>
