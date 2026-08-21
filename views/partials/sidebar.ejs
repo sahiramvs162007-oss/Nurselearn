@@ -13,12 +13,14 @@ const instrLinks = [
   { href: '/instructor', icon: '🏠', label: 'Dashboard' },
   { href: '/instructor/actividades', icon: '📝', label: 'Actividades' },
   { href: '/instructor/entregas', icon: '📬', label: 'Entregas' },
+  { href: '/notificaciones', icon: '🔔', label: 'Notificaciones' },
   { href: '/instructor/clonar', icon: '📋', label: 'Clonar actividades' },
   { href: '/instructor/reportes', icon: '📊', label: 'Reportes' },
 ];
 const aprendizLinks = [
   { href: '/aprendiz', icon: '🏠', label: 'Mi ruta' },
   { href: '/aprendiz/historial', icon: '📄', label: 'Historial' },
+  { href: '/notificaciones', icon: '🔔', label: 'Notificaciones' },
 ];
 const links = rol === 'admin' ? adminLinks : rol === 'instructor' ? instrLinks : aprendizLinks;
 const currentPath = locals.currentPath || '';
@@ -28,7 +30,10 @@ const currentPath = locals.currentPath || '';
   <% links.forEach(l => { %>
     <a href="<%= l.href %>" class="<%= currentPath === l.href ? 'active' : '' %>">
       <span class="icon"><%= l.icon %></span>
-      <%= l.label %>
+      <span><%= l.label %></span>
+      <% if (l.href === '/notificaciones' && typeof unreadNotifications !== 'undefined' && unreadNotifications > 0) { %>
+        <span class="badge badge-info" style="margin-left:0.5rem;"><%= unreadNotifications %></span>
+      <% } %>
     </a>
   <% }) %>
 </div>

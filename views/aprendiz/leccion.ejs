@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .leccion-header {
+      background: linear-gradient(135deg, var(--azul) 0%, #005a9e 100%);
+      color: white; padding: 26px 30px; border-radius: 16px; margin-bottom: 24px;
+    }
+    .leccion-header h1 { font-size: 1.6rem; margin-bottom: 6px; }
+    .leccion-header p { opacity: 0.85; font-size: 0.9rem; }
+
+    .bloque { background: white; border: 1px solid var(--gris-borde); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .bloque-nota { background: var(--azul-claro); border-left: 4px solid var(--azul); }
+    .bloque-separador { border: none; border-top: 2px dashed var(--gris-borde); background: transparent; padding: 0; margin: 24px 0; }
+
+    .rich-content img, .rich-content video { max-width: 100%; border-radius: 8px; }
+    .media-frame { aspect-ratio: 16/9; border-radius: 10px; overflow: hidden; }
+    .media-frame iframe { width: 100%; height: 100%; border: 0; }
+
+    .tarjetas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .tarjeta { perspective: 900px; height: 100px; cursor: pointer; }
+    .tarjeta-inner { position: relative; width: 100%; height: 100%; transition: transform 0.5s; transform-style: preserve-3d; }
+    .tarjeta.flipped .tarjeta-inner { transform: rotateY(180deg); }
+    .tarjeta-front, .tarjeta-back {
+      position: absolute; inset: 0; backface-visibility: hidden; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px; font-weight: 600;
+    }
+    .tarjeta-front { background: var(--azul); color: white; }
+    .tarjeta-back { background: var(--verde-claro); color: var(--verde-oscuro); border: 2px solid var(--verde); transform: rotateY(180deg); }
+
+    .faq-item { border-bottom: 1px solid var(--gris-borde); padding: 10px 0; }
+    .faq-pregunta { font-weight: 600; color: var(--azul); cursor: pointer; }
+    .faq-respuesta { color: var(--texto-suave); margin-top: 6px; display: none; }
+    .faq-item.abierta .faq-respuesta { display: block; }
+
+    table.bloque-tabla { width: 100%; border-collapse: collapse; }
+    table.bloque-tabla th, table.bloque-tabla td { border: 1px solid var(--gris-borde); padding: 8px 12px; text-align: left; font-size: 0.9rem; }
+    table.bloque-tabla th { background: var(--gris); }
+
+    .act-card {
+      display: flex; align-items: center; justify-content: space-between;
+      background: white; border: 1.5px solid var(--gris-borde);
+      border-radius: 12px; padding: 16px 20px; margin-bottom: 12px;
+      text-decoration: none; color: inherit; transition: all 0.2s;
+    }
+    .act-card:hover { border-color: var(--verde); transform: translateX(4px); box-shadow: var(--sombra); }
+    .act-info { display: flex; align-items: center; gap: 16px; }
+    .act-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .act-icon.blog { background: var(--azul-claro); }
+    .act-icon.juego { background: #fef3c7; }
+    .act-icon.evaluacion { background: #fdecea; }
+    .act-meta { font-size: 0.8rem; color: var(--texto-suave); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .act-title { font-weight: 700; font-size: 1.05rem; margin-top: 2px; }
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status-pendiente { background: var(--gris); color: var(--texto-suave); }
+    .status-entregado { background: var(--azul-claro); color: var(--azul); }
+    .status-aprobado { background: var(--verde-claro); color: var(--verde-oscuro); }
+    .status-reprobado { background: #fdecea; color: var(--rojo); }
+
+    .section-title { font-weight: 700; font-size: 1.05rem; color: var(--azul); margin: 26px 0 12px; display: flex; align-items: center; gap: 8px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <header class="topbar">
+    <a href="/aprendiz" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user"><span><%= user %></span><span class="topbar-rol" style="background:var(--azul-claro);color:var(--azul);">Aprendiz</span></div>
+  </header>
+
+  <nav class="sidebar">
+    <%- include('../partials/sidebar', { session: { userRol: 'aprendiz' } }) %>
+  </nav>
+
+  <main class="main">
+    <a href="/aprendiz/modulo/<%= leccion.modulo._id %>" class="btn btn-ghost mb-16">← Volver al módulo</a>
+
+    <div class="leccion-header">
+      <h1>📖 <%= leccion.titulo %></h1>
+      <p><%= leccion.rap.nombre %> · <%= leccion.momentoPedagogico %></p>
+      <% if (leccion.descripcion) { %><p style="margin-top:6px;"><%= leccion.descripcion %></p><% } %>
+    </div>
+
+    <!-- ══════════ CONTENIDO ══════════ -->
+    <% if (bloques.length === 0) { %>
+      <div class="alert alert-warning">Esta lección aún no tiene contenido. Revisa directamente las actividades más abajo.</div>
+    <% } else { %>
+      <% bloques.forEach(b => { %>
+        <% const c = b.contenido || {}; %>
+
+        <% if (b.tipo === 'texto') { %>
+          <div class="bloque rich-content"><%- c.html %></div>
+
+        <% } else if (b.tipo === 'video') { %>
+          <div class="bloque">
+            <div class="media-frame"><iframe src="<%= c.url %>" allowfullscreen></iframe></div>
+          </div>
+
+        <% } else if (b.tipo === 'imagen') { %>
+          <div class="bloque" style="text-align:center;">
+            <img src="<%= c.url %>" alt="<%= c.alt || '' %>" style="max-width:100%;border-radius:10px;">
+            <% if (c.alt) { %><p class="text-muted mt-12"><%= c.alt %></p><% } %>
+          </div>
+
+        <% } else if (b.tipo === 'audio') { %>
+          <div class="bloque">
+            <audio controls src="<%= c.url %>" style="width:100%;"></audio>
+          </div>
+
+        <% } else if (b.tipo === 'pdf') { %>
+          <div class="bloque">
+            <a href="<%= c.url %>" target="_blank" class="btn btn-outline">📄 <%= c.nombre || 'Ver PDF' %></a>
+          </div>
+
+        <% } else if (b.tipo === 'tarjetas') { %>
+          <div class="bloque">
+            <div class="card-title">📚 Tarjetas de estudio</div>
+            <div class="tarjetas-grid">
+              <% (c.pares || []).forEach(p => { %>
+                <div class="tarjeta" onclick="this.classList.toggle('flipped')">
+                  <div class="tarjeta-inner">
+                    <div class="tarjeta-front"><%= p.frente %></div>
+                    <div class="tarjeta-back"><%= p.reverso %></div>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+
+        <% } else if (b.tipo === 'faq') { %>
+          <div class="bloque">
+            <div class="card-title">❓ Preguntas frecuentes</div>
+            <% (c.items || []).forEach(it => { %>
+              <div class="faq-item" onclick="this.classList.toggle('abierta')">
+                <div class="faq-pregunta">▸ <%= it.pregunta %></div>
+                <div class="faq-respuesta"><%= it.respuesta %></div>
+              </div>
+            <% }) %>
+          </div>
+
+        <% } else if (b.tipo === 'nota') { %>
+          <div class="bloque bloque-nota">📌 <%= c.texto %></div>
+
+        <% } else if (b.tipo === 'descargable') { %>
+          <div class="bloque">
+            <a href="<%= c.url %>" target="_blank" class="btn btn-outline">📂 <%= c.nombre || 'Descargar archivo' %></a>
+          </div>
+
+        <% } else if (b.tipo === 'enlace') { %>
+          <div class="bloque">
+            <a href="<%= c.url %>" target="_blank" class="btn btn-outline">🔗 <%= c.titulo || c.url %></a>
+          </div>
+
+        <% } else if (b.tipo === 'tabla') { %>
+          <div class="bloque">
+            <table class="bloque-tabla">
+              <% if ((c.encabezados || []).length) { %>
+                <thead><tr><% c.encabezados.forEach(h => { %><th><%= h %></th><% }) %></tr></thead>
+              <% } %>
+              <tbody>
+                <% (c.filas || []).forEach(fila => { %>
+                  <tr><% fila.forEach(celda => { %><td><%= celda %></td><% }) %></tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+        <% } else if (b.tipo === 'separador') { %>
+          <hr class="bloque-separador">
+        <% } %>
+      <% }) %>
+    <% } %>
+
+    <!-- ══════════ ACTIVIDADES ══════════ -->
+    <% if (actividades.length > 0) { %>
+      <div class="section-title">🎯 Actividades</div>
+      <% actividades.forEach(act => {
+        const entrega = entregaMap[act._id.toString()];
+        let statusClass = 'status-pendiente';
+        let statusText = 'Pendiente';
+        let statusIcon = '⏳';
+
+        if (entrega) {
+          if (entrega.estado === 'Entregado') { statusClass = 'status-entregado'; statusText = 'En revisión'; statusIcon = '👀'; }
+          else if (entrega.estado === 'Aprobado') { statusClass = 'status-aprobado'; statusText = 'Aprobado'; statusIcon = '✅'; }
+          else if (entrega.estado === 'Reprobado') { statusClass = 'status-reprobado'; statusText = 'Reprobado'; statusIcon = '❌'; }
+        }
+      %>
+        <a href="/aprendiz/actividad/<%= act._id %>" class="act-card">
+          <div class="act-info">
+            <div class="act-icon <%= act.tipo %>">
+              <%= act.tipo === 'blog' ? '✏️' : (act.tipo === 'juego' ? '🎮' : '📝') %>
+            </div>
+            <div>
+              <div class="act-meta"><%= act.tipo === 'blog' ? 'Actividad escrita' : (act.tipo === 'juego' ? 'Juego' : 'Evaluación') %></div>
+              <div class="act-title"><%= act.titulo %></div>
+            </div>
+          </div>
+          <div class="status-badge <%= statusClass %>">
+            <span><%= statusIcon %></span> <%= statusText %>
+          </div>
+        </a>
+      <% }) %>
+    <% } %>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="layout">
+  <header class="topbar">
+    <a href="/" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user"><span><%= user %></span><span class="topbar-rol"><%= session.userRol ? session.userRol.charAt(0).toUpperCase() + session.userRol.slice(1) : 'Usuario' %></span></div>
+  </header>
+  <nav class="sidebar">
+    <%- include('partials/sidebar', { session: { userRol: session.userRol }, locals: { currentPath: '/notificaciones' } }) %>
+  </nav>
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Notificaciones</h1>
+      <p class="page-subtitle">Aquí verás los avisos recientes relacionados con tu ficha y actividades.</p>
+    </div>
+
+    <% if (error && error.length) { %>
+      <div class="alert alert-error"><%= error[0] %></div>
+    <% } %>
+    <% if (success && success.length) { %>
+      <div class="alert alert-success"><%= success[0] %></div>
+    <% } %>
+
+    <% if (notifications.length === 0) { %>
+      <div class="card">
+        <p class="text-muted">No tienes notificaciones nuevas por el momento.</p>
+      </div>
+    <% } else { %>
+      <div class="flex-between mb-16">
+        <form action="/notificaciones/marcar-todo" method="POST">
+          <button type="submit" class="btn btn-secondary">Marcar todo como leído</button>
+        </form>
+      </div>
+      <div class="notifications-list">
+        <% notifications.forEach((notif) => { %>
+          <div class="card <%= notif.leido ? '' : 'card-highlight' %>">
+            <div class="flex-between" style="gap:12px;">
+              <div>
+                <p class="fw-600" style="margin:0;"><%= notif.mensaje %></p>
+                <small class="text-muted"><%= new Date(notif.createdAt).toLocaleString('es-CO') %></small>
+              </div>
+              <div class="flex gap-8" style="align-items:center;">
+                <% if (!notif.leido) { %>
+                  <span class="badge badge-info">Nueva</span>
+                <% } %>
+                <a href="<%= notif.enlace %>" class="btn btn-ghost">Ir</a>
+              </div>
+            </div>
+            <% if (!notif.leido) { %>
+              <form action="/notificaciones/<%= notif._id %>/leido" method="POST" style="margin-top:12px;">
+                <button type="submit" class="btn btn-outline">Marcar como leído</button>
+              </form>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </main>
+</div>
+</body>
+</html>

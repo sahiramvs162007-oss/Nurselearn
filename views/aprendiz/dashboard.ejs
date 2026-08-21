@@ -33,45 +33,39 @@
     </div>
 
     <!-- Módulos -->
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <% modulos.forEach((m, i) => { %>
-      <% if (!m.bloqueado) { %>
-        <a href="/aprendiz/modulo/<%= m._id %>" class="modulo-card">
-      <% } else { %>
-        <div class="modulo-card blocked">
-      <% } %>
-        <div class="modulo-card-header">
-          <div class="flex gap-8" style="align-items:center;">
-            <div class="modulo-num"><%= i + 1 %></div>
-            <div>
-              <div class="fw-600"><%= m.nombre %></div>
-              <% if (m.descripcion) { %><div class="text-muted"><%= m.descripcion %></div><% } %>
+    <% if (modulos.length === 0) { %>
+      <div class="alert alert-warning">Aún no tienes módulos disponibles para ingresar. Completa los módulos anteriores para desbloquear los siguientes.</div>
+    <% } else { %>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <% modulos.forEach((m, i) => { %>
+          <a href="/aprendiz/modulo/<%= m._id %>" class="modulo-card">
+            <div class="modulo-card-header">
+              <div class="flex gap-8" style="align-items:center;">
+                <div class="modulo-num"><%= i + 1 %></div>
+                <div>
+                  <div class="fw-600"><%= m.nombre %></div>
+                  <% if (m.descripcion) { %><div class="text-muted"><%= m.descripcion %></div><% } %>
+                </div>
+              </div>
+              <div class="flex gap-8" style="align-items:center;">
+                <% if (m.pct === 100) { %>
+                  <span class="badge badge-success">✅ Completado</span>
+                <% } else { %>
+                  <span class="badge badge-info">En curso</span>
+                <% } %>
+              </div>
             </div>
-          </div>
-          <div class="flex gap-8" style="align-items:center;">
-            <% if (m.bloqueado) { %>
-              <span class="badge badge-gray">🔒 Bloqueado</span>
-            <% } else if (m.pct === 100) { %>
-              <span class="badge badge-success">✅ Completado</span>
-            <% } else { %>
-              <span class="badge badge-info">En curso</span>
-            <% } %>
-          </div>
-        </div>
-        <div class="progress-label">
-          <span>Progreso del módulo</span>
-          <span class="fw-600"><%= m.pct %>%</span>
-        </div>
-        <div class="progress-wrap">
-          <div class="progress-bar" style="width:<%= m.pct %>%"></div>
-        </div>
-      <% if (!m.bloqueado) { %>
-        </a>
-      <% } else { %>
-        </div>
-      <% } %>
-      <% }) %>
-    </div>
+            <div class="progress-label">
+              <span>Progreso del módulo</span>
+              <span class="fw-600"><%= m.pct %>%</span>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-bar" style="width:<%= m.pct %>%"></div>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+    <% } %>
   </main>
 </div>
 </body>

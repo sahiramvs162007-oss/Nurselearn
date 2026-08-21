@@ -101,6 +101,8 @@
                       </div>
                       
                       <div class="flex gap-12 align-center">
+                        <a href="/aprendiz/actividad/<%= act._id %>" target="_blank" class="btn btn-sm btn-ghost" title="Ver como aprendiz">👁️</a>
+                        <a href="/instructor/actividades/<%= act._id %>/editar" class="btn btn-sm btn-ghost" title="Editar">✏️</a>
                         <div class="switch-wrap" title="Alternar visibilidad">
                           <label class="switch">
                             <input type="checkbox" <%= act.visible ? 'checked' : '' %> onchange="toggleVisibilidad('<%= act._id %>')">

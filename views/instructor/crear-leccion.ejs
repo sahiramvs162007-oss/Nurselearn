@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %> — NurseLearn</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="layout">
+  <header class="topbar">
+    <a href="/instructor" class="topbar-logo">Nurse<span>Learn</span></a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span><%= user %></span>
+      <span class="topbar-rol">Instructor</span>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <% locals.currentPath = '/instructor/lecciones'; %>
+    <%- include('../partials/sidebar', { session: { userRol: 'instructor' } }) %>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Nueva Lección</h1>
+      <p class="page-subtitle">Ficha activa: <strong><%= fichaActiva.nombre %></strong>. Luego podrás agregarle bloques de contenido y actividades.</p>
+    </div>
+
+    <% if (error && error.length) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
+
+    <div class="card" style="max-width:640px;">
+      <form action="/instructor/lecciones/crear" method="POST">
+        <div class="form-group">
+          <label>Título de la lección</label>
+          <input type="text" name="titulo" required placeholder="Ej. Medication Administration">
+        </div>
+
+        <div class="form-group">
+          <label>Descripción (opcional)</label>
+          <textarea name="descripcion" rows="2" placeholder="Breve resumen para el instructor"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>RAP</label>
+          <select name="rap" required>
+            <option value="" disabled selected>Selecciona un RAP</option>
+            <% raps.forEach(r => { %>
+              <option value="<%= r._id %>"><%= r.modulo.nombre %> — <%= r.nombre %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Momento pedagógico</label>
+          <select name="momentoPedagogico" required>
+            <option value="Exploración">Exploración</option>
+            <option value="Estructuración">Estructuración</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Valoración">Valoración</option>
+          </select>
+        </div>
+
+        <div class="flex gap-12" style="justify-content:flex-end; margin-top:16px;">
+          <a href="/instructor/lecciones" class="btn btn-ghost">Cancelar</a>
+          <button type="submit" class="btn btn-primary">Crear y continuar →</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+</body>
+</html>

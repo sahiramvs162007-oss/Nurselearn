@@ -16,6 +16,9 @@
     .section { display:none; }
     .section.visible { display:block; }
     .pregunta-item { border:1px solid var(--gris-borde); border-radius:8px; padding:16px; margin-bottom:12px; }
+    /* Preview pequeño debajo del editor para diagnosticar inserciones */
+    .editor-preview { margin-top:12px; padding:12px; border:1px dashed var(--gris-borde); background:#fff; border-radius:8px; }
+    .editor-preview img { max-width:100%; height:auto; display:block; margin:8px 0; }
   </style>
 </head>
 <body>
@@ -23,85 +26,94 @@
   <header class="topbar">
     <a href="/instructor" class="topbar-logo">Nurse<span>Learn</span></a>
     <div class="topbar-spacer"></div>
-    <div class="topbar-user"><span><%= user %></span><span class="topbar-rol">Instructor</span></div>
+    <div class="topbar-user">
+      <span><%= user %></span>
+      <span class="topbar-rol">Instructor</span>
+    </div>
   </header>
+
   <nav class="sidebar">
+    <% locals.currentPath = '/instructor/actividades'; %>
     <%- include('../partials/sidebar', { session: { userRol: 'instructor' } }) %>
   </nav>
+
   <main class="main">
-    <div class="page-header flex-between">
-      <div>
-        <h1 class="page-title">Crear actividad</h1>
-        <p class="page-subtitle">Ficha: <strong><%= fichaActiva.nombre %></strong></p>
-      </div>
-      <a href="/instructor/actividades" class="btn btn-ghost">← Volver</a>
+    <div class="page-header">
+      <h1 class="page-title"><%= titulo %></h1>
+      <p class="page-subtitle">Ficha activa: <strong><%= fichaActiva.nombre %></strong></p>
     </div>
 
     <% if (error && error.length) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
 
-    <div class="card">
-      <form action="/instructor/actividades/crear" method="POST" id="form-actividad">
+    <div class="card" style="max-width:760px;">
+      <form id="form-actividad" action="<%= (typeof actividad !== 'undefined' && actividad) ? '/instructor/actividades/' + actividad._id + '/editar' : '/instructor/actividades/crear' %>" method="POST">
+        <input type="hidden" name="tipo" id="tipo-input" value="<%= (typeof actividad !== 'undefined' && actividad) ? actividad.tipo : 'blog' %>">
 
-        <!-- Tipo de actividad -->
-        <div class="card-title">Tipo de actividad</div>
         <div class="tipo-selector">
-          <div class="tipo-btn" onclick="seleccionarTipo('blog')" id="btn-blog">
-            <span class="ico">📖</span><span class="lbl">Blog / Lectura</span>
+          <div class="tipo-btn" id="btn-blog" onclick="seleccionarTipo('blog')">
+            <span class="ico">📝</span><span class="lbl">Blog / Lección</span>
           </div>
-          <div class="tipo-btn" onclick="seleccionarTipo('juego')" id="btn-juego">
+          <div class="tipo-btn" id="btn-juego" onclick="seleccionarTipo('juego')">
             <span class="ico">🎮</span><span class="lbl">Juego</span>
           </div>
-          <div class="tipo-btn" onclick="seleccionarTipo('evaluacion')" id="btn-evaluacion">
-            <span class="ico">📝</span><span class="lbl">Evaluación</span>
+          <div class="tipo-btn" id="btn-evaluacion" onclick="seleccionarTipo('evaluacion')">
+            <span class="ico">✅</span><span class="lbl">Evaluación</span>
           </div>
         </div>
-        <input type="hidden" name="tipo" id="tipo-input" required>
 
-        <!-- Campos comunes -->
-        <div class="grid-2 mb-16" style="margin-bottom:16px;">
-          <div class="form-group"><label>Título</label><input name="titulo" required></div>
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" name="titulo" required placeholder="Ej. Medication Administration" value="<%= (typeof actividad !== 'undefined' && actividad) ? actividad.titulo : '' %>">
+        </div>
+
+        <div class="grid-2">
           <div class="form-group">
             <label>RAP</label>
             <select name="rap" required>
-              <option value="">— Selecciona —</option>
+              <option value="" disabled <%= (typeof actividad === 'undefined' || !actividad) ? 'selected' : '' %>>Selecciona un RAP</option>
               <% raps.forEach(r => { %>
-                <option value="<%= r._id %>"><%= r.modulo.nombre %> › <%= r.nombre %></option>
+                <option value="<%= r._id %>" <%= (typeof actividad !== 'undefined' && actividad && actividad.rap && actividad.rap.toString() === r._id.toString()) ? 'selected' : '' %>><%= r.modulo.nombre %> — <%= r.nombre %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Momento pedagógico</label>
+            <select name="momentoPedagogico" required>
+              <% ['Exploración','Estructuración','Transferencia','Valoración'].forEach(m => { %>
+                <option value="<%= m %>" <%= (typeof actividad !== 'undefined' && actividad && actividad.momentoPedagogico === m) ? 'selected' : '' %>><%= m %></option>
               <% }) %>
             </select>
           </div>
         </div>
-        <div class="grid-2 mb-16" style="margin-bottom:16px;">
-          <div class="form-group">
-            <label>Momento pedagógico</label>
-            <select name="momentoPedagogico" required>
-              <option>Exploración</option><option>Estructuración</option>
-              <option>Transferencia</option><option>Valoración</option>
-            </select>
-          </div>
+
+        <div class="form-group">
+          <label>Orden (dejar vacío = automático)</label>
+          <input type="number" name="orden" min="0" value="<%= (typeof actividad !== 'undefined' && actividad && actividad.orden) ? actividad.orden : '' %>">
         </div>
 
         <!-- SECCIÓN BLOG -->
         <div class="section" id="sec-blog">
-          <div class="card-title">Contenido del blog</div>
+          <div class="card-title">Contenido de la lección</div>
           <div class="form-group">
-            <label>Contenido enriquecido (HTML)</label>
-            <textarea name="contenidoRico" rows="8" placeholder="Escribe el contenido aquí o pega HTML..."></textarea>
+            <label>Contenido enriquecido</label>
+            <textarea id="contenidoRico" name="contenidoRico" rows="8"><%= (typeof actividad !== 'undefined' && actividad) ? actividad.contenidoRico : '' %></textarea>
           </div>
           <div class="form-group">
-            <label>URL del video YouTube (iframe src)</label>
-            <input name="urlYoutube" placeholder="https://www.youtube.com/embed/VIDEO_ID">
+            <label>URL de YouTube (opcional)</label>
+            <input type="text" name="urlYoutube" placeholder="https://www.youtube.com/watch?v=..." value="<%= (typeof actividad !== 'undefined' && actividad) ? actividad.urlYoutube : '' %>">
           </div>
           <div class="form-group">
-            <label>Tipo de entrega del aprendiz</label>
+            <label>Tipo de entrega</label>
             <select name="tipoEntrega">
               <option value="">Sin entrega</option>
-              <option value="texto">Texto</option>
-              <option value="archivo">Archivo</option>
+              <option value="texto" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoEntrega === 'texto') ? 'selected' : '' %>>Texto</option>
+              <option value="archivo" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoEntrega === 'archivo') ? 'selected' : '' %>>Archivo</option>
             </select>
           </div>
           <div class="form-group switch-wrap">
-            <label class="switch"><input type="checkbox" name="segundoIntentoAutomatico"><span class="slider"></span></label>
-            <span>Habilitar segundo intento automáticamente al reprobar</span>
+            <label class="switch"><input type="checkbox" name="segundoIntentoAutomatico" <%= (typeof actividad !== 'undefined' && actividad && actividad.segundoIntentoAutomatico) ? 'checked' : '' %>><span class="slider"></span></label>
+            <span>Permitir segundo intento automático</span>
           </div>
         </div>
 
@@ -110,14 +122,14 @@
           <div class="card-title">Configuración del juego</div>
           <div class="form-group">
             <label>Descripción</label>
-            <textarea name="descripcion" rows="3" placeholder="Describe brevemente el juego..."></textarea>
+            <textarea name="descripcion" rows="3" placeholder="Describe brevemente el juego..."><%= (typeof actividad !== 'undefined' && actividad) ? actividad.descripcion : '' %></textarea>
           </div>
           <div class="form-group">
             <label>Tipo de juego</label>
             <select name="tipoJuego">
-              <option value="juego_emparejar">🃏 Emparejar</option>
-              <option value="juego_ahorcado_salud">💊 Ahorcado (Salud)</option>
-              <option value="juego_sopa_letras">🔤 Sopa de letras</option>
+              <option value="juego_emparejar" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoJuego === 'juego_emparejar') ? 'selected' : '' %>>🃏 Emparejar</option>
+              <option value="juego_ahorcado_salud" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoJuego === 'juego_ahorcado_salud') ? 'selected' : '' %>>💊 Ahorcado (Salud)</option>
+              <option value="juego_sopa_letras" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoJuego === 'juego_sopa_letras') ? 'selected' : '' %>>🔤 Sopa de letras</option>
             </select>
           </div>
         </div>
@@ -126,7 +138,7 @@
         <div class="section" id="sec-evaluacion">
           <div class="card-title">Preguntas de evaluación</div>
           <div class="form-group switch-wrap">
-            <label class="switch"><input type="checkbox" name="esCierreModulo"><span class="slider"></span></label>
+            <label class="switch"><input type="checkbox" name="esCierreModulo" <%= (typeof actividad !== 'undefined' && actividad && actividad.esCierreModulo) ? 'checked' : '' %>><span class="slider"></span></label>
             <span>Esta es la Evaluación de Cierre de Módulo</span>
           </div>
           <div id="preguntas-container"></div>
@@ -134,15 +146,31 @@
         </div>
 
         <div class="mt-20" style="margin-top:24px;border-top:1px solid var(--gris-borde);padding-top:20px;">
-          <button type="submit" class="btn btn-primary">Crear actividad</button>
+          <button type="submit" class="btn btn-primary"><%= (typeof actividad !== 'undefined' && actividad) ? 'Guardar cambios' : 'Crear actividad' %></button>
           <a href="/instructor/actividades" class="btn btn-ghost" style="margin-left:8px;">Cancelar</a>
         </div>
       </form>
     </div>
   </main>
 </div>
+
+<!-- CKEditor 5 Classic build (CDN) -->
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 <script>
 let numPreguntas = 0;
+let editorInstance = null;
+const previewEl = document.createElement('div');
+previewEl.className = 'editor-preview';
+previewEl.innerHTML = '<strong>Preview (contenido actual)</strong><div id="preview-body"></div>';
+
+function updatePreview() {
+  if (!editorInstance) return;
+  const html = editorInstance.getData();
+  const previewBody = document.getElementById('preview-body');
+  if (previewBody) {
+    previewBody.innerHTML = html || '<em>(vacío)</em>';
+  }
+}
 
 function seleccionarTipo(tipo) {
   ['blog','juego','evaluacion'].forEach(t => {
@@ -154,30 +182,88 @@ function seleccionarTipo(tipo) {
   document.getElementById('tipo-input').value = tipo;
 }
 
-function agregarPregunta() {
+function agregarPregunta(pregunta) {
   const i = numPreguntas++;
   const container = document.getElementById('preguntas-container');
   const div = document.createElement('div');
   div.className = 'pregunta-item';
+  const enunciadoVal = pregunta ? pregunta.enunciado : '';
+  const opciones = pregunta ? pregunta.opciones : ['', '', '', ''];
+  const correcta = pregunta ? pregunta.respuestaCorrecta : 0;
+  const puntaje = pregunta && pregunta.puntaje !== null && pregunta.puntaje !== undefined ? pregunta.puntaje : '';
   div.innerHTML = `
     <div class="flex-between mb-16"><strong>Pregunta ${i+1}</strong>
       <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.pregunta-item').remove()">Eliminar</button>
     </div>
-    <div class="form-group"><label>Enunciado</label><input name="enunciados" required></div>
+    <div class="form-group"><label>Enunciado</label><input name="enunciados" required value="${enunciadoVal.replace(/"/g, '&quot;')}"></div>
     <div class="grid-2">
-      ${[0,1,2,3].map(j => `<div class="form-group"><label>Opción ${j+1}</label><input name="opcion_${i}_${j}" required></div>`).join('')}
+      ${[0,1,2,3].map(j => `<div class="form-group"><label>Opción ${j+1}</label><input name="opcion_${i}_${j}" required value="${(opciones[j] || '').replace(/"/g, '&quot;')}"></div>`).join('')}
     </div>
     <div class="form-group">
       <label>Respuesta correcta</label>
       <select name="respuestas">
-        <option value="0">Opción 1</option><option value="1">Opción 2</option>
-        <option value="2">Opción 3</option><option value="3">Opción 4</option>
+        <option value="0" ${correcta === 0 ? 'selected' : ''}>Opción 1</option><option value="1" ${correcta === 1 ? 'selected' : ''}>Opción 2</option>
+        <option value="2" ${correcta === 2 ? 'selected' : ''}>Opción 3</option><option value="3" ${correcta === 3 ? 'selected' : ''}>Opción 4</option>
       </select>
     </div>
-    <div class="form-group"><label>Puntaje (dejar vacío = equitativo)</label><input type="number" name="puntajes" min="0" max="100"></div>
+    <div class="form-group"><label>Puntaje (dejar vacío = equitativo)</label><input type="number" name="puntajes" min="0" max="100" value="${puntaje}"></div>
   `;
   container.appendChild(div);
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+  const secBlog = document.getElementById('sec-blog');
+  if (secBlog) {
+    secBlog.appendChild(previewEl);
+  }
+
+  ClassicEditor.create(document.querySelector('#contenidoRico'), {
+    simpleUpload: {
+      uploadUrl: '/instructor/uploads',
+      withCredentials: true,
+    },
+    toolbar: [
+      'heading', '|', 'bold', 'italic', 'underline', 'link',
+      'bulletedList', 'numberedList', 'blockQuote', 'insertTable',
+      'undo', 'redo', 'imageUpload', 'mediaEmbed',
+    ],
+    image: {
+      toolbar: [
+        'imageTextAlternative', 'imageStyle:full', 'imageStyle:side', 'resizeImage',
+      ],
+      resizeOptions: [
+        { name: 'resizeImage:original', value: null, label: 'Original' },
+        { name: 'resizeImage:50', value: '50', label: '50%' },
+        { name: 'resizeImage:75', value: '75', label: '75%' },
+      ],
+    },
+  })
+    .then((editor) => {
+      editorInstance = editor;
+      editor.model.document.on('change:data', updatePreview);
+      updatePreview();
+    })
+    .catch((error) => {
+      console.error('CKEditor init error:', error);
+    });
+
+  document.getElementById('form-actividad').addEventListener('submit', function () {
+    if (editorInstance) {
+      const data = editorInstance.getData();
+      document.querySelector('#contenidoRico').value = data;
+    }
+  });
+
+  <% if (typeof actividad !== 'undefined' && actividad) { %>
+    seleccionarTipo('<%= actividad.tipo %>');
+    <% if (actividad.tipo === 'evaluacion' && actividad.preguntas && actividad.preguntas.length) { %>
+      const preguntasExistentes = <%- JSON.stringify(actividad.preguntas) %>;
+      preguntasExistentes.forEach(p => agregarPregunta(p));
+    <% } %>
+  <% } else { %>
+    seleccionarTipo('blog');
+  <% } %>
+});
 </script>
 </body>
 </html>
