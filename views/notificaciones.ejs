@@ -7,11 +7,8 @@
 </head>
 <body>
 <div class="layout">
-  <header class="topbar">
-    <a href="/" class="topbar-logo">Nurse<span>Learn</span></a>
-    <div class="topbar-spacer"></div>
-    <div class="topbar-user"><span><%= user %></span><span class="topbar-rol"><%= session.userRol ? session.userRol.charAt(0).toUpperCase() + session.userRol.slice(1) : 'Usuario' %></span></div>
-  </header>
+  <!-- TOPBAR -->
+  <%- include('partials/topbar', { user: user, userRol: session.userRol ? session.userRol.toUpperCase() : 'USUARIO' }) %>
   <nav class="sidebar">
     <%- include('partials/sidebar', { session: { userRol: session.userRol }, locals: { currentPath: '/notificaciones' } }) %>
   </nav>

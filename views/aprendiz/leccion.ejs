@@ -65,11 +65,8 @@
 </head>
 <body>
 <div class="layout">
-  <header class="topbar">
-    <a href="/aprendiz" class="topbar-logo">Nurse<span>Learn</span></a>
-    <div class="topbar-spacer"></div>
-    <div class="topbar-user"><span><%= user %></span><span class="topbar-rol" style="background:var(--azul-claro);color:var(--azul);">Aprendiz</span></div>
-  </header>
+  <!-- TOPBAR -->
+  <%- include('../partials/topbar', { user: user, userRol: 'Aprendiz' }) %>
 
   <nav class="sidebar">
     <%- include('../partials/sidebar', { session: { userRol: 'aprendiz' } }) %>

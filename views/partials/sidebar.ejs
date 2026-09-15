@@ -45,8 +45,10 @@ const homeHref = rol === 'admin' ? '/admin' : rol === 'instructor' ? '/instructo
   <div class="sidebar-nav-container">
     <div class="sidebar-section">
       <div class="sidebar-label">Navigation</div>
-      <% links.forEach(l => { %>
-        <a href="<%= l.href %>" class="<%= currentPath === l.href ? 'active' : '' %>">
+      <% links.forEach(l => { 
+        const isActive = currentPath === l.href || (l.href !== '/admin' && l.href !== '/instructor' && l.href !== '/aprendiz' && l.href !== '/' && currentPath.startsWith(l.href));
+      %>
+        <a href="<%= l.href %>" class="<%= isActive ? 'active' : '' %>">
           <span class="icon"><%- l.icon %></span>
           <span><%= l.label %></span>
           <% if (l.href === '/notificaciones' && typeof unreadNotifications !== 'undefined' && unreadNotifications > 0) { %>

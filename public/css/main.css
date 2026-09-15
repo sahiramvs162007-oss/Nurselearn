@@ -60,14 +60,18 @@ body {
   display: grid;
   grid-template-columns: 250px 1fr;
   grid-template-rows: 70px 1fr;
+  height: 100vh;
   min-height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
   background: var(--gris-bg);
 }
 
 /* ── TOPBAR ─────────────────────────────────────────── */
 .topbar {
   grid-column: 2;
-  background: transparent;
+  grid-row: 1;
+  background: var(--gris-bg);
   display: flex;
   align-items: center;
   padding: 0 36px;
@@ -156,6 +160,7 @@ body {
 
 /* ── SIDEBAR ─────────────────────────────────────────── */
 .sidebar {
+  grid-column: 1;
   grid-row: 1 / -1;
   background: var(--blanco);
   border-right: 1px solid var(--gris-borde);
@@ -164,6 +169,13 @@ body {
   flex-direction: column;
   justify-content: space-between;
   overflow-y: auto;
+  height: 100vh;
+  max-height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
 }
 
 .sidebar-brand {
@@ -318,8 +330,37 @@ body {
 
 /* ── MAIN CONTENT ────────────────────────────────────── */
 .main {
+  grid-column: 2;
+  grid-row: 2;
   padding: 32px 36px;
   overflow-y: auto;
+  min-height: 0;
+  height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+}
+
+/* Estilos de scrollbar personalizados y sutiles */
+.sidebar::-webkit-scrollbar,
+.main::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.main::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.main::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.main::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.22);
 }
 
 .page-header-container {
