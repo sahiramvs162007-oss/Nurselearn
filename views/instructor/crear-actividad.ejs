@@ -142,14 +142,18 @@
 
           <!-- Emparejar -->
           <div class="section-juego" id="jsec-juego_emparejar">
-            <div class="card-title" style="font-size:1rem;">Parejas (término en inglés ↔ significado en español)</div>
+            <div class="flex-between mb-16"><div class="card-title" style="font-size:1rem;margin-bottom:0;">Parejas (término en inglés ↔ significado en español)</div>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="cargarValoresPredeterminados('juego_emparejar')">↺ Usar valores predeterminados</button>
+            </div>
             <div id="emparejar-container"></div>
             <button type="button" class="btn btn-outline" onclick="agregarEmparejar()">+ Agregar pareja</button>
           </div>
 
           <!-- Ahorcado -->
           <div class="section-juego" id="jsec-juego_ahorcado_salud">
-            <div class="card-title" style="font-size:1rem;">Palabras para el ahorcado</div>
+            <div class="flex-between mb-16"><div class="card-title" style="font-size:1rem;margin-bottom:0;">Palabras para el ahorcado</div>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="cargarValoresPredeterminados('juego_ahorcado_salud')">↺ Usar valores predeterminados</button>
+            </div>
             <p class="juego-hint">La palabra se juega en inglés y en mayúsculas. La pista puede incluir la traducción al español.</p>
             <div id="ahorcado-container"></div>
             <button type="button" class="btn btn-outline" onclick="agregarAhorcado()">+ Agregar palabra</button>
@@ -157,7 +161,9 @@
 
           <!-- Sopa de letras -->
           <div class="section-juego" id="jsec-juego_sopa_letras">
-            <div class="card-title" style="font-size:1rem;">Palabras para la sopa de letras</div>
+            <div class="flex-between mb-16"><div class="card-title" style="font-size:1rem;margin-bottom:0;">Palabras para la sopa de letras</div>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="cargarValoresPredeterminados('juego_sopa_letras')">↺ Usar valores predeterminados</button>
+            </div>
             <p class="juego-hint">Usa palabras cortas en inglés (idealmente de máximo 10-12 letras) para que quepan en la grilla.</p>
             <div id="sopa-container"></div>
             <button type="button" class="btn btn-outline" onclick="agregarSopa()">+ Agregar palabra</button>
@@ -165,7 +171,9 @@
 
           <!-- Completar oración -->
           <div class="section-juego" id="jsec-juego_completar_oracion">
-            <div class="card-title" style="font-size:1rem;">Oraciones para completar</div>
+            <div class="flex-between mb-16"><div class="card-title" style="font-size:1rem;margin-bottom:0;">Oraciones para completar</div>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="cargarValoresPredeterminados('juego_completar_oracion')">↺ Usar valores predeterminados</button>
+            </div>
             <p class="juego-hint">Escribe <code>___</code> (tres guiones bajos) en el lugar donde debe ir el espacio en blanco. La calificación se basa en qué tan parecida es la respuesta del aprendiz a la respuesta correcta.</p>
             <div id="oracion-container"></div>
             <button type="button" class="btn btn-outline" onclick="agregarOracion()">+ Agregar oración</button>
@@ -173,7 +181,9 @@
 
           <!-- Pronunciación / Traducción -->
           <div class="section-juego" id="jsec-juego_pronunciacion">
-            <div class="card-title" style="font-size:1rem;">Palabras en inglés y su significado en español</div>
+            <div class="flex-between mb-16"><div class="card-title" style="font-size:1rem;margin-bottom:0;">Palabras en inglés y su significado en español</div>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="cargarValoresPredeterminados('juego_pronunciacion')">↺ Usar valores predeterminados</button>
+            </div>
             <p class="juego-hint">Cada ronda el aprendiz deberá pronunciar la palabra en inglés (usando el micrófono) o traducirla, de forma aleatoria.</p>
             <div id="pronunciacion-container"></div>
             <button type="button" class="btn btn-outline" onclick="agregarPronunciacion()">+ Agregar palabra</button>
@@ -270,6 +280,95 @@ const GAME_TIME_DEFAULTS_MIN = {
   juego_pronunciacion: 6,
 };
 
+// Banco de contenido predeterminado por tipo de juego (vocabulario de salud
+// en inglés). Se usa para precargar juegos nuevos y como botón "Restaurar".
+const GAME_DEFAULT_CONTENT = {
+  juego_emparejar: [
+    { termino: 'Nurse', significado: 'Enfermera/o' },
+    { termino: 'Patient', significado: 'Paciente' },
+    { termino: 'Blood pressure', significado: 'Presión arterial' },
+    { termino: 'Syringe', significado: 'Jeringa' },
+    { termino: 'Bandage', significado: 'Vendaje' },
+    { termino: 'Stethoscope', significado: 'Estetoscopio' },
+    { termino: 'Medication', significado: 'Medicamento' },
+    { termino: 'Wheelchair', significado: 'Silla de ruedas' },
+  ],
+  juego_ahorcado_salud: [
+    { palabra: 'NURSE', pista: 'Profesional que cuida a los pacientes' },
+    { palabra: 'HOSPITAL', pista: 'Lugar donde se atienden los enfermos' },
+    { palabra: 'SYRINGE', pista: 'Instrumento para aplicar inyecciones' },
+    { palabra: 'BANDAGE', pista: 'Se usa para cubrir una herida' },
+    { palabra: 'THERMOMETER', pista: 'Mide la temperatura corporal' },
+    { palabra: 'STETHOSCOPE', pista: 'Se usa para escuchar el corazón' },
+  ],
+  juego_sopa_letras: [
+    { palabra: 'NURSE', traduccion: 'Enfermera' },
+    { palabra: 'PATIENT', traduccion: 'Paciente' },
+    { palabra: 'HOSPITAL', traduccion: 'Hospital' },
+    { palabra: 'SYRINGE', traduccion: 'Jeringa' },
+    { palabra: 'BANDAGE', traduccion: 'Vendaje' },
+    { palabra: 'THERAPY', traduccion: 'Terapia' },
+    { palabra: 'SURGERY', traduccion: 'Cirugía' },
+    { palabra: 'VACCINE', traduccion: 'Vacuna' },
+  ],
+  juego_completar_oracion: [
+    { oracion: "The nurse ___ the patient's blood pressure every morning.", respuesta: 'measures' },
+    { oracion: 'Please ___ your hands before entering the room.', respuesta: 'wash' },
+    { oracion: 'The doctor will ___ the patient shortly.', respuesta: 'examine' },
+    { oracion: 'Take this ___ twice a day after meals.', respuesta: 'medication' },
+    { oracion: 'The patient needs to ___ in bed for a few days.', respuesta: 'rest' },
+  ],
+  juego_pronunciacion: [
+    { ingles: 'Nurse', espanol: 'Enfermera' },
+    { ingles: 'Patient', espanol: 'Paciente' },
+    { ingles: 'Hospital', espanol: 'Hospital' },
+    { ingles: 'Medicine', espanol: 'Medicina' },
+    { ingles: 'Surgery', espanol: 'Cirugía' },
+    { ingles: 'Injection', espanol: 'Inyección' },
+  ],
+};
+
+const GAME_CONTAINER_ID_BY_TIPO = {
+  juego_emparejar: 'emparejar-container',
+  juego_ahorcado_salud: 'ahorcado-container',
+  juego_sopa_letras: 'sopa-container',
+  juego_completar_oracion: 'oracion-container',
+  juego_pronunciacion: 'pronunciacion-container',
+};
+
+// Las funciones agregarX son function declarations (hoisted), así que ya
+// están disponibles aquí aunque se definan más abajo en el archivo.
+const GAME_AGREGAR_FN_BY_TIPO = {
+  juego_emparejar: (item) => agregarEmparejar(item),
+  juego_ahorcado_salud: (item) => agregarAhorcado(item),
+  juego_sopa_letras: (item) => agregarSopa(item),
+  juego_completar_oracion: (item) => agregarOracion(item),
+  juego_pronunciacion: (item) => agregarPronunciacion(item),
+};
+
+function resetContadorJuego(tipo) {
+  if (tipo === 'juego_emparejar') numEmparejar = 0;
+  else if (tipo === 'juego_ahorcado_salud') numAhorcado = 0;
+  else if (tipo === 'juego_sopa_letras') numSopa = 0;
+  else if (tipo === 'juego_completar_oracion') numOracion = 0;
+  else if (tipo === 'juego_pronunciacion') numPronunciacion = 0;
+}
+
+function cargarValoresPredeterminados(tipo) {
+  const container = document.getElementById(GAME_CONTAINER_ID_BY_TIPO[tipo]);
+  if (!container) return;
+  if (container.children.length > 0) {
+    if (!confirm('Esto reemplazará los elementos actuales de este juego por los valores predeterminados. ¿Continuar?')) return;
+  }
+  container.innerHTML = '';
+  resetContadorJuego(tipo);
+  const items = GAME_DEFAULT_CONTENT[tipo] || [];
+  const agregarFn = GAME_AGREGAR_FN_BY_TIPO[tipo];
+  if (agregarFn) items.forEach(item => agregarFn(item));
+}
+
+const IS_EDITING_ACTIVIDAD = <%= (typeof actividad !== 'undefined' && actividad) ? 'true' : 'false' %>;
+
 function seleccionarTipoJuego(tipo) {
   ['juego_emparejar', 'juego_ahorcado_salud', 'juego_sopa_letras', 'juego_completar_oracion', 'juego_pronunciacion'].forEach(t => {
     const el = document.getElementById('jsec-' + t);
@@ -279,6 +378,14 @@ function seleccionarTipoJuego(tipo) {
   if (tiempoInput) {
     const def = GAME_TIME_DEFAULTS_MIN[tipo] || 5;
     tiempoInput.placeholder = `Predeterminado: ${def} min`;
+  }
+  // Al crear una actividad nueva (no al editar), precargar automáticamente
+  // las opciones predeterminadas si el instructor aún no agregó contenido.
+  if (!IS_EDITING_ACTIVIDAD) {
+    const container = document.getElementById(GAME_CONTAINER_ID_BY_TIPO[tipo]);
+    if (container && container.children.length === 0) {
+      cargarValoresPredeterminados(tipo);
+    }
   }
 }
 
