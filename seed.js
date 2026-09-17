@@ -7,7 +7,8 @@ const mongoose = require('mongoose');
 const User = require('./models/User');
 
 async function seed() {
-  await mongoose.connect(process.env.MONGODB_URI);
+  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/nurselearn';
+  await mongoose.connect(uri);
   console.log('Conectado a MongoDB');
 
   const existe = await User.findOne({ email: 'admin@sena.edu.co' });
