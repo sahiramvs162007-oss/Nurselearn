@@ -173,6 +173,57 @@
         color: #2d8500;
         cursor: default;
       }
+      .matching-card-back.is-termino {
+        background: white;
+        border: 2.5px solid var(--azul);
+        color: var(--azul);
+      }
+      .matching-card-back.is-significado {
+        background: white;
+        border: 2.5px solid var(--verde);
+        color: var(--verde-oscuro);
+      }
+
+      /* Contador de tiempo (todos los juegos) */
+      .game-timer-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
+        border: 1.5px solid var(--gris-borde);
+        border-radius: 8px;
+        padding: 8px 16px;
+        margin-bottom: 16px;
+        font-weight: 700;
+        color: var(--azul);
+        font-size: 0.95rem;
+      }
+      .game-timer-bar.warning {
+        color: #92400e;
+        border-color: var(--amarillo);
+        background: var(--amarillo-soft);
+      }
+      .game-timer-bar.danger {
+        color: #e53935;
+        border-color: #e53935;
+        animation: flash-red 0.8s infinite alternate;
+      }
+
+      /* Estilos: Muñeco del ahorcado */
+      .hangman-doll-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .hangman-figure {
+        display: block;
+      }
+      .hangman-attempts {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--texto-suave);
+      }
 
       /* Estilos: Juego Ahorcado Salud (Monitor EKG) */
       .ekg-panel {
@@ -301,7 +352,6 @@
       }
       .wordsearch-grid {
         display: grid;
-        grid-template-columns: repeat(10, 1fr);
         gap: 4px;
         width: 100%;
         max-width: 380px;
@@ -333,9 +383,18 @@
         background: var(--amarillo);
         color: white;
       }
+      .wordsearch-cell.wrong {
+        background: #ef4444 !important;
+        color: white !important;
+        animation: wordsearch-shake 0.15s ease-in-out 2;
+      }
+      @keyframes wordsearch-shake {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+      }
       .wordsearch-cell.found {
-        background: var(--verde);
-        color: white;
+        color: #3a3a3a;
+        font-weight: 800;
         cursor: default;
       }
       .wordsearch-controls {
@@ -390,10 +449,36 @@
 
       <% if (entrega.estado === 'Aprobado') { %>
         <div class="alert alert-success" style="margin-bottom: 0;">
-          <strong>✅ ¡Excelente trabajo!</strong> Has aprobado esta actividad didáctica con el 100%.
+          <strong>✅ ¡Excelente trabajo!</strong> Has aprobado esta actividad didáctica<% if (entrega.porcentaje !== null) { %> con el <%= entrega.porcentaje %>%<% } %>.
+        </div>
+      <% } else if (actividad.tipoJuego === 'juego_completar_oracion') { %>
+        <div class="game-workspace">
+          <% if (!actividad.juegoOracionItems || !actividad.juegoOracionItems.length) { %>
+            <p class="game-description" style="margin-bottom:0;">Este juego aún no tiene oraciones configuradas. Vuelve más tarde.</p>
+          <% } else { %>
+            <div id="game-timer-bar" class="game-timer-bar" style="display:none;"></div>
+            <form id="form-oracion" action="/aprendiz/juego-oracion/<%= actividad._id %>/entregar" method="POST">
+              <% actividad.juegoOracionItems.forEach((item, i) => { %>
+                <% const partes = item.oracion.split('___'); %>
+                <div style="margin-bottom:18px;padding:14px;background:white;border:1px solid var(--gris-borde);border-radius:8px;">
+                  <p style="margin-bottom:0;line-height:2.2;">
+                    <% if (partes.length > 1) { %>
+                      <%= partes[0] %><input type="text" name="respuesta_<%= i %>" required style="width:160px;text-align:center;font-weight:600;border:none;border-bottom:2.5px solid var(--azul);background:transparent;"><%= partes.slice(1).join('___') %>
+                    <% } else { %>
+                      <%= item.oracion %>
+                      <br>
+                      <input type="text" name="respuesta_<%= i %>" required placeholder="Completa la oración" style="margin-top:8px;width:100%;">
+                    <% } %>
+                  </p>
+                </div>
+              <% }) %>
+              <button type="submit" class="btn btn-primary">Enviar respuestas</button>
+            </form>
+          <% } %>
         </div>
       <% } else { %>
         <div class="game-workspace">
+          <div id="game-timer-bar" class="game-timer-bar" style="display:none;"></div>
           <!-- Espacio dinámico para el juego actual -->
           <div id="game-active-area"></div>
         </div>
@@ -403,50 +488,103 @@
     <!-- Script de configuración de juegos -->
     <% if (entrega.estado !== 'Aprobado') { %>
     <script>
+      const GAME_DATA = <%- gameDataJson %>;
+
       document.addEventListener('DOMContentLoaded', () => {
         const tipoJuego = '<%= actividad.tipoJuego %>';
+
+        if (tipoJuego === 'juego_completar_oracion') {
+          initSentenceGameTimer();
+          return;
+        }
+
         const activeArea = document.getElementById('game-active-area');
+        if (!activeArea) return;
 
         if (tipoJuego === 'juego_emparejar') {
-          initMatchingGame(activeArea);
+          initMatchingGame(activeArea, GAME_DATA.emparejar);
         } else if (tipoJuego === 'juego_ahorcado_salud') {
-          initHangmanGame(activeArea);
+          initHangmanGame(activeArea, GAME_DATA.ahorcado);
         } else if (tipoJuego === 'juego_sopa_letras') {
-          initWordSearchGame(activeArea);
+          initWordSearchGame(activeArea, GAME_DATA.sopa);
+        } else if (tipoJuego === 'juego_pronunciacion') {
+          initPronunciationGame(activeArea, GAME_DATA.pronunciacion);
         }
       });
 
+      function mostrarSinContenido(container) {
+        container.innerHTML = '<p class="game-description" style="margin-bottom:0;">Este juego aún no tiene contenido configurado. Vuelve más tarde.</p>';
+      }
+
+      // ─── CONTADOR DE TIEMPO (todos los juegos) ─────────────────────────
+      let __gameTimerInterval = null;
+
+      function clearGameTimer() {
+        if (__gameTimerInterval) {
+          clearInterval(__gameTimerInterval);
+          __gameTimerInterval = null;
+        }
+      }
+
+      function startGameTimer(minutes, onTimeout) {
+        clearGameTimer();
+        const bar = document.getElementById('game-timer-bar');
+        if (!bar || !minutes || minutes <= 0) return;
+
+        let secondsLeft = Math.round(minutes * 60);
+        bar.style.display = 'flex';
+        renderTimer();
+
+        __gameTimerInterval = setInterval(() => {
+          secondsLeft--;
+          if (secondsLeft <= 0) {
+            clearGameTimer();
+            bar.innerHTML = '<span>⏰ Tiempo agotado</span>';
+            bar.classList.add('danger');
+            onTimeout();
+            return;
+          }
+          renderTimer();
+        }, 1000);
+
+        function renderTimer() {
+          const m = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+          const s = (secondsLeft % 60).toString().padStart(2, '0');
+          bar.innerHTML = `<span>⏱️ Tiempo restante</span><span>${m}:${s}</span>`;
+          bar.classList.toggle('warning', secondsLeft <= 60 && secondsLeft > 20);
+          bar.classList.toggle('danger', secondsLeft <= 20);
+        }
+      }
+
+      function initSentenceGameTimer() {
+        const form = document.getElementById('form-oracion');
+        if (!form) return;
+        startGameTimer(GAME_DATA.tiempoLimiteMin, () => {
+          alert('⏰ Se agotó el tiempo. Se enviarán tus respuestas tal como están.');
+          form.submit();
+        });
+      }
+
       // ─── 1. JUEGO DE EMPAREJAR ─────────────────────────────────────────
-      function initMatchingGame(container) {
-        const pairs = [
-          { name: "Syringe", img: "/img/syringe.png" },
-          { name: "Stethoscope", img: "/img/stethoscope.png" },
-          { name: "Bandage", img: "/img/bandage.png" },
-          { name: "Thermometer", img: "/img/thermometer.png" },
-          { name: "Wheelchair", img: "/img/wheelchair.png" },
-          { name: "Scalpel", img: "/img/scalpel.png" }
-        ];
+      function initMatchingGame(container, pares) {
+        if (!pares || !pares.length) return mostrarSinContenido(container);
 
         let cardsData = [];
-        pairs.forEach((p, idx) => {
-          cardsData.push({ id: idx, type: 'text', content: p.name });
-          cardsData.push({ id: idx, type: 'image', content: p.img });
+        pares.forEach((p, idx) => {
+          cardsData.push({ id: idx, content: p.termino, kind: 'termino' });
+          cardsData.push({ id: idx, content: p.significado, kind: 'significado' });
         });
 
         // Mezclar
         cardsData.sort(() => Math.random() - 0.5);
 
         let html = '<div class="matching-grid">';
-        cardsData.forEach((card, index) => {
-          const displayContent = card.type === 'image'
-            ? `<img src="${card.content}" style="max-height: 85px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Medical item">`
-            : `<span style="font-size: 1.05rem; font-weight: 700; color: var(--azul);">${card.content}</span>`;
-
+        cardsData.forEach((card) => {
           html += `
             <div class="matching-card" data-pair-id="${card.id}" onclick="flipMatchingCard(this)">
               <div class="matching-card-inner">
                 <div class="matching-card-front">🩺</div>
-                <div class="matching-card-back" style="background: white; padding: 4px; border: 2.5px solid var(--verde);">${displayContent}</div>
+                <div class="matching-card-back ${card.kind === 'termino' ? 'is-termino' : 'is-significado'}">${card.content}</div>
               </div>
             </div>
           `;
@@ -457,8 +595,19 @@
         let selected = [];
         let busy = false;
         let matchedCount = 0;
+        let finished = false;
+
+        startGameTimer(GAME_DATA.tiempoLimiteMin, () => {
+          if (finished) return;
+          finished = true;
+          busy = true;
+          const pct = Math.round((matchedCount / pares.length) * 100);
+          alert('⏰ Se agotó el tiempo. Se calificará según las parejas que encontraste.');
+          completarJuego(pct);
+        });
 
         window.flipMatchingCard = function(cardEl) {
+          if (finished) return;
           if (busy || cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
 
           cardEl.classList.add('flipped');
@@ -477,7 +626,9 @@
               matchedCount++;
               busy = false;
 
-              if (matchedCount === pairs.length) {
+              if (matchedCount === pares.length) {
+                finished = true;
+                clearGameTimer();
                 setTimeout(() => {
                   alert('🎉 ¡Felicidades! Completaste todas las parejas.');
                   completarJuego();
@@ -497,31 +648,57 @@
       }
 
       // ─── 2. JUEGO DEL AHORCADO SALUD (EKG MONITOR) ─────────────────────
-      function initHangmanGame(container) {
-        const words = [
-          { word: "PRESCRIBE", clue: "English: Order medical treatment or medicine for a patient (Español: Recetar)" },
-          { word: "PATIENT", clue: "English: A person receiving medical care or treatment (Español: Paciente)" },
-          { word: "TREATMENT", clue: "English: Medical care given to a patient for an illness or injury (Español: Tratamiento)" },
-          { word: "INJECTION", clue: "English: An act of injecting medicine into the body (Español: Inyección)" },
-          { word: "MEDICINE", clue: "English: A substance used for treating disease or illness (Español: Medicina)" },
-          { word: "SURGERY", clue: "English: Medical treatment involving cutting open the body (Español: Cirugía)" },
-          { word: "DIAGNOSIS", clue: "English: Identification of the nature of an illness (Español: Diagnóstico)" },
-          { word: "SYMPTOMS", clue: "English: Physical or mental features indicating a condition (Español: Síntomas)" },
-          { word: "VACCINE", clue: "English: A substance used to stimulate antibody production (Español: Vacuna)" },
-          { word: "STETHOSCOPE", clue: "English: Instrument used to listen to heart or breathing (Español: Estetoscopio)" }
-        ];
+      function initHangmanGame(container, palabras) {
+        if (!palabras || !palabras.length) return mostrarSinContenido(container);
 
         // Seleccionar palabra aleatoria
-        const gameItem = words[Math.floor(Math.random() * words.length)];
-        const targetWord = gameItem.word;
-        const clue = gameItem.clue;
+        const gameItem = palabras[Math.floor(Math.random() * palabras.length)];
+        const targetWord = (gameItem.palabra || '').toUpperCase().replace(/[^A-Z]/g, '');
+        const clue = gameItem.pista || '(Sin pista)';
+
+        if (!targetWord) return mostrarSinContenido(container);
 
         let guessedLetters = new Set();
         let wrongAttempts = 0;
         const maxAttempts = 6;
+        let finished = false;
 
         // Render inicial
         updateHangmanUI();
+
+        startGameTimer(GAME_DATA.tiempoLimiteMin, () => {
+          if (finished) return;
+          finished = true;
+          const uniqueLetters = new Set(targetWord.split(''));
+          const correctas = [...uniqueLetters].filter(ch => guessedLetters.has(ch)).length;
+          const pct = Math.round((correctas / uniqueLetters.size) * 100);
+          alert('⏰ Se agotó el tiempo. Se calificará según las letras que descubriste.');
+          completarJuego(pct);
+        });
+
+        function hangmanFigureSvg() {
+          const parts = [
+            `<circle cx="80" cy="38" r="13" fill="none" stroke="#1f2937" stroke-width="3"/>`, // cabeza
+            `<line x1="80" y1="51" x2="80" y2="85" stroke="#1f2937" stroke-width="3"/>`, // cuerpo
+            `<line x1="80" y1="60" x2="65" y2="75" stroke="#1f2937" stroke-width="3"/>`, // brazo izq
+            `<line x1="80" y1="60" x2="95" y2="75" stroke="#1f2937" stroke-width="3"/>`, // brazo der
+            `<line x1="80" y1="85" x2="68" y2="110" stroke="#1f2937" stroke-width="3"/>`, // pierna izq
+            `<line x1="80" y1="85" x2="92" y2="110" stroke="#1f2937" stroke-width="3"/>`, // pierna der
+          ];
+          let partsHtml = '';
+          for (let i = 0; i < wrongAttempts && i < parts.length; i++) {
+            partsHtml += parts[i];
+          }
+          return `
+            <svg class="hangman-figure" viewBox="0 0 120 130" width="130" height="140">
+              <line x1="10" y1="120" x2="90" y2="120" stroke="#6b7280" stroke-width="4" stroke-linecap="round"/>
+              <line x1="30" y1="120" x2="30" y2="10" stroke="#6b7280" stroke-width="4" stroke-linecap="round"/>
+              <line x1="30" y1="10" x2="80" y2="10" stroke="#6b7280" stroke-width="4" stroke-linecap="round"/>
+              <line x1="80" y1="10" x2="80" y2="25" stroke="#6b7280" stroke-width="3"/>
+              ${partsHtml}
+            </svg>
+          `;
+        }
 
         function updateHangmanUI() {
           let wordSlotsHtml = '';
@@ -566,6 +743,10 @@
 
           let gameContentHtml = `
             <div class="ekg-panel">
+              <div class="hangman-doll-wrap">
+                ${hangmanFigureSvg()}
+                <div class="hangman-attempts">Intentos fallidos: ${wrongAttempts} / ${maxAttempts}</div>
+              </div>
               <div class="ekg-monitor">
                 <div class="ekg-header">
                   <span>VITAL SIGN MONITOR</span>
@@ -596,6 +777,8 @@
           `;
 
           if (won) {
+            finished = true;
+            clearGameTimer();
             gameContentHtml += `
               <div class="alert alert-success" style="margin-top: 20px; text-align: center;">
                 <strong>🎉 ¡Buen trabajo!</strong> Descubriste la palabra: <strong>${targetWord}</strong>
@@ -603,11 +786,13 @@
             `;
             setTimeout(() => { completarJuego(); }, 1500);
           } else if (wrongAttempts >= maxAttempts) {
+            finished = true;
+            clearGameTimer();
             gameContentHtml += `
               <div class="alert alert-error" style="margin-top: 20px; text-align: center; display: block;">
                 <strong>💀 Paciente inestable.</strong> La palabra era: <strong>${targetWord}</strong>
                 <br>
-                <button class="btn btn-secondary btn-sm" style="margin-top: 10px;" onclick="initHangmanGame(document.getElementById('game-active-area'))">Reintentar</button>
+                <button class="btn btn-secondary btn-sm" style="margin-top: 10px;" onclick="initHangmanGame(document.getElementById('game-active-area'), GAME_DATA.ahorcado)">Reintentar</button>
               </div>
             `;
           }
@@ -616,6 +801,7 @@
         }
 
         window.guessHangmanLetter = function(char, btnEl) {
+          if (finished) return;
           guessedLetters.add(char);
           btnEl.disabled = true;
 
@@ -627,20 +813,48 @@
       }
 
       // ─── 3. JUEGO DE SOPA DE LETRAS ────────────────────────────────────
-      function initWordSearchGame(container) {
-        const size = 10;
-        const targetWords = ["NURSE", "CARE", "PILL", "DRUG", "WARD", "PAIN", "FEVER", "BLOOD"];
-        const translations = {
-          NURSE: "Enfermera", CARE: "Cuidado", PILL: "Píldora", DRUG: "Medicamento",
-          WARD: "Pabellón", PAIN: "Dolor", FEVER: "Fiebre", BLOOD: "Sangre"
-        };
-        
+      function initWordSearchGame(container, palabras) {
+        if (!palabras || !palabras.length) return mostrarSinContenido(container);
+
+        const translations = {};
+        let targetWords = palabras
+          .map(p => {
+            const w = (p.palabra || '').toUpperCase().replace(/[^A-Z]/g, '');
+            if (w) translations[w] = p.traduccion || '';
+            return w;
+          })
+          .filter(w => w.length > 0);
+
+        const longest = Math.max(...targetWords.map(w => w.length), 0);
+        const size = Math.min(16, Math.max(10, longest + 2));
+        targetWords = targetWords.filter(w => w.length <= size);
+
+        if (!targetWords.length) return mostrarSinContenido(container);
+
         let grid = Array(size).fill(null).map(() => Array(size).fill(''));
         let foundWords = new Set();
         let selectedCells = []; // array de objetos {r, c, letter}
+        let flashingCell = null; // {r, c} celda incorrecta parpadeando en rojo
+        let inputLocked = false;
+        let finished = false;
+        window.wsFoundCells = []; // {r, c, color} celdas ya encontradas (color pastel)
+
+        function randomPastelColor() {
+          const hue = Math.floor(Math.random() * 360);
+          return `hsl(${hue}, 70%, 85%)`;
+        }
 
         // Generar grilla
         generateGrid();
+
+        startGameTimer(GAME_DATA.tiempoLimiteMin, () => {
+          if (finished) return;
+          finished = true;
+          inputLocked = true;
+          const pct = Math.round((foundWords.size / targetWords.length) * 100);
+          alert('⏰ Se agotó el tiempo. Se calificará según las palabras que encontraste.');
+          completarJuego(pct);
+        });
 
         function generateGrid() {
           // Intentar posicionar cada palabra
@@ -704,13 +918,15 @@
         renderWordSearch();
 
         function renderWordSearch() {
-          let gridHtml = '<div class="wordsearch-grid">';
+          let gridHtml = `<div class="wordsearch-grid" style="grid-template-columns: repeat(${size}, 1fr);">`;
           for (let r = 0; r < size; r++) {
             for (let c = 0; c < size; c++) {
               const isSelected = selectedCells.some(cell => cell.r === r && cell.c === c);
-              const isFound = isCellFound(r, c);
-              const classes = `wordsearch-cell ${isSelected ? 'selected' : ''} ${isFound ? 'found' : ''}`;
-              gridHtml += `<button class="${classes}" data-row="${r}" data-col="${c}" onclick="clickWordSearchCell(${r}, ${c}, this)">${grid[r][c]}</button>`;
+              const isWrong = flashingCell && flashingCell.r === r && flashingCell.c === c;
+              const foundColor = getFoundColor(r, c);
+              const classes = `wordsearch-cell ${isWrong ? 'wrong' : (isSelected ? 'selected' : '')} ${foundColor ? 'found' : ''}`;
+              const style = foundColor ? ` style="background-color:${foundColor};"` : '';
+              gridHtml += `<button class="${classes}"${style} data-row="${r}" data-col="${c}" onclick="clickWordSearchCell(${r}, ${c}, this)">${grid[r][c]}</button>`;
             }
           }
           gridHtml += '</div>';
@@ -719,7 +935,8 @@
           let wordBadgesHtml = '';
           targetWords.forEach(word => {
             const found = foundWords.has(word);
-            wordBadgesHtml += `<div class="word-badge ${found ? 'found' : ''}">${word} (${translations[word]})</div>`;
+            const traduccion = translations[word] ? ` (${translations[word]})` : '';
+            wordBadgesHtml += `<div class="word-badge ${found ? 'found' : ''}">${word}${traduccion}</div>`;
           });
 
           const currentWordSpelled = selectedCells.map(cell => cell.letter).join('');
@@ -732,10 +949,7 @@
                 <div class="wordsearch-current">
                   Palabra: <strong>${currentWordSpelled || '...'}</strong>
                 </div>
-                <div class="flex gap-8">
-                  <button class="btn btn-ghost btn-sm" onclick="clearWordSearchSelection()">Limpiar</button>
-                  <button class="btn btn-primary btn-sm" onclick="verifyWordSearchWord()">Verificar</button>
-                </div>
+                <button class="btn btn-ghost btn-sm" onclick="clearWordSearchSelection()">Limpiar selección</button>
               </div>
 
               <div class="wordsearch-list">
@@ -747,65 +961,239 @@
           container.innerHTML = totalHtml;
         }
 
-        function isCellFound(r, c) {
-          // Retorna true si esta coordenada forma parte de una palabra ya encontrada
-          // Para hacerlo simple, guardaremos las celdas encontradas en un array global del juego
-          return window.wsFoundCells && window.wsFoundCells.some(cell => cell.r === r && cell.c === c);
+        function getFoundColor(r, c) {
+          const cell = window.wsFoundCells.find(cell => cell.r === r && cell.c === c);
+          return cell ? cell.color : null;
         }
 
-        window.wsFoundCells = window.wsFoundCells || [];
-
         window.clickWordSearchCell = function(r, c, el) {
-          if (el.classList.contains('found')) return;
+          if (finished || inputLocked) return;
+          if (getFoundColor(r, c)) return;
 
           const index = selectedCells.findIndex(cell => cell.r === r && cell.c === c);
           if (index > -1) {
-            // Deseleccionar
-            selectedCells.splice(index, 1);
-          } else {
-            // Seleccionar
-            selectedCells.push({ r, c, letter: grid[r][c] });
+            // Deseleccionar esta celda y las que se agregaron después de ella
+            selectedCells = selectedCells.slice(0, index);
+            renderWordSearch();
+            return;
           }
+
+          // Intentar agregar la celda a la selección actual
+          const tentativa = selectedCells.concat([{ r, c, letter: grid[r][c] }]);
+          const spelled = tentativa.map(cell => cell.letter).join('');
+          const pendientes = targetWords.filter(w => !foundWords.has(w));
+
+          const esPrefijoValido = pendientes.some(w => w.startsWith(spelled)) ||
+            pendientes.some(w => w.split('').reverse().join('').startsWith(spelled));
+
+          if (!esPrefijoValido) {
+            // Letra equivocada: se remarca en rojo unos milisegundos y se descarta
+            inputLocked = true;
+            flashingCell = { r, c };
+            renderWordSearch();
+            setTimeout(() => {
+              flashingCell = null;
+              inputLocked = false;
+              renderWordSearch();
+            }, 450);
+            return;
+          }
+
+          // La letra pertenece a una palabra pendiente: se marca en amarillo/naranja
+          selectedCells = tentativa;
+
+          const palabraCompletada = pendientes.find(w =>
+            w === spelled || w.split('').reverse().join('') === spelled);
+
+          if (palabraCompletada) {
+            foundWords.add(palabraCompletada);
+            // Cada palabra encontrada obtiene un color pastel aleatorio propio
+            const color = randomPastelColor();
+            selectedCells.forEach(cell => {
+              window.wsFoundCells.push({ r: cell.r, c: cell.c, color });
+            });
+            selectedCells = [];
+            renderWordSearch();
+
+            if (foundWords.size === targetWords.length) {
+              finished = true;
+              clearGameTimer();
+              setTimeout(() => {
+                alert('🎉 ¡Felicidades! Encontraste todas las palabras en la sopa de letras.');
+                completarJuego();
+              }, 500);
+            }
+            return;
+          }
+
           renderWordSearch();
         }
 
         window.clearWordSearchSelection = function() {
+          if (inputLocked) return;
           selectedCells = [];
           renderWordSearch();
         }
+      }
 
-        window.verifyWordSearchWord = function() {
-          const spelled = selectedCells.map(cell => cell.letter).join('');
-          const reverseSpelled = spelled.split('').reverse().join('');
+      // ─── 4. JUEGO DE PRONUNCIACIÓN / TRADUCCIÓN ─────────────────────────
+      function normalizeForCompare(s) {
+        return (s || '').toString().trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      }
 
-          let matchedWord = null;
-          if (targetWords.includes(spelled) && !foundWords.has(spelled)) {
-            matchedWord = spelled;
-          } else if (targetWords.includes(reverseSpelled) && !foundWords.has(reverseSpelled)) {
-            matchedWord = reverseSpelled;
+      function textSimilarity(a, b) {
+        a = normalizeForCompare(a);
+        b = normalizeForCompare(b);
+        if (!a && !b) return 1;
+        if (!a || !b) return 0;
+        const m = a.length, n = b.length;
+        const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+        for (let i = 0; i <= m; i++) dp[i][0] = i;
+        for (let j = 0; j <= n; j++) dp[0][j] = j;
+        for (let i = 1; i <= m; i++) {
+          for (let j = 1; j <= n; j++) {
+            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+          }
+        }
+        return 1 - dp[m][n] / Math.max(m, n);
+      }
+
+      function initPronunciationGame(container, items) {
+        if (!items || !items.length) return mostrarSinContenido(container);
+
+        const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const modosDisponibles = SpeechRecognitionCtor
+          ? ['pronunciar', 'traducir_es', 'traducir_en']
+          : ['traducir_es', 'traducir_en'];
+
+        const rounds = items
+          .map(item => ({
+            ingles: item.ingles,
+            espanol: item.espanol,
+            modo: modosDisponibles[Math.floor(Math.random() * modosDisponibles.length)],
+          }))
+          .sort(() => Math.random() - 0.5);
+
+        let idx = 0;
+        let aciertos = 0;
+        let finished = false;
+
+        startGameTimer(GAME_DATA.tiempoLimiteMin, () => {
+          if (finished) return;
+          finished = true;
+          const pct = Math.round((aciertos / rounds.length) * 100);
+          alert('⏰ Se agotó el tiempo. Se calificará según tu progreso.');
+          completarJuego(pct);
+        });
+
+        renderRound();
+
+        function renderRound() {
+          if (idx >= rounds.length) {
+            finished = true;
+            clearGameTimer();
+            container.innerHTML = `
+              <div class="alert alert-success" style="text-align:center;">
+                <strong>🎉 ¡Completaste el reto!</strong> Acertaste ${aciertos} de ${rounds.length} palabras.
+              </div>
+            `;
+            setTimeout(() => { completarJuego(); }, 1200);
+            return;
           }
 
-          if (matchedWord) {
-            foundWords.add(matchedWord);
-            // Guardar celdas como encontradas
-            selectedCells.forEach(cell => {
-              window.wsFoundCells.push({ r: cell.r, c: cell.c });
-            });
-            selectedCells = [];
-            
-            renderWordSearch();
+          const r = rounds[idx];
+          let prompt, hint, inputHtml;
 
-            if (foundWords.size === targetWords.length) {
-              setTimeout(() => {
-                alert('🎉 ¡Felicidades! Encontraste todas las palabras en la sopa de letras.');
-                window.wsFoundCells = []; // limpiar caché estática
-                completarJuego();
-              }, 500);
-            }
+          if (r.modo === 'pronunciar') {
+            prompt = `Pronuncia en inglés: <strong>${r.ingles}</strong>`;
+            hint = 'Presiona el micrófono y di la palabra en voz alta, en inglés.';
+            inputHtml = `
+              <button type="button" class="btn btn-primary" id="btn-mic">🎤 Grabar pronunciación</button>
+              <p id="mic-feedback" style="margin-top:10px;color:var(--texto-suave);font-size:0.85rem;"></p>
+            `;
+          } else if (r.modo === 'traducir_es') {
+            prompt = `¿Qué significa en español la palabra <strong>${r.ingles}</strong>?`;
+            hint = 'Escribe el significado en español.';
+            inputHtml = `
+              <input type="text" id="txt-answer" placeholder="Escribe en español..." style="max-width:280px;">
+              <button type="button" class="btn btn-primary" id="btn-check" style="margin-left:8px;">Comprobar</button>
+            `;
           } else {
-            alert('❌ Palabra no válida o ya encontrada. Intenta de nuevo.');
-            selectedCells = [];
-            renderWordSearch();
+            prompt = `¿Cómo se dice en inglés <strong>${r.espanol}</strong>?`;
+            hint = 'Write the word in English.';
+            inputHtml = `
+              <input type="text" id="txt-answer" placeholder="Write in English..." style="max-width:280px;">
+              <button type="button" class="btn btn-primary" id="btn-check" style="margin-left:8px;">Check</button>
+            `;
+          }
+
+          container.innerHTML = `
+            <div style="text-align:center;">
+              <p style="font-size:0.85rem;color:var(--texto-suave);">Palabra ${idx + 1} de ${rounds.length} · Aciertos: ${aciertos}</p>
+              <p style="font-size:1.15rem;margin:14px 0 6px;">${prompt}</p>
+              <p style="font-size:0.85rem;color:var(--texto-suave);margin-bottom:18px;">${hint}</p>
+              ${inputHtml}
+              <p id="round-result" style="margin-top:16px;font-weight:600;min-height:1.2em;"></p>
+            </div>
+          `;
+
+          if (r.modo === 'pronunciar') {
+            const btnMic = document.getElementById('btn-mic');
+            btnMic.addEventListener('click', () => {
+              const recog = new SpeechRecognitionCtor();
+              recog.lang = 'en-US';
+              recog.maxAlternatives = 3;
+              btnMic.disabled = true;
+              btnMic.textContent = '🎙️ Escuchando...';
+              document.getElementById('mic-feedback').textContent = '';
+
+              recog.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                const score = textSimilarity(transcript, r.ingles);
+                const fb = document.getElementById('mic-feedback');
+                if (fb) fb.textContent = `Se entendió: "${transcript}"`;
+                handleResult(score >= 0.7, r.ingles);
+              };
+              recog.onerror = () => {
+                const fb = document.getElementById('mic-feedback');
+                if (fb) fb.textContent = 'No se pudo escuchar. Intenta de nuevo.';
+                btnMic.disabled = false;
+                btnMic.textContent = '🎤 Grabar pronunciación';
+              };
+              recog.onend = () => {
+                btnMic.disabled = false;
+                btnMic.textContent = '🎤 Grabar pronunciación';
+              };
+              recog.start();
+            });
+          } else {
+            const btnCheck = document.getElementById('btn-check');
+            const txt = document.getElementById('txt-answer');
+            const submit = () => {
+              const expected = r.modo === 'traducir_es' ? r.espanol : r.ingles;
+              const score = textSimilarity(txt.value, expected);
+              handleResult(score >= 0.7, expected);
+            };
+            btnCheck.addEventListener('click', submit);
+            txt.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') { e.preventDefault(); submit(); }
+            });
+            txt.focus();
+          }
+
+          function handleResult(correcto, esperado) {
+            if (finished) return;
+            const resultEl = document.getElementById('round-result');
+            if (correcto) {
+              aciertos++;
+              resultEl.style.color = 'var(--verde-oscuro)';
+              resultEl.textContent = '✅ ¡Correcto!';
+            } else {
+              resultEl.style.color = '#e53935';
+              resultEl.textContent = `❌ Casi. Respuesta esperada: ${esperado}`;
+            }
+            setTimeout(() => { idx++; renderRound(); }, 1400);
           }
         }
       }
@@ -840,11 +1228,11 @@
   </main>
 </div>
 <script>
-async function completarJuego() {
+async function completarJuego(porcentaje) {
   const res = await fetch('/aprendiz/juego/completar', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ actividadId: '<%= actividad._id %>' })
+    body: JSON.stringify({ actividadId: '<%= actividad._id %>', porcentaje })
   });
   const data = await res.json();
   if (data.ok) { alert(data.mensaje); location.reload(); }

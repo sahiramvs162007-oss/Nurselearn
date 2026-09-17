@@ -8,10 +8,41 @@ const path = require("path");
 const {
   sendNotifications,
   getInstructorIds,
-  hasCompletedRap,
-  hasCompletedModulo,
-  countAprendicesWithRapCompleted,
+  notificarProgresoAprobado,
 } = require("../utils/notificationService");
+const { similarityPercent } = require("../utils/textSimilarity");
+
+// Opciones predeterminadas del juego: tiempo límite (minutos) por tipo de
+// juego, usado cuando el instructor no configura uno propio.
+const GAME_TIME_DEFAULTS_MIN = {
+  juego_emparejar: 4,
+  juego_ahorcado_salud: 5,
+  juego_sopa_letras: 8,
+  juego_completar_oracion: 6,
+  juego_pronunciacion: 6,
+};
+const GAME_TIME_DEFAULT_FALLBACK_MIN = 5;
+
+function buildGameData(actividad) {
+  const tiempoLimiteMin =
+    actividad.juegoTiempoLimiteMin ||
+    GAME_TIME_DEFAULTS_MIN[actividad.tipoJuego] ||
+    GAME_TIME_DEFAULT_FALLBACK_MIN;
+
+  return {
+    emparejar: actividad.juegoEmparejarPares || [],
+    ahorcado: actividad.juegoAhorcadoPalabras || [],
+    sopa: actividad.juegoSopaPalabras || [],
+    oracion: actividad.juegoOracionItems || [],
+    pronunciacion: actividad.juegoPronunciacionItems || [],
+    tiempoLimiteMin,
+  };
+}
+
+function buildGameDataJson(actividad) {
+  return JSON.stringify(buildGameData(actividad)).replace(/</g, "\\u003c");
+}
+
 async function calcularProgreso(aprendizId, fichaId) {
   const actividades = await Actividad.find({ ficha: fichaId, visible: true });
   if (!actividades.length) return { pct: 0, porModulo: {} };
@@ -146,6 +177,7 @@ exports.getActividad = async (req, res, next) => {
         titulo: actividad.titulo,
         user: req.session.userName,
         actividad,
+        gameDataJson: buildGameDataJson(actividad),
         ficha: null,
         entrega: {
           estado: "Pendiente",
@@ -178,6 +210,7 @@ exports.getActividad = async (req, res, next) => {
       titulo: actividad.titulo,
       user: req.session.userName,
       actividad,
+      gameDataJson: buildGameDataJson(actividad),
       ficha,
       entrega,
       error: req.flash("error"),
@@ -234,8 +267,18 @@ exports.postEntregar = async (req, res, next) => {
 // ── COMPLETAR JUEGO ───────────────────────────────────────────────────────────
 exports.postCompletarJuego = async (req, res, next) => {
   try {
-    const { actividadId } = req.body;
+    const { actividadId, porcentaje } = req.body;
     const ficha = await Ficha.findOne({ aprendices: req.session.userId });
+
+    // Si no se envía porcentaje, es una victoria completa del juego (100%).
+    // Si se envía (p.ej. porque se agotó el tiempo), se califica con el
+    // avance real del aprendiz hasta ese momento.
+    const pct =
+      porcentaje === undefined || porcentaje === null
+        ? 100
+        : Math.max(0, Math.min(100, Math.round(Number(porcentaje)) || 0));
+    const estado = pct >= 70 ? "Aprobado" : "Reprobado";
+    const porTiempo = porcentaje !== undefined && porcentaje !== null;
 
     await Entrega.findOneAndUpdate(
       {
@@ -243,7 +286,15 @@ exports.postCompletarJuego = async (req, res, next) => {
         aprendiz: req.session.userId,
         ficha: ficha ? ficha._id : undefined,
       },
-      { porcentaje: 100, estado: "Aprobado", calificadoEn: new Date() },
+      {
+        porcentaje: pct,
+        estado,
+        entregadoEn: new Date(),
+        calificadoEn: new Date(),
+        ...(porTiempo
+          ? { retroalimentacion: "Calificado automáticamente: se agotó el tiempo límite del juego." }
+          : {}),
+      },
       { upsert: true },
     );
 
@@ -254,7 +305,7 @@ exports.postCompletarJuego = async (req, res, next) => {
       await sendNotifications(
         instructorIds,
         "actividad_calificada",
-        `El aprendiz completó automáticamente la actividad "${actividad.titulo}" en ${actividad.modulo.nombre} › ${actividad.rap.nombre}`,
+        `El aprendiz ${porTiempo ? "agotó el tiempo en" : "completó automáticamente"} la actividad "${actividad.titulo}" en ${actividad.modulo.nombre} › ${actividad.rap.nombre} (${pct}%)`,
         `/instructor/entregas`,
         {
           actividad: actividadId,
@@ -263,61 +314,22 @@ exports.postCompletarJuego = async (req, res, next) => {
         },
       );
 
-      const rapCompleto = await hasCompletedRap(
-        req.session.userId,
-        ficha._id,
-        actividad.rap._id,
-      );
-      if (rapCompleto) {
-        await sendNotifications(
-          instructorIds,
-          "rap_completado",
-          `El aprendiz completó el RAP "${actividad.rap.nombre}".`,
-          `/instructor/reportes`,
-          {
-            rap: actividad.rap._id,
-            ficha: ficha._id,
-            aprendiz: req.session.userId,
-          },
-        );
-
-        const totalApr = ficha.aprendices.length;
-        const completaronRap = await countAprendicesWithRapCompleted(
+      if (estado === "Aprobado") {
+        await notificarProgresoAprobado({
+          aprendizId: req.session.userId,
           ficha,
-          actividad.rap._id,
-        );
-        if (totalApr > 0 && completaronRap / totalApr >= 0.8) {
-          await sendNotifications(
-            instructorIds,
-            "rap_80",
-            `El RAP "${actividad.rap.nombre}" ya fue completado por el ${Math.round((completaronRap / totalApr) * 100)}% de los aprendices.`,
-            `/instructor/reportes`,
-            { rap: actividad.rap._id, ficha: ficha._id },
-          );
-        }
-      }
-
-      const moduloCompleto = await hasCompletedModulo(
-        req.session.userId,
-        ficha._id,
-        actividad.modulo._id,
-      );
-      if (moduloCompleto) {
-        await sendNotifications(
-          instructorIds,
-          "modulo_completado",
-          `El aprendiz completó el módulo "${actividad.modulo.nombre}".`,
-          `/instructor/reportes`,
-          {
-            modulo: actividad.modulo._id,
-            ficha: ficha._id,
-            aprendiz: req.session.userId,
-          },
-        );
+          actividad,
+        });
       }
     }
 
-    res.json({ ok: true, mensaje: "¡Actividad aprobada!" });
+    res.json({
+      ok: true,
+      mensaje:
+        estado === "Aprobado"
+          ? `¡Actividad aprobada con ${pct}%!`
+          : `Tiempo agotado. Obtuviste ${pct}%, no alcanza para aprobar. Puedes intentarlo de nuevo.`,
+    });
   } catch (err) {
     res
       .status(500)
@@ -376,64 +388,91 @@ exports.postEntregarEval = async (req, res, next) => {
       );
 
       if (estado === "Aprobado") {
-        const rapCompleto = await hasCompletedRap(
-          req.session.userId,
-          ficha._id,
-          actividad.rap._id,
-        );
-        if (rapCompleto) {
-          await sendNotifications(
-            instructorIds,
-            "rap_completado",
-            `El aprendiz completó el RAP "${actividad.rap.nombre}".`,
-            `/instructor/reportes`,
-            {
-              rap: actividad.rap._id,
-              ficha: ficha._id,
-              aprendiz: req.session.userId,
-            },
-          );
-
-          const totalApr = ficha.aprendices.length;
-          const completaronRap = await countAprendicesWithRapCompleted(
-            ficha,
-            actividad.rap._id,
-          );
-          if (totalApr > 0 && completaronRap / totalApr >= 0.8) {
-            await sendNotifications(
-              instructorIds,
-              "rap_80",
-              `El RAP "${actividad.rap.nombre}" ya fue completado por el ${Math.round((completaronRap / totalApr) * 100)}% de los aprendices.`,
-              `/instructor/reportes`,
-              { rap: actividad.rap._id, ficha: ficha._id },
-            );
-          }
-        }
-
-        const moduloCompleto = await hasCompletedModulo(
-          req.session.userId,
-          ficha._id,
-          actividad.modulo._id,
-        );
-        if (moduloCompleto) {
-          await sendNotifications(
-            instructorIds,
-            "modulo_completado",
-            `El aprendiz completó el módulo "${actividad.modulo.nombre}".`,
-            `/instructor/reportes`,
-            {
-              modulo: actividad.modulo._id,
-              ficha: ficha._id,
-              aprendiz: req.session.userId,
-            },
-          );
-        }
+        await notificarProgresoAprobado({
+          aprendizId: req.session.userId,
+          ficha,
+          actividad,
+        });
       }
     }
 
     req.flash(
       estado === "Aprobado" ? "success" : "error",
       `Resultado: ${porcentaje}% – ${estado === "Aprobado" ? "¡Aprobado!" : "Reprobado, intenta de nuevo."}`,
+    );
+    res.redirect("/aprendiz/actividad/" + actividad._id);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── ENTREGAR JUEGO: COMPLETAR LA ORACIÓN (calificación por similitud) ────────
+exports.postEntregarJuegoOracion = async (req, res, next) => {
+  try {
+    const actividad = await Actividad.findById(req.params.id).populate(
+      "rap modulo",
+    );
+    if (!actividad) return res.redirect("/aprendiz");
+
+    const items = actividad.juegoOracionItems || [];
+    if (!items.length) {
+      req.flash("error", "Este juego aún no tiene oraciones configuradas.");
+      return res.redirect("/aprendiz/actividad/" + actividad._id);
+    }
+
+    const detalle = items.map((item, i) => {
+      const respuestaDada = (req.body[`respuesta_${i}`] || "").toString();
+      const porcentajeItem = similarityPercent(item.respuesta, respuestaDada);
+      return { respuestaDada, porcentajeItem };
+    });
+
+    const porcentaje = Math.round(
+      detalle.reduce((sum, d) => sum + d.porcentajeItem, 0) / items.length,
+    );
+    const estado = porcentaje >= 70 ? "Aprobado" : "Reprobado";
+    const retroalimentacion = detalle
+      .map((d, i) => `Oración ${i + 1}: ${d.porcentajeItem}% de similitud`)
+      .join(" · ");
+
+    await Entrega.findOneAndUpdate(
+      { actividad: actividad._id, aprendiz: req.session.userId },
+      {
+        porcentaje,
+        estado,
+        retroalimentacion,
+        entregadoEn: new Date(),
+        calificadoEn: new Date(),
+      },
+      { upsert: true },
+    );
+
+    const ficha = await Ficha.findOne({ aprendices: req.session.userId });
+    if (ficha) {
+      const instructorIds = await getInstructorIds(ficha);
+      await sendNotifications(
+        instructorIds,
+        "entrega",
+        `El aprendiz entregó el juego "${actividad.titulo}" en ${actividad.modulo.nombre} › ${actividad.rap.nombre}`,
+        `/instructor/entregas`,
+        {
+          actividad: actividad._id,
+          ficha: ficha._id,
+          aprendiz: req.session.userId,
+        },
+      );
+
+      if (estado === "Aprobado") {
+        await notificarProgresoAprobado({
+          aprendizId: req.session.userId,
+          ficha,
+          actividad,
+        });
+      }
+    }
+
+    req.flash(
+      estado === "Aprobado" ? "success" : "error",
+      `Resultado: ${porcentaje}% de similitud – ${estado === "Aprobado" ? "¡Aprobado!" : "Intenta de nuevo."}`,
     );
     res.redirect("/aprendiz/actividad/" + actividad._id);
   } catch (err) {

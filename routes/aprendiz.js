@@ -21,6 +21,7 @@ router.get("/modulo/:moduloId", ctrl.getModulo);
 router.post("/entregar", upload.single("archivo"), ctrl.postEntregar);
 router.post("/juego/completar", ctrl.postCompletarJuego);
 router.post("/evaluacion/:id/entregar", ctrl.postEntregarEval);
+router.post("/juego-oracion/:id/entregar", ctrl.postEntregarJuegoOracion);
 
 // Historial
 router.get("/historial", ctrl.getHistorial);

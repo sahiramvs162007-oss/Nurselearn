@@ -11,6 +11,47 @@ const preguntaSchema = new mongoose.Schema(
   { _id: true },
 );
 
+// Sub-schemas para contenido configurable de juegos
+const emparejarParSchema = new mongoose.Schema(
+  {
+    termino: { type: String, required: true, trim: true },
+    significado: { type: String, required: true, trim: true },
+  },
+  { _id: false },
+);
+
+const ahorcadoPalabraSchema = new mongoose.Schema(
+  {
+    palabra: { type: String, required: true, trim: true },
+    pista: { type: String, default: "", trim: true },
+  },
+  { _id: false },
+);
+
+const sopaPalabraSchema = new mongoose.Schema(
+  {
+    palabra: { type: String, required: true, trim: true },
+    traduccion: { type: String, default: "", trim: true },
+  },
+  { _id: false },
+);
+
+const oracionItemSchema = new mongoose.Schema(
+  {
+    oracion: { type: String, required: true, trim: true }, // usar "___" para el espacio en blanco
+    respuesta: { type: String, required: true, trim: true },
+  },
+  { _id: false },
+);
+
+const pronunciacionItemSchema = new mongoose.Schema(
+  {
+    ingles: { type: String, required: true, trim: true },
+    espanol: { type: String, required: true, trim: true },
+  },
+  { _id: false },
+);
+
 const actividadSchema = new mongoose.Schema(
   {
     titulo: { type: String, required: true, trim: true },
@@ -69,10 +110,20 @@ const actividadSchema = new mongoose.Schema(
         "juego_emparejar",
         "juego_ahorcado_salud",
         "juego_sopa_letras",
+        "juego_completar_oracion",
+        "juego_pronunciacion",
         null,
       ],
       default: null,
     },
+    juegoEmparejarPares: [emparejarParSchema],
+    juegoAhorcadoPalabras: [ahorcadoPalabraSchema],
+    juegoSopaPalabras: [sopaPalabraSchema],
+    juegoOracionItems: [oracionItemSchema],
+    juegoPronunciacionItems: [pronunciacionItemSchema],
+    // Tiempo límite en minutos para completar el juego. Si es null/0, el
+    // frontend usa un valor predeterminado según el tipo de juego.
+    juegoTiempoLimiteMin: { type: Number, default: null },
 
     // ── EVALUACIÓN ────────────────────────────────────────
     preguntas: [preguntaSchema],

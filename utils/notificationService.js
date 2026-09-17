@@ -162,6 +162,58 @@ async function countAprendicesWithRapCompleted(ficha, rapId) {
   return resultados.length;
 }
 
+// Cascada de notificaciones cuando un aprendiz aprueba una actividad:
+// avisa si completó el RAP, si el RAP llegó al 80% de la ficha, y si completó el módulo.
+async function notificarProgresoAprobado({ aprendizId, ficha, actividad }) {
+  if (!ficha || !actividad) return;
+  const instructorIds = await getInstructorIds(ficha);
+
+  const rapCompleto = await hasCompletedRap(
+    aprendizId,
+    ficha._id,
+    actividad.rap._id,
+  );
+  if (rapCompleto) {
+    await sendNotifications(
+      instructorIds,
+      "rap_completado",
+      `El aprendiz completó el RAP "${actividad.rap.nombre}".`,
+      `/instructor/reportes`,
+      { rap: actividad.rap._id, ficha: ficha._id, aprendiz: aprendizId },
+    );
+
+    const totalApr = ficha.aprendices.length;
+    const completaronRap = await countAprendicesWithRapCompleted(
+      ficha,
+      actividad.rap._id,
+    );
+    if (totalApr > 0 && completaronRap / totalApr >= 0.8) {
+      await sendNotifications(
+        instructorIds,
+        "rap_80",
+        `El RAP "${actividad.rap.nombre}" ya fue completado por el ${Math.round((completaronRap / totalApr) * 100)}% de los aprendices.`,
+        `/instructor/reportes`,
+        { rap: actividad.rap._id, ficha: ficha._id },
+      );
+    }
+  }
+
+  const moduloCompleto = await hasCompletedModulo(
+    aprendizId,
+    ficha._id,
+    actividad.modulo._id,
+  );
+  if (moduloCompleto) {
+    await sendNotifications(
+      instructorIds,
+      "modulo_completado",
+      `El aprendiz completó el módulo "${actividad.modulo.nombre}".`,
+      `/instructor/reportes`,
+      { modulo: actividad.modulo._id, ficha: ficha._id, aprendiz: aprendizId },
+    );
+  }
+}
+
 module.exports = {
   sendNotification,
   sendNotifications,
@@ -171,4 +223,5 @@ module.exports = {
   hasCompletedRap,
   hasCompletedModulo,
   countAprendicesWithRapCompleted,
+  notificarProgresoAprobado,
 };

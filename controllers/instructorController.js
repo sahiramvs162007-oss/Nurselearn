@@ -12,6 +12,76 @@ const {
   getInstructorIds,
 } = require("../utils/notificationService");
 
+// Helper: arma pares { [fieldA]: valor, [fieldB]: valor } a partir de dos arrays
+// paralelos del body (mismo patrón que enunciados/opciones de evaluación)
+function buildParesFromBody(body, keyA, keyB, fieldA, fieldB) {
+  const arrA = [].concat(body[keyA] || []);
+  const arrB = [].concat(body[keyB] || []);
+  return arrA
+    .map((v, i) => ({
+      [fieldA]: (v || "").toString().trim(),
+      [fieldB]: (arrB[i] || "").toString().trim(),
+    }))
+    .filter((item) => item[fieldA]);
+}
+
+// Helper: construye el contenido de juego correspondiente al tipoJuego elegido
+// y deja vacíos los demás, para no dejar datos obsoletos de otro tipo de juego.
+function buildJuegoFields(body, tipoJuego) {
+  const fields = {
+    juegoEmparejarPares: [],
+    juegoAhorcadoPalabras: [],
+    juegoSopaPalabras: [],
+    juegoOracionItems: [],
+    juegoPronunciacionItems: [],
+  };
+  if (tipoJuego === "juego_emparejar") {
+    fields.juegoEmparejarPares = buildParesFromBody(
+      body,
+      "emparejarTermino",
+      "emparejarSignificado",
+      "termino",
+      "significado",
+    );
+  } else if (tipoJuego === "juego_ahorcado_salud") {
+    fields.juegoAhorcadoPalabras = buildParesFromBody(
+      body,
+      "ahorcadoPalabra",
+      "ahorcadoPista",
+      "palabra",
+      "pista",
+    );
+  } else if (tipoJuego === "juego_sopa_letras") {
+    fields.juegoSopaPalabras = buildParesFromBody(
+      body,
+      "sopaPalabra",
+      "sopaTraduccion",
+      "palabra",
+      "traduccion",
+    );
+  } else if (tipoJuego === "juego_completar_oracion") {
+    fields.juegoOracionItems = buildParesFromBody(
+      body,
+      "oracionTexto",
+      "oracionRespuesta",
+      "oracion",
+      "respuesta",
+    );
+  } else if (tipoJuego === "juego_pronunciacion") {
+    fields.juegoPronunciacionItems = buildParesFromBody(
+      body,
+      "pronunciacionIngles",
+      "pronunciacionEspanol",
+      "ingles",
+      "espanol",
+    );
+  }
+  fields.juegoTiempoLimiteMin = body.juegoTiempoLimiteMin
+    ? Number(body.juegoTiempoLimiteMin)
+    : null;
+  return fields;
+}
+
 // Helper: obtener ficha activa del instructor
 async function getFichaActiva(userId) {
   const user = await User.findById(userId);
@@ -201,6 +271,10 @@ exports.postCrearActividad = async (req, res, next) => {
       esCierreModulo: esCierreModulo === "on",
     };
 
+    if (tipo === "juego") {
+      Object.assign(data, buildJuegoFields(req.body, tipoJuego));
+    }
+
     // Si es tipo 'blog', crear una Lección y bloques asociados, y vincularla.
     if (tipo === "blog") {
       const leccion = await Leccion.create({
@@ -364,6 +438,10 @@ exports.postEditarActividad = async (req, res, next) => {
     actividad.descripcion = descripcion;
     actividad.tipoJuego = tipoJuego || null;
     actividad.esCierreModulo = esCierreModulo === "on";
+
+    if (tipo === "juego") {
+      Object.assign(actividad, buildJuegoFields(req.body, tipoJuego));
+    }
 
     // If it's a blog and linked to a Leccion, update the leccion and its bloques
     if (tipo === "blog") {
