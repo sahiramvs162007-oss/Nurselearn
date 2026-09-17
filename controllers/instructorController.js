@@ -11,6 +11,7 @@ const {
   sendNotifications,
   getInstructorIds,
 } = require("../utils/notificationService");
+const { buildGameDataJson } = require("../utils/gameData");
 
 // Helper: arma pares { [fieldA]: valor, [fieldB]: valor } a partir de dos arrays
 // paralelos del body (mismo patrón que enunciados/opciones de evaluación)
@@ -30,10 +31,10 @@ function buildParesFromBody(body, keyA, keyB, fieldA, fieldB) {
 function buildJuegoFields(body, tipoJuego) {
   const fields = {
     juegoEmparejarPares: [],
+    juegoEmparejarConceptos: [],
     juegoAhorcadoPalabras: [],
     juegoSopaPalabras: [],
     juegoOracionItems: [],
-    juegoPronunciacionItems: [],
   };
   if (tipoJuego === "juego_emparejar") {
     fields.juegoEmparejarPares = buildParesFromBody(
@@ -42,6 +43,14 @@ function buildJuegoFields(body, tipoJuego) {
       "emparejarSignificado",
       "termino",
       "significado",
+    );
+  } else if (tipoJuego === "juego_emparejar_conceptos") {
+    fields.juegoEmparejarConceptos = buildParesFromBody(
+      body,
+      "conceptoNombre",
+      "conceptoFuncion",
+      "concepto",
+      "funcion",
     );
   } else if (tipoJuego === "juego_ahorcado_salud") {
     fields.juegoAhorcadoPalabras = buildParesFromBody(
@@ -66,14 +75,6 @@ function buildJuegoFields(body, tipoJuego) {
       "oracionRespuesta",
       "oracion",
       "respuesta",
-    );
-  } else if (tipoJuego === "juego_pronunciacion") {
-    fields.juegoPronunciacionItems = buildParesFromBody(
-      body,
-      "pronunciacionIngles",
-      "pronunciacionEspanol",
-      "ingles",
-      "espanol",
     );
   }
   fields.juegoTiempoLimiteMin = body.juegoTiempoLimiteMin
@@ -547,6 +548,42 @@ exports.postEditarActividad = async (req, res, next) => {
 
     req.flash("success", "Actividad actualizada.");
     res.redirect("/instructor/actividades");
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET vista previa de actividad (para el instructor, sin actuar como aprendiz)
+exports.getPreviewActividad = async (req, res, next) => {
+  try {
+    const actividad = await Actividad.findById(req.params.id).populate(
+      "rap modulo",
+    );
+    if (!actividad) {
+      req.flash("error", "Actividad no encontrada.");
+      return res.redirect("/instructor/actividades");
+    }
+
+    res.render("aprendiz/actividad", {
+      titulo: actividad.titulo,
+      user: req.session.userName,
+      actividad,
+      gameDataJson: buildGameDataJson(actividad),
+      ficha: null,
+      entrega: {
+        estado: "Pendiente",
+        porcentaje: null,
+        retroalimentacion: "",
+        respuestaTexto: "",
+        segundoIntentoHabilitado: false,
+      },
+      error: [],
+      success: [],
+      previewMode: true,
+      topbarRol: "Instructor",
+      sidebarRol: "instructor",
+      backHref: "/instructor/actividades",
+    });
   } catch (err) {
     next(err);
   }

@@ -16,6 +16,7 @@ router.post("/actividades/crear", ctrl.postCrearActividad);
 // Editar actividad
 router.get("/actividades/:id/editar", ctrl.getEditarActividad);
 router.post("/actividades/:id/editar", ctrl.postEditarActividad);
+router.get("/actividades/:id/preview", ctrl.getPreviewActividad);
 // Endpoint para subir imágenes/medios desde el editor (CKEditor)
 router.post("/uploads", upload.single("upload"), (req, res) => {
   try {

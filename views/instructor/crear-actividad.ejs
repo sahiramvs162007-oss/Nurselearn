@@ -124,11 +124,11 @@
           <div class="form-group">
             <label>Tipo de juego</label>
             <select name="tipoJuego" id="tipoJuego-input" onchange="seleccionarTipoJuego(this.value)">
-              <option value="juego_emparejar" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoJuego === 'juego_emparejar') ? 'selected' : '' %>>🃏 Emparejar</option>
+              <option value="juego_emparejar" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoJuego === 'juego_emparejar') ? 'selected' : '' %>>🃏 Emparejar (inglés ↔ español)</option>
+              <option value="juego_emparejar_conceptos" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoJuego === 'juego_emparejar_conceptos') ? 'selected' : '' %>>🧩 Emparejar conceptos (instrumento ↔ función)</option>
               <option value="juego_ahorcado_salud" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoJuego === 'juego_ahorcado_salud') ? 'selected' : '' %>>💊 Ahorcado (Salud)</option>
               <option value="juego_sopa_letras" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoJuego === 'juego_sopa_letras') ? 'selected' : '' %>>🔤 Sopa de letras</option>
               <option value="juego_completar_oracion" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoJuego === 'juego_completar_oracion') ? 'selected' : '' %>>✏️ Completar la oración</option>
-              <option value="juego_pronunciacion" <%= (typeof actividad !== 'undefined' && actividad && actividad.tipoJuego === 'juego_pronunciacion') ? 'selected' : '' %>>🎤 Pronunciación / Traducción</option>
             </select>
           </div>
 
@@ -147,6 +147,16 @@
             </div>
             <div id="emparejar-container"></div>
             <button type="button" class="btn btn-outline" onclick="agregarEmparejar()">+ Agregar pareja</button>
+          </div>
+
+          <!-- Emparejar conceptos -->
+          <div class="section-juego" id="jsec-juego_emparejar_conceptos">
+            <div class="flex-between mb-16"><div class="card-title" style="font-size:1rem;margin-bottom:0;">Conceptos (instrumento/término ↔ su función o uso)</div>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="cargarValoresPredeterminados('juego_emparejar_conceptos')">↺ Usar valores predeterminados</button>
+            </div>
+            <p class="juego-hint">Ejemplo: <strong>Termómetro</strong> ↔ <strong>Sirve para tomar la temperatura</strong>. Útil para relacionar instrumentos, síntomas o procedimientos con su definición.</p>
+            <div id="conceptos-container"></div>
+            <button type="button" class="btn btn-outline" onclick="agregarConcepto()">+ Agregar concepto</button>
           </div>
 
           <!-- Ahorcado -->
@@ -177,16 +187,6 @@
             <p class="juego-hint">Escribe <code>___</code> (tres guiones bajos) en el lugar donde debe ir el espacio en blanco. La calificación se basa en qué tan parecida es la respuesta del aprendiz a la respuesta correcta.</p>
             <div id="oracion-container"></div>
             <button type="button" class="btn btn-outline" onclick="agregarOracion()">+ Agregar oración</button>
-          </div>
-
-          <!-- Pronunciación / Traducción -->
-          <div class="section-juego" id="jsec-juego_pronunciacion">
-            <div class="flex-between mb-16"><div class="card-title" style="font-size:1rem;margin-bottom:0;">Palabras en inglés y su significado en español</div>
-              <button type="button" class="btn btn-ghost btn-sm" onclick="cargarValoresPredeterminados('juego_pronunciacion')">↺ Usar valores predeterminados</button>
-            </div>
-            <p class="juego-hint">Cada ronda el aprendiz deberá pronunciar la palabra en inglés (usando el micrófono) o traducirla, de forma aleatoria.</p>
-            <div id="pronunciacion-container"></div>
-            <button type="button" class="btn btn-outline" onclick="agregarPronunciacion()">+ Agregar palabra</button>
           </div>
         </div>
 
@@ -274,10 +274,10 @@ function escapeAttr(v) {
 // Opciones predeterminadas del juego (debe coincidir con el backend)
 const GAME_TIME_DEFAULTS_MIN = {
   juego_emparejar: 4,
+  juego_emparejar_conceptos: 4,
   juego_ahorcado_salud: 5,
   juego_sopa_letras: 8,
   juego_completar_oracion: 6,
-  juego_pronunciacion: 6,
 };
 
 // Banco de contenido predeterminado por tipo de juego (vocabulario de salud
@@ -292,6 +292,16 @@ const GAME_DEFAULT_CONTENT = {
     { termino: 'Stethoscope', significado: 'Estetoscopio' },
     { termino: 'Medication', significado: 'Medicamento' },
     { termino: 'Wheelchair', significado: 'Silla de ruedas' },
+  ],
+  juego_emparejar_conceptos: [
+    { concepto: 'Termómetro', funcion: 'Sirve para tomar la temperatura' },
+    { concepto: 'Estetoscopio', funcion: 'Sirve para escuchar el corazón y los pulmones' },
+    { concepto: 'Tensiómetro', funcion: 'Sirve para medir la presión arterial' },
+    { concepto: 'Jeringa', funcion: 'Sirve para aplicar inyecciones' },
+    { concepto: 'Camilla', funcion: 'Sirve para trasladar o acostar al paciente' },
+    { concepto: 'Guantes de látex', funcion: 'Sirven para prevenir el contagio de infecciones' },
+    { concepto: 'Silla de ruedas', funcion: 'Sirve para movilizar a pacientes con dificultad para caminar' },
+    { concepto: 'Vendaje', funcion: 'Sirve para cubrir y proteger una herida' },
   ],
   juego_ahorcado_salud: [
     { palabra: 'NURSE', pista: 'Profesional que cuida a los pacientes' },
@@ -318,40 +328,32 @@ const GAME_DEFAULT_CONTENT = {
     { oracion: 'Take this ___ twice a day after meals.', respuesta: 'medication' },
     { oracion: 'The patient needs to ___ in bed for a few days.', respuesta: 'rest' },
   ],
-  juego_pronunciacion: [
-    { ingles: 'Nurse', espanol: 'Enfermera' },
-    { ingles: 'Patient', espanol: 'Paciente' },
-    { ingles: 'Hospital', espanol: 'Hospital' },
-    { ingles: 'Medicine', espanol: 'Medicina' },
-    { ingles: 'Surgery', espanol: 'Cirugía' },
-    { ingles: 'Injection', espanol: 'Inyección' },
-  ],
 };
 
 const GAME_CONTAINER_ID_BY_TIPO = {
   juego_emparejar: 'emparejar-container',
+  juego_emparejar_conceptos: 'conceptos-container',
   juego_ahorcado_salud: 'ahorcado-container',
   juego_sopa_letras: 'sopa-container',
   juego_completar_oracion: 'oracion-container',
-  juego_pronunciacion: 'pronunciacion-container',
 };
 
 // Las funciones agregarX son function declarations (hoisted), así que ya
 // están disponibles aquí aunque se definan más abajo en el archivo.
 const GAME_AGREGAR_FN_BY_TIPO = {
   juego_emparejar: (item) => agregarEmparejar(item),
+  juego_emparejar_conceptos: (item) => agregarConcepto(item),
   juego_ahorcado_salud: (item) => agregarAhorcado(item),
   juego_sopa_letras: (item) => agregarSopa(item),
   juego_completar_oracion: (item) => agregarOracion(item),
-  juego_pronunciacion: (item) => agregarPronunciacion(item),
 };
 
 function resetContadorJuego(tipo) {
   if (tipo === 'juego_emparejar') numEmparejar = 0;
+  else if (tipo === 'juego_emparejar_conceptos') numConceptos = 0;
   else if (tipo === 'juego_ahorcado_salud') numAhorcado = 0;
   else if (tipo === 'juego_sopa_letras') numSopa = 0;
   else if (tipo === 'juego_completar_oracion') numOracion = 0;
-  else if (tipo === 'juego_pronunciacion') numPronunciacion = 0;
 }
 
 function cargarValoresPredeterminados(tipo) {
@@ -370,7 +372,7 @@ function cargarValoresPredeterminados(tipo) {
 const IS_EDITING_ACTIVIDAD = <%= (typeof actividad !== 'undefined' && actividad) ? 'true' : 'false' %>;
 
 function seleccionarTipoJuego(tipo) {
-  ['juego_emparejar', 'juego_ahorcado_salud', 'juego_sopa_letras', 'juego_completar_oracion', 'juego_pronunciacion'].forEach(t => {
+  ['juego_emparejar', 'juego_emparejar_conceptos', 'juego_ahorcado_salud', 'juego_sopa_letras', 'juego_completar_oracion'].forEach(t => {
     const el = document.getElementById('jsec-' + t);
     if (el) el.classList.toggle('visible', t === tipo);
   });
@@ -402,6 +404,24 @@ function agregarEmparejar(item) {
     <div class="grid-2">
       <div class="form-group"><label>Término (inglés)</label><input name="emparejarTermino" required value="${escapeAttr(item && item.termino)}"></div>
       <div class="form-group"><label>Significado (español)</label><input name="emparejarSignificado" required value="${escapeAttr(item && item.significado)}"></div>
+    </div>
+  `;
+  container.appendChild(div);
+}
+
+let numConceptos = 0;
+function agregarConcepto(item) {
+  const i = numConceptos++;
+  const container = document.getElementById('conceptos-container');
+  const div = document.createElement('div');
+  div.className = 'pregunta-item';
+  div.innerHTML = `
+    <div class="flex-between mb-16"><strong>Concepto ${i + 1}</strong>
+      <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.pregunta-item').remove()">Eliminar</button>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Concepto / Instrumento</label><input name="conceptoNombre" required placeholder="Termómetro" value="${escapeAttr(item && item.concepto)}"></div>
+      <div class="form-group"><label>Función / Para qué sirve</label><input name="conceptoFuncion" required placeholder="Sirve para tomar la temperatura" value="${escapeAttr(item && item.funcion)}"></div>
     </div>
   `;
   container.appendChild(div);
@@ -455,24 +475,6 @@ function agregarOracion(item) {
     </div>
     <div class="form-group"><label>Oración (usa ___ para el espacio en blanco)</label><input name="oracionTexto" required placeholder="The nurse ___ the patient's blood pressure." value="${escapeAttr(item && item.oracion)}"></div>
     <div class="form-group"><label>Respuesta correcta</label><input name="oracionRespuesta" required placeholder="measured" value="${escapeAttr(item && item.respuesta)}"></div>
-  `;
-  container.appendChild(div);
-}
-
-let numPronunciacion = 0;
-function agregarPronunciacion(item) {
-  const i = numPronunciacion++;
-  const container = document.getElementById('pronunciacion-container');
-  const div = document.createElement('div');
-  div.className = 'pregunta-item';
-  div.innerHTML = `
-    <div class="flex-between mb-16"><strong>Palabra ${i + 1}</strong>
-      <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.pregunta-item').remove()">Eliminar</button>
-    </div>
-    <div class="grid-2">
-      <div class="form-group"><label>Palabra (inglés)</label><input name="pronunciacionIngles" required value="${escapeAttr(item && item.ingles)}"></div>
-      <div class="form-group"><label>Significado (español)</label><input name="pronunciacionEspanol" required value="${escapeAttr(item && item.espanol)}"></div>
-    </div>
   `;
   container.appendChild(div);
 }
@@ -531,6 +533,9 @@ document.addEventListener('DOMContentLoaded', function () {
       <% (actividad.juegoEmparejarPares || []).forEach(p => { %>
         agregarEmparejar(<%- JSON.stringify(p).replace(/</g, '\\u003c') %>);
       <% }) %>
+      <% (actividad.juegoEmparejarConceptos || []).forEach(p => { %>
+        agregarConcepto(<%- JSON.stringify(p).replace(/</g, '\\u003c') %>);
+      <% }) %>
       <% (actividad.juegoAhorcadoPalabras || []).forEach(p => { %>
         agregarAhorcado(<%- JSON.stringify(p).replace(/</g, '\\u003c') %>);
       <% }) %>
@@ -539,9 +544,6 @@ document.addEventListener('DOMContentLoaded', function () {
       <% }) %>
       <% (actividad.juegoOracionItems || []).forEach(p => { %>
         agregarOracion(<%- JSON.stringify(p).replace(/</g, '\\u003c') %>);
-      <% }) %>
-      <% (actividad.juegoPronunciacionItems || []).forEach(p => { %>
-        agregarPronunciacion(<%- JSON.stringify(p).replace(/</g, '\\u003c') %>);
       <% }) %>
     <% } %>
   <% } else { %>

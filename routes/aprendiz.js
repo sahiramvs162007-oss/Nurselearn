@@ -4,18 +4,11 @@ const ctrl = require("../controllers/aprendizController");
 const { isAuth, hasRole } = require("../middleware/auth");
 const upload = require("../middleware/upload");
 
-// Previsualización: accesible también para instructores (botón "Ver como aprendiz")
-router.get(
-  "/actividad/:id",
-  isAuth,
-  hasRole("aprendiz", "instructor"),
-  ctrl.getActividad,
-);
-
 router.use(isAuth, hasRole("aprendiz"));
 
 router.get("/", ctrl.getDashboard);
 router.get("/modulo/:moduloId", ctrl.getModulo);
+router.get("/actividad/:id", ctrl.getActividad);
 
 // Entregas
 router.post("/entregar", upload.single("archivo"), ctrl.postEntregar);

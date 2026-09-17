@@ -6,11 +6,17 @@
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
+<%
+  const previewMode = typeof locals.previewMode !== 'undefined' && locals.previewMode;
+  const topbarRol = typeof locals.topbarRol !== 'undefined' ? locals.topbarRol : 'Aprendiz';
+  const sidebarRol = typeof locals.sidebarRol !== 'undefined' ? locals.sidebarRol : 'aprendiz';
+  const backHref = typeof locals.backHref !== 'undefined' ? locals.backHref : ('/aprendiz/modulo/' + actividad.modulo._id);
+%>
 <div class="layout">
   <!-- TOPBAR -->
-  <%- include('../partials/topbar', { user: user, userRol: 'Aprendiz' }) %>
+  <%- include('../partials/topbar', { user: user, userRol: topbarRol }) %>
   <nav class="sidebar">
-    <%- include('../partials/sidebar', { session: { userRol: 'aprendiz' } }) %>
+    <%- include('../partials/sidebar', { session: { userRol: sidebarRol } }) %>
   </nav>
   <main class="main">
     <div class="page-header flex-between">
@@ -21,8 +27,12 @@
           <span class="badge badge-info"><%= actividad.momentoPedagogico %></span>
         </p>
       </div>
-      <a href="/aprendiz/modulo/<%= actividad.modulo._id %>" class="btn btn-ghost">← Volver</a>
+      <a href="<%= backHref %>" class="btn btn-ghost">← Volver</a>
     </div>
+
+    <% if (previewMode) { %>
+      <div class="alert alert-info">👁️ <strong>Vista previa</strong> — así verán esta actividad los aprendices. Ninguna respuesta o resultado se guarda aquí.</div>
+    <% } %>
 
     <% if (error && error.length) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
     <% if (success && success.length) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
@@ -53,6 +63,9 @@
     <% if (actividad.tipoEntrega && (entrega.estado === 'Pendiente' || entrega.segundoIntentoHabilitado)) { %>
     <div class="card">
       <div class="card-title">Tu entrega</div>
+      <% if (previewMode) { %>
+        <p class="game-description" style="margin-bottom:0;">Aquí el aprendiz podrá enviar su <%= actividad.tipoEntrega === 'texto' ? 'respuesta en texto' : 'archivo' %>. (No disponible en la vista previa)</p>
+      <% } else { %>
       <form action="/aprendiz/entregar" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="actividadId" value="<%= actividad._id %>">
         <% if (actividad.tipoEntrega === 'texto') { %>
@@ -68,6 +81,7 @@
         <% } %>
         <button type="submit" class="btn btn-primary">Enviar entrega</button>
       </form>
+      <% } %>
     </div>
     <% } %>
 
@@ -105,83 +119,63 @@
         position: relative;
       }
 
-      /* Estilos: Juego de Emparejar */
-      .matching-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-        max-width: 650px;
-        margin: 0 auto;
-      }
-      @media (max-width: 600px) {
-        .matching-grid {
-          grid-template-columns: repeat(3, 1fr);
-        }
-      }
-      @media (max-width: 450px) {
-        .matching-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-      .matching-card {
-        height: 110px;
+      /* Estilos: Juego de Emparejar (dos columnas unidas con una línea) */
+      .linkmatch-wrap {
         position: relative;
-        perspective: 1000px;
-        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        gap: 8vw;
+        max-width: 620px;
+        margin: 0 auto;
+        padding: 4px 0;
       }
-      .matching-card-inner {
-        width: 100%;
-        height: 100%;
+      @media (max-width: 560px) {
+        .linkmatch-wrap { gap: 32px; }
+      }
+      .linkmatch-svg {
         position: absolute;
-        transform-style: preserve-3d;
-        transition: transform 0.5s;
-        border-radius: 8px;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 1;
       }
-      .matching-card.flipped .matching-card-inner {
-        transform: rotateY(180deg);
+      .linkmatch-col {
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
-      .matching-card-front, .matching-card-back {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        backface-visibility: hidden;
-        border-radius: 8px;
+      .linkmatch-item {
         display: flex;
         align-items: center;
-        justify-content: center;
-        padding: 10px;
-        text-align: center;
+        gap: 10px;
+        background: white;
+        border: 1.5px solid var(--gris-borde);
+        border-radius: 8px;
+        padding: 10px 10px;
+        font-size: 0.85rem;
         font-weight: 600;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      }
-      .matching-card-front {
-        background: var(--azul);
-        color: white;
-        font-size: 1.8rem;
-        border: 1.5px solid var(--azul);
-      }
-      .matching-card-back {
-        background: var(--verde-claro);
         color: var(--azul);
-        border: 2.5px solid var(--verde);
-        transform: rotateY(180deg);
-        font-size: 0.9rem;
+        transition: background 0.15s, border-color 0.15s;
       }
-      .matching-card.matched .matching-card-back {
-        background: #e8f7e0;
-        border-color: #2d8500;
-        color: #2d8500;
-        cursor: default;
-      }
-      .matching-card-back.is-termino {
-        background: white;
-        border: 2.5px solid var(--azul);
-        color: var(--azul);
-      }
-      .matching-card-back.is-significado {
-        background: white;
-        border: 2.5px solid var(--verde);
+      .linkmatch-col-b .linkmatch-item {
+        flex-direction: row-reverse;
+        text-align: right;
         color: var(--verde-oscuro);
+      }
+      /* Todo el contenedor (no un punto aparte) es el asa de arrastre */
+      .linkmatch-col-a .linkmatch-item {
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .linkmatch-text { flex: 1; }
+      .linkmatch-item.matched {
+        color: #3a3a3a;
       }
 
       /* Contador de tiempo (todos los juegos) */
@@ -370,6 +364,8 @@
         cursor: pointer;
         border-radius: 4px;
         user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
         border: none;
         font-size: 1.05rem;
         color: var(--texto);
@@ -380,8 +376,8 @@
         color: var(--azul);
       }
       .wordsearch-cell.selected {
-        background: var(--amarillo);
-        color: white;
+        background: var(--amarillo) !important;
+        color: white !important;
       }
       .wordsearch-cell.wrong {
         background: #ef4444 !important;
@@ -395,7 +391,6 @@
       .wordsearch-cell.found {
         color: #3a3a3a;
         font-weight: 800;
-        cursor: default;
       }
       .wordsearch-controls {
         display: flex;
@@ -457,7 +452,7 @@
             <p class="game-description" style="margin-bottom:0;">Este juego aún no tiene oraciones configuradas. Vuelve más tarde.</p>
           <% } else { %>
             <div id="game-timer-bar" class="game-timer-bar" style="display:none;"></div>
-            <form id="form-oracion" action="/aprendiz/juego-oracion/<%= actividad._id %>/entregar" method="POST">
+            <form id="form-oracion" action="/aprendiz/juego-oracion/<%= actividad._id %>/entregar" method="POST" <% if (previewMode) { %>onsubmit="return handlePreviewFormSubmit(event)"<% } %>>
               <% actividad.juegoOracionItems.forEach((item, i) => { %>
                 <% const partes = item.oracion.split('___'); %>
                 <div style="margin-bottom:18px;padding:14px;background:white;border:1px solid var(--gris-borde);border-radius:8px;">
@@ -503,12 +498,12 @@
 
         if (tipoJuego === 'juego_emparejar') {
           initMatchingGame(activeArea, GAME_DATA.emparejar);
+        } else if (tipoJuego === 'juego_emparejar_conceptos') {
+          initMatchingGame(activeArea, GAME_DATA.conceptos);
         } else if (tipoJuego === 'juego_ahorcado_salud') {
           initHangmanGame(activeArea, GAME_DATA.ahorcado);
         } else if (tipoJuego === 'juego_sopa_letras') {
           initWordSearchGame(activeArea, GAME_DATA.sopa);
-        } else if (tipoJuego === 'juego_pronunciacion') {
-          initPronunciationGame(activeArea, GAME_DATA.pronunciacion);
         }
       });
 
@@ -569,82 +564,212 @@
       function initMatchingGame(container, pares) {
         if (!pares || !pares.length) return mostrarSinContenido(container);
 
-        let cardsData = [];
-        pares.forEach((p, idx) => {
-          cardsData.push({ id: idx, content: p.termino, kind: 'termino' });
-          cardsData.push({ id: idx, content: p.significado, kind: 'significado' });
-        });
+        // Columna A conserva el orden original de las palabras/conceptos;
+        // la columna B se mezcla aparte para que la posición no delate la respuesta.
+        const colA = pares.map((p, idx) => ({ id: idx, text: p.termino }));
+        const colB = pares.map((p, idx) => ({ id: idx, text: p.significado }));
+        colB.sort(() => Math.random() - 0.5);
 
-        // Mezclar
-        cardsData.sort(() => Math.random() - 0.5);
-
-        let html = '<div class="matching-grid">';
-        cardsData.forEach((card) => {
-          html += `
-            <div class="matching-card" data-pair-id="${card.id}" onclick="flipMatchingCard(this)">
-              <div class="matching-card-inner">
-                <div class="matching-card-front">🩺</div>
-                <div class="matching-card-back ${card.kind === 'termino' ? 'is-termino' : 'is-significado'}">${card.content}</div>
-              </div>
+        container.innerHTML = `
+          <div class="linkmatch-wrap" id="linkmatch-wrap">
+            <svg class="linkmatch-svg" id="linkmatch-svg"></svg>
+            <div class="linkmatch-col linkmatch-col-a" id="linkmatch-col-a">
+              ${colA.map(item => `
+                <div class="linkmatch-item" data-id="${item.id}" data-side="a">
+                  <span class="linkmatch-text">${item.text}</span>
+                </div>
+              `).join('')}
             </div>
-          `;
-        });
-        html += '</div>';
-        container.innerHTML = html;
+            <div class="linkmatch-col linkmatch-col-b" id="linkmatch-col-b">
+              ${colB.map(item => `
+                <div class="linkmatch-item" data-id="${item.id}" data-side="b">
+                  <span class="linkmatch-text">${item.text}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <p class="game-description" style="text-align:center;margin:14px 0 0;">Arrastra desde la palabra hasta el concepto para unirlos. Puedes volver a arrastrar para corregir una unión.</p>
+        `;
 
-        let selected = [];
-        let busy = false;
-        let matchedCount = 0;
+        const wrapEl = document.getElementById('linkmatch-wrap');
+        const svgEl = document.getElementById('linkmatch-svg');
+        const aToB = new Map(); // aId -> bId
+        const bToA = new Map(); // bId -> aId
+        // Un color pastel distinto por pareja, repartidos por el círculo de
+        // matices para que dos parejas consecutivas nunca queden en el mismo
+        // tono (ej. rosa y luego un rosa más claro).
+        const pastelColors = generateDistinctPastelColors(pares.length);
         let finished = false;
+        let dragging = null; // { id, x, y } coordenadas de origen del arrastre
+        let ghostLine = null;
 
         startGameTimer(GAME_DATA.tiempoLimiteMin, () => {
           if (finished) return;
           finished = true;
-          busy = true;
-          const pct = Math.round((matchedCount / pares.length) * 100);
-          alert('⏰ Se agotó el tiempo. Se calificará según las parejas que encontraste.');
+          const pct = Math.round((countCorrectas() / pares.length) * 100);
+          alert('⏰ Se agotó el tiempo. Se calificará según las parejas correctas que uniste.');
           completarJuego(pct);
         });
 
-        window.flipMatchingCard = function(cardEl) {
-          if (finished) return;
-          if (busy || cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
+        function countCorrectas() {
+          let n = 0;
+          aToB.forEach((bId, aId) => { if (bId === aId) n++; });
+          return n;
+        }
 
-          cardEl.classList.add('flipped');
-          selected.push(cardEl);
+        function generateDistinctPastelColors(n) {
+          const startHue = Math.floor(Math.random() * 360);
+          const step = 360 / n;
+          const colors = [];
+          for (let i = 0; i < n; i++) {
+            const hue = Math.round((startHue + step * i) % 360);
+            const lightness = 86 + (i % 3) * 2; // ligera variación 86/88/90%
+            colors.push({ bg: `hsl(${hue}, 70%, ${lightness}%)`, stroke: `hsl(${hue}, 55%, 48%)` });
+          }
+          return colors;
+        }
 
-          if (selected.length === 2) {
-            busy = true;
-            const c1 = selected[0];
-            const c2 = selected[1];
+        function sizeSvg() {
+          svgEl.setAttribute('width', wrapEl.clientWidth);
+          svgEl.setAttribute('height', wrapEl.clientHeight);
+        }
 
-            if (c1.dataset.pairId === c2.dataset.pairId) {
-              // Emparejado
-              c1.classList.add('matched');
-              c2.classList.add('matched');
-              selected = [];
-              matchedCount++;
-              busy = false;
+        // El punto de anclaje de la línea es el borde del contenedor (no un
+        // círculo aparte), para que visualmente "salga" de la palabra/concepto.
+        function anchorPoint(id, side) {
+          const item = wrapEl.querySelector(`.linkmatch-item[data-side="${side}"][data-id="${id}"]`);
+          if (!item) return null;
+          const rect = item.getBoundingClientRect();
+          const wrapRect = wrapEl.getBoundingClientRect();
+          return {
+            x: (side === 'a' ? rect.right : rect.left) - wrapRect.left,
+            y: rect.top + rect.height / 2 - wrapRect.top,
+          };
+        }
 
-              if (matchedCount === pares.length) {
-                finished = true;
-                clearGameTimer();
-                setTimeout(() => {
-                  alert('🎉 ¡Felicidades! Completaste todas las parejas.');
-                  completarJuego();
-                }, 500);
-              }
-            } else {
-              // No emparejado, voltear de regreso
-              setTimeout(() => {
-                c1.classList.remove('flipped');
-                c2.classList.remove('flipped');
-                selected = [];
-                busy = false;
-              }, 1000);
-            }
+        function drawLine(x1, y1, x2, y2, cls) {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', x1);
+          line.setAttribute('y1', y1);
+          line.setAttribute('x2', x2);
+          line.setAttribute('y2', y2);
+          line.setAttribute('stroke-linecap', 'round');
+          line.setAttribute('class', cls);
+          svgEl.appendChild(line);
+          return line;
+        }
+
+        function renderPermanentLines() {
+          sizeSvg();
+          svgEl.querySelectorAll('.linkmatch-line-ok').forEach(l => l.remove());
+          aToB.forEach((bId, aId) => {
+            const a = anchorPoint(aId, 'a');
+            const b = anchorPoint(bId, 'b');
+            if (!a || !b) return;
+            const line = drawLine(a.x, a.y, b.x, b.y, 'linkmatch-line-ok');
+            const colors = pastelColors[aId];
+            line.setAttribute('stroke', colors ? colors.stroke : '#999');
+            line.setAttribute('stroke-width', '4');
+          });
+        }
+
+        function updateGhostLine(toX, toY) {
+          if (!dragging) return;
+          if (!ghostLine) {
+            ghostLine = drawLine(dragging.x, dragging.y, toX, toY, 'linkmatch-line-drag');
+            ghostLine.setAttribute('stroke', 'var(--azul, #0369a1)');
+            ghostLine.setAttribute('stroke-width', '3');
+            ghostLine.setAttribute('stroke-dasharray', '6 4');
+          } else {
+            ghostLine.setAttribute('x2', toX);
+            ghostLine.setAttribute('y2', toY);
           }
         }
+
+        function clearGhostLine() {
+          if (ghostLine) { ghostLine.remove(); ghostLine = null; }
+        }
+
+        function styleItem(side, id, colors) {
+          const el = wrapEl.querySelector(`.linkmatch-item[data-side="${side}"][data-id="${id}"]`);
+          if (!el) return;
+          if (colors) {
+            el.classList.add('matched');
+            el.style.background = colors.bg;
+            el.style.borderColor = 'transparent';
+          } else {
+            el.classList.remove('matched');
+            el.style.background = '';
+            el.style.borderColor = '';
+          }
+        }
+
+        // Quita la unión que tenga actualmente el elemento "a" o "b" indicado,
+        // para permitir rehacer una unión arrastrando de nuevo.
+        function disconnect(aId, bId) {
+          aToB.delete(aId);
+          bToA.delete(bId);
+          styleItem('a', aId, null);
+          styleItem('b', bId, null);
+        }
+
+        function connect(aId, bId) {
+          if (aToB.has(aId)) disconnect(aId, aToB.get(aId));
+          if (bToA.has(bId)) disconnect(bToA.get(bId), bId);
+
+          const colors = pastelColors[aId];
+          aToB.set(aId, bId);
+          bToA.set(bId, aId);
+          styleItem('a', aId, colors);
+          styleItem('b', bId, colors);
+          renderPermanentLines();
+
+          if (aToB.size === pares.length) {
+            finished = true;
+            clearGameTimer();
+            const correctas = countCorrectas();
+            const pct = Math.round((correctas / pares.length) * 100);
+            setTimeout(() => {
+              alert(`✅ Uniste todas las parejas. Acertaste ${correctas} de ${pares.length}.`);
+              completarJuego(pct);
+            }, 400);
+          }
+        }
+
+        sizeSvg();
+
+        wrapEl.querySelectorAll('.linkmatch-item[data-side="a"]').forEach(item => {
+          item.addEventListener('pointerdown', (e) => {
+            if (finished) return;
+            e.preventDefault();
+            const id = Number(item.dataset.id);
+            const anchor = anchorPoint(id, 'a');
+            dragging = { id, x: anchor.x, y: anchor.y };
+            updateGhostLine(anchor.x, anchor.y);
+          });
+        });
+
+        window.addEventListener('pointermove', (e) => {
+          if (!dragging) return;
+          const wrapRect = wrapEl.getBoundingClientRect();
+          updateGhostLine(e.clientX - wrapRect.left, e.clientY - wrapRect.top);
+        });
+
+        window.addEventListener('pointerup', (e) => {
+          if (!dragging) return;
+          const startId = dragging.id;
+          dragging = null;
+          clearGhostLine();
+
+          const target = document.elementFromPoint(e.clientX, e.clientY);
+          const bItem = target ? target.closest('.linkmatch-item[data-side="b"]') : null;
+          if (!bItem) return;
+
+          // No importa si la pareja es correcta o incorrecta: siempre se une.
+          connect(startId, Number(bItem.dataset.id));
+        });
+
+        window.addEventListener('resize', renderPermanentLines);
       }
 
       // ─── 2. JUEGO DEL AHORCADO SALUD (EKG MONITOR) ─────────────────────
@@ -837,6 +962,7 @@
         let flashingCell = null; // {r, c} celda incorrecta parpadeando en rojo
         let inputLocked = false;
         let finished = false;
+        let isDragging = false; // arrastrar de letra a letra con el mouse/dedo
         window.wsFoundCells = []; // {r, c, color} celdas ya encontradas (color pastel)
 
         function randomPastelColor() {
@@ -846,6 +972,10 @@
 
         // Generar grilla
         generateGrid();
+
+        // Termina el arrastre al soltar el mouse/dedo, ocurra donde ocurra
+        window.addEventListener('pointerup', () => { isDragging = false; });
+        window.addEventListener('pointercancel', () => { isDragging = false; });
 
         startGameTimer(GAME_DATA.tiempoLimiteMin, () => {
           if (finished) return;
@@ -857,48 +987,46 @@
         });
 
         function generateGrid() {
+          // Direcciones posibles: horizontal, vertical y ambas diagonales.
+          // (La lectura al revés ya la soporta la validación de la palabra,
+          // así que no hace falta duplicar direcciones "hacia atrás".)
+          const direcciones = [
+            { dr: 0, dc: 1 },  // horizontal →
+            { dr: 1, dc: 0 },  // vertical ↓
+            { dr: 1, dc: 1 },  // diagonal ↘
+            { dr: 1, dc: -1 }, // diagonal ↙
+          ];
+
           // Intentar posicionar cada palabra
           targetWords.forEach(word => {
             let placed = false;
             let attempts = 0;
-            while (!placed && attempts < 100) {
+            while (!placed && attempts < 200) {
               attempts++;
-              const dir = Math.floor(Math.random() * 2); // 0: horizontal, 1: vertical
+              const { dr, dc } = direcciones[Math.floor(Math.random() * direcciones.length)];
               const row = Math.floor(Math.random() * size);
               const col = Math.floor(Math.random() * size);
 
-              if (dir === 0) { // Horizontal
-                if (col + word.length <= size) {
-                  let fits = true;
-                  for (let i = 0; i < word.length; i++) {
-                    if (grid[row][col + i] !== '' && grid[row][col + i] !== word[i]) {
-                      fits = false;
-                      break;
-                    }
-                  }
-                  if (fits) {
-                    for (let i = 0; i < word.length; i++) {
-                      grid[row][col + i] = word[i];
-                    }
-                    placed = true;
-                  }
+              const endRow = row + dr * (word.length - 1);
+              const endCol = col + dc * (word.length - 1);
+              if (endRow < 0 || endRow >= size || endCol < 0 || endCol >= size) continue;
+
+              let fits = true;
+              for (let i = 0; i < word.length; i++) {
+                const rr = row + dr * i;
+                const cc = col + dc * i;
+                if (grid[rr][cc] !== '' && grid[rr][cc] !== word[i]) {
+                  fits = false;
+                  break;
                 }
-              } else { // Vertical
-                if (row + word.length <= size) {
-                  let fits = true;
-                  for (let i = 0; i < word.length; i++) {
-                    if (grid[row + i][col] !== '' && grid[row + i][col] !== word[i]) {
-                      fits = false;
-                      break;
-                    }
-                  }
-                  if (fits) {
-                    for (let i = 0; i < word.length; i++) {
-                      grid[row + i][col] = word[i];
-                    }
-                    placed = true;
-                  }
+              }
+              if (fits) {
+                for (let i = 0; i < word.length; i++) {
+                  const rr = row + dr * i;
+                  const cc = col + dc * i;
+                  grid[rr][cc] = word[i];
                 }
+                placed = true;
               }
             }
           });
@@ -914,51 +1042,93 @@
           }
         }
 
-        // Render inicial
-        renderWordSearch();
+        // El DOM de la grilla se construye UNA sola vez; los cambios de
+        // selección solo actualizan clases/estilos de las celdas existentes.
+        // (Recrear los botones a mitad de un arrastre cancela el gesto de
+        // puntero/touch en varios navegadores porque el elemento "tocado"
+        // desaparece del DOM — eso era lo que rompía el arrastre.)
+        let cellEls = Array(size).fill(null).map(() => Array(size).fill(null));
 
-        function renderWordSearch() {
+        buildWordSearchUI();
+        updateWordSearchUI();
+
+        function buildWordSearchUI() {
           let gridHtml = `<div class="wordsearch-grid" style="grid-template-columns: repeat(${size}, 1fr);">`;
           for (let r = 0; r < size; r++) {
             for (let c = 0; c < size; c++) {
-              const isSelected = selectedCells.some(cell => cell.r === r && cell.c === c);
-              const isWrong = flashingCell && flashingCell.r === r && flashingCell.c === c;
-              const foundColor = getFoundColor(r, c);
-              const classes = `wordsearch-cell ${isWrong ? 'wrong' : (isSelected ? 'selected' : '')} ${foundColor ? 'found' : ''}`;
-              const style = foundColor ? ` style="background-color:${foundColor};"` : '';
-              gridHtml += `<button class="${classes}"${style} data-row="${r}" data-col="${c}" onclick="clickWordSearchCell(${r}, ${c}, this)">${grid[r][c]}</button>`;
+              gridHtml += `<button type="button" class="wordsearch-cell" data-row="${r}" data-col="${c}">${grid[r][c]}</button>`;
             }
           }
           gridHtml += '</div>';
 
-          // Lista de palabras
-          let wordBadgesHtml = '';
-          targetWords.forEach(word => {
-            const found = foundWords.has(word);
-            const traduccion = translations[word] ? ` (${translations[word]})` : '';
-            wordBadgesHtml += `<div class="word-badge ${found ? 'found' : ''}">${word}${traduccion}</div>`;
-          });
-
-          const currentWordSpelled = selectedCells.map(cell => cell.letter).join('');
-
-          let totalHtml = `
+          container.innerHTML = `
             <div class="wordsearch-container">
               ${gridHtml}
 
               <div class="wordsearch-controls">
-                <div class="wordsearch-current">
-                  Palabra: <strong>${currentWordSpelled || '...'}</strong>
+                <div class="wordsearch-current" id="ws-current">
+                  Palabra: <strong>...</strong>
                 </div>
-                <button class="btn btn-ghost btn-sm" onclick="clearWordSearchSelection()">Limpiar selección</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="ws-clear-btn">Limpiar selección</button>
               </div>
 
-              <div class="wordsearch-list">
-                ${wordBadgesHtml}
-              </div>
+              <div class="wordsearch-list" id="ws-word-list"></div>
             </div>
           `;
 
-          container.innerHTML = totalHtml;
+          container.querySelectorAll('.wordsearch-cell').forEach(el => {
+            const r = Number(el.dataset.row);
+            const c = Number(el.dataset.col);
+            cellEls[r][c] = el;
+            // Permite tanto el clic letra por letra como arrastrar el puntero
+            // (mouse o dedo) de una letra a otra para ir seleccionando el camino.
+            el.addEventListener('pointerdown', (e) => {
+              e.preventDefault();
+              isDragging = true;
+              selectWordSearchCell(r, c);
+            });
+            el.addEventListener('pointerenter', () => {
+              if (isDragging) selectWordSearchCell(r, c);
+            });
+          });
+
+          const clearBtn = document.getElementById('ws-clear-btn');
+          clearBtn.addEventListener('click', () => {
+            if (inputLocked) return;
+            selectedCells = [];
+            updateWordSearchUI();
+          });
+        }
+
+        // Actualiza solo clases/estilos de las celdas ya creadas, sin tocar el DOM.
+        function updateWordSearchUI() {
+          for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+              const el = cellEls[r][c];
+              const isSelected = selectedCells.some(cell => cell.r === r && cell.c === c);
+              const isWrong = !!(flashingCell && flashingCell.r === r && flashingCell.c === c);
+              const foundColor = getFoundColor(r, c);
+              el.classList.toggle('wrong', isWrong);
+              el.classList.toggle('selected', !isWrong && isSelected);
+              el.classList.toggle('found', !!foundColor);
+              el.style.backgroundColor = (!isWrong && !isSelected && foundColor) ? foundColor : '';
+            }
+          }
+
+          const currentEl = document.getElementById('ws-current');
+          if (currentEl) {
+            const currentWordSpelled = selectedCells.map(cell => cell.letter).join('');
+            currentEl.innerHTML = `Palabra: <strong>${currentWordSpelled || '...'}</strong>`;
+          }
+
+          const listEl = document.getElementById('ws-word-list');
+          if (listEl) {
+            listEl.innerHTML = targetWords.map(word => {
+              const found = foundWords.has(word);
+              const traduccion = translations[word] ? ` (${translations[word]})` : '';
+              return `<div class="word-badge ${found ? 'found' : ''}">${word}${traduccion}</div>`;
+            }).join('');
+          }
         }
 
         function getFoundColor(r, c) {
@@ -966,15 +1136,17 @@
           return cell ? cell.color : null;
         }
 
-        window.clickWordSearchCell = function(r, c, el) {
+        function selectWordSearchCell(r, c) {
           if (finished || inputLocked) return;
-          if (getFoundColor(r, c)) return;
 
+          // Nota: una celda puede pertenecer a la vez a una palabra ya
+          // encontrada Y a otra pendiente cuando dos palabras se cruzan, así
+          // que "encontrada" no debe bloquear que se pueda volver a elegir.
           const index = selectedCells.findIndex(cell => cell.r === r && cell.c === c);
           if (index > -1) {
             // Deseleccionar esta celda y las que se agregaron después de ella
             selectedCells = selectedCells.slice(0, index);
-            renderWordSearch();
+            updateWordSearchUI();
             return;
           }
 
@@ -990,11 +1162,11 @@
             // Letra equivocada: se remarca en rojo unos milisegundos y se descarta
             inputLocked = true;
             flashingCell = { r, c };
-            renderWordSearch();
+            updateWordSearchUI();
             setTimeout(() => {
               flashingCell = null;
               inputLocked = false;
-              renderWordSearch();
+              updateWordSearchUI();
             }, 450);
             return;
           }
@@ -1007,13 +1179,18 @@
 
           if (palabraCompletada) {
             foundWords.add(palabraCompletada);
-            // Cada palabra encontrada obtiene un color pastel aleatorio propio
+            // Cada palabra encontrada obtiene un color pastel aleatorio propio.
+            // Si una celda ya pertenecía a otra palabra encontrada (se cruzan),
+            // conserva el color con el que se pintó primero.
             const color = randomPastelColor();
             selectedCells.forEach(cell => {
-              window.wsFoundCells.push({ r: cell.r, c: cell.c, color });
+              const yaPintada = window.wsFoundCells.some(fc => fc.r === cell.r && fc.c === cell.c);
+              if (!yaPintada) {
+                window.wsFoundCells.push({ r: cell.r, c: cell.c, color });
+              }
             });
             selectedCells = [];
-            renderWordSearch();
+            updateWordSearchUI();
 
             if (foundWords.size === targetWords.length) {
               finished = true;
@@ -1026,177 +1203,10 @@
             return;
           }
 
-          renderWordSearch();
-        }
-
-        window.clearWordSearchSelection = function() {
-          if (inputLocked) return;
-          selectedCells = [];
-          renderWordSearch();
+          updateWordSearchUI();
         }
       }
 
-      // ─── 4. JUEGO DE PRONUNCIACIÓN / TRADUCCIÓN ─────────────────────────
-      function normalizeForCompare(s) {
-        return (s || '').toString().trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-      }
-
-      function textSimilarity(a, b) {
-        a = normalizeForCompare(a);
-        b = normalizeForCompare(b);
-        if (!a && !b) return 1;
-        if (!a || !b) return 0;
-        const m = a.length, n = b.length;
-        const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-        for (let i = 0; i <= m; i++) dp[i][0] = i;
-        for (let j = 0; j <= n; j++) dp[0][j] = j;
-        for (let i = 1; i <= m; i++) {
-          for (let j = 1; j <= n; j++) {
-            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-            dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
-          }
-        }
-        return 1 - dp[m][n] / Math.max(m, n);
-      }
-
-      function initPronunciationGame(container, items) {
-        if (!items || !items.length) return mostrarSinContenido(container);
-
-        const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const modosDisponibles = SpeechRecognitionCtor
-          ? ['pronunciar', 'traducir_es', 'traducir_en']
-          : ['traducir_es', 'traducir_en'];
-
-        const rounds = items
-          .map(item => ({
-            ingles: item.ingles,
-            espanol: item.espanol,
-            modo: modosDisponibles[Math.floor(Math.random() * modosDisponibles.length)],
-          }))
-          .sort(() => Math.random() - 0.5);
-
-        let idx = 0;
-        let aciertos = 0;
-        let finished = false;
-
-        startGameTimer(GAME_DATA.tiempoLimiteMin, () => {
-          if (finished) return;
-          finished = true;
-          const pct = Math.round((aciertos / rounds.length) * 100);
-          alert('⏰ Se agotó el tiempo. Se calificará según tu progreso.');
-          completarJuego(pct);
-        });
-
-        renderRound();
-
-        function renderRound() {
-          if (idx >= rounds.length) {
-            finished = true;
-            clearGameTimer();
-            container.innerHTML = `
-              <div class="alert alert-success" style="text-align:center;">
-                <strong>🎉 ¡Completaste el reto!</strong> Acertaste ${aciertos} de ${rounds.length} palabras.
-              </div>
-            `;
-            setTimeout(() => { completarJuego(); }, 1200);
-            return;
-          }
-
-          const r = rounds[idx];
-          let prompt, hint, inputHtml;
-
-          if (r.modo === 'pronunciar') {
-            prompt = `Pronuncia en inglés: <strong>${r.ingles}</strong>`;
-            hint = 'Presiona el micrófono y di la palabra en voz alta, en inglés.';
-            inputHtml = `
-              <button type="button" class="btn btn-primary" id="btn-mic">🎤 Grabar pronunciación</button>
-              <p id="mic-feedback" style="margin-top:10px;color:var(--texto-suave);font-size:0.85rem;"></p>
-            `;
-          } else if (r.modo === 'traducir_es') {
-            prompt = `¿Qué significa en español la palabra <strong>${r.ingles}</strong>?`;
-            hint = 'Escribe el significado en español.';
-            inputHtml = `
-              <input type="text" id="txt-answer" placeholder="Escribe en español..." style="max-width:280px;">
-              <button type="button" class="btn btn-primary" id="btn-check" style="margin-left:8px;">Comprobar</button>
-            `;
-          } else {
-            prompt = `¿Cómo se dice en inglés <strong>${r.espanol}</strong>?`;
-            hint = 'Write the word in English.';
-            inputHtml = `
-              <input type="text" id="txt-answer" placeholder="Write in English..." style="max-width:280px;">
-              <button type="button" class="btn btn-primary" id="btn-check" style="margin-left:8px;">Check</button>
-            `;
-          }
-
-          container.innerHTML = `
-            <div style="text-align:center;">
-              <p style="font-size:0.85rem;color:var(--texto-suave);">Palabra ${idx + 1} de ${rounds.length} · Aciertos: ${aciertos}</p>
-              <p style="font-size:1.15rem;margin:14px 0 6px;">${prompt}</p>
-              <p style="font-size:0.85rem;color:var(--texto-suave);margin-bottom:18px;">${hint}</p>
-              ${inputHtml}
-              <p id="round-result" style="margin-top:16px;font-weight:600;min-height:1.2em;"></p>
-            </div>
-          `;
-
-          if (r.modo === 'pronunciar') {
-            const btnMic = document.getElementById('btn-mic');
-            btnMic.addEventListener('click', () => {
-              const recog = new SpeechRecognitionCtor();
-              recog.lang = 'en-US';
-              recog.maxAlternatives = 3;
-              btnMic.disabled = true;
-              btnMic.textContent = '🎙️ Escuchando...';
-              document.getElementById('mic-feedback').textContent = '';
-
-              recog.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                const score = textSimilarity(transcript, r.ingles);
-                const fb = document.getElementById('mic-feedback');
-                if (fb) fb.textContent = `Se entendió: "${transcript}"`;
-                handleResult(score >= 0.7, r.ingles);
-              };
-              recog.onerror = () => {
-                const fb = document.getElementById('mic-feedback');
-                if (fb) fb.textContent = 'No se pudo escuchar. Intenta de nuevo.';
-                btnMic.disabled = false;
-                btnMic.textContent = '🎤 Grabar pronunciación';
-              };
-              recog.onend = () => {
-                btnMic.disabled = false;
-                btnMic.textContent = '🎤 Grabar pronunciación';
-              };
-              recog.start();
-            });
-          } else {
-            const btnCheck = document.getElementById('btn-check');
-            const txt = document.getElementById('txt-answer');
-            const submit = () => {
-              const expected = r.modo === 'traducir_es' ? r.espanol : r.ingles;
-              const score = textSimilarity(txt.value, expected);
-              handleResult(score >= 0.7, expected);
-            };
-            btnCheck.addEventListener('click', submit);
-            txt.addEventListener('keydown', (e) => {
-              if (e.key === 'Enter') { e.preventDefault(); submit(); }
-            });
-            txt.focus();
-          }
-
-          function handleResult(correcto, esperado) {
-            if (finished) return;
-            const resultEl = document.getElementById('round-result');
-            if (correcto) {
-              aciertos++;
-              resultEl.style.color = 'var(--verde-oscuro)';
-              resultEl.textContent = '✅ ¡Correcto!';
-            } else {
-              resultEl.style.color = '#e53935';
-              resultEl.textContent = `❌ Casi. Respuesta esperada: ${esperado}`;
-            }
-            setTimeout(() => { idx++; renderRound(); }, 1400);
-          }
-        }
-      }
     </script>
     <% } %>
 
@@ -1207,7 +1217,7 @@
       <% if (entrega.estado === 'Aprobado') { %>
         <div class="alert alert-success">✅ Evaluación aprobada con <%= entrega.porcentaje %>%</div>
       <% } else { %>
-      <form action="/aprendiz/evaluacion/<%= actividad._id %>/entregar" method="POST">
+      <form action="/aprendiz/evaluacion/<%= actividad._id %>/entregar" method="POST" <% if (previewMode) { %>onsubmit="return handlePreviewFormSubmit(event)"<% } %>>
         <% actividad.preguntas.forEach((p, i) => { %>
           <div style="margin-bottom:20px;padding:16px;border:1px solid var(--gris-borde);border-radius:8px;">
             <p class="fw-600" style="margin-bottom:12px;"><%= i+1 %>. <%= p.enunciado %></p>
@@ -1220,7 +1230,7 @@
             <% }) %>
           </div>
         <% }) %>
-        <button type="submit" class="btn btn-primary">Enviar evaluación</button>
+        <button type="submit" class="btn btn-primary"><%= previewMode ? 'Vista previa: enviar (no se guarda)' : 'Enviar evaluación' %></button>
       </form>
       <% } %>
     </div>
@@ -1228,7 +1238,19 @@
   </main>
 </div>
 <script>
+const PREVIEW_MODE = <%= previewMode ? 'true' : 'false' %>;
+
+function handlePreviewFormSubmit(e) {
+  e.preventDefault();
+  alert('👁️ Vista previa: así se enviaría esta actividad. No se guardó ningún resultado.');
+  return false;
+}
+
 async function completarJuego(porcentaje) {
+  if (PREVIEW_MODE) {
+    alert('👁️ Vista previa: en este punto el aprendiz completaría la actividad. No se guardó ningún resultado.');
+    return;
+  }
   const res = await fetch('/aprendiz/juego/completar', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

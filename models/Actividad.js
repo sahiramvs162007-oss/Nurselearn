@@ -44,10 +44,10 @@ const oracionItemSchema = new mongoose.Schema(
   { _id: false },
 );
 
-const pronunciacionItemSchema = new mongoose.Schema(
+const emparejarConceptoSchema = new mongoose.Schema(
   {
-    ingles: { type: String, required: true, trim: true },
-    espanol: { type: String, required: true, trim: true },
+    concepto: { type: String, required: true, trim: true }, // ej. "Termómetro"
+    funcion: { type: String, required: true, trim: true }, // ej. "Sirve para tomar la temperatura"
   },
   { _id: false },
 );
@@ -108,19 +108,19 @@ const actividadSchema = new mongoose.Schema(
       type: String,
       enum: [
         "juego_emparejar",
+        "juego_emparejar_conceptos",
         "juego_ahorcado_salud",
         "juego_sopa_letras",
         "juego_completar_oracion",
-        "juego_pronunciacion",
         null,
       ],
       default: null,
     },
     juegoEmparejarPares: [emparejarParSchema],
+    juegoEmparejarConceptos: [emparejarConceptoSchema],
     juegoAhorcadoPalabras: [ahorcadoPalabraSchema],
     juegoSopaPalabras: [sopaPalabraSchema],
     juegoOracionItems: [oracionItemSchema],
-    juegoPronunciacionItems: [pronunciacionItemSchema],
     // Tiempo límite en minutos para completar el juego. Si es null/0, el
     // frontend usa un valor predeterminado según el tipo de juego.
     juegoTiempoLimiteMin: { type: Number, default: null },

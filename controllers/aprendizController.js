@@ -11,37 +11,7 @@ const {
   notificarProgresoAprobado,
 } = require("../utils/notificationService");
 const { similarityPercent } = require("../utils/textSimilarity");
-
-// Opciones predeterminadas del juego: tiempo límite (minutos) por tipo de
-// juego, usado cuando el instructor no configura uno propio.
-const GAME_TIME_DEFAULTS_MIN = {
-  juego_emparejar: 4,
-  juego_ahorcado_salud: 5,
-  juego_sopa_letras: 8,
-  juego_completar_oracion: 6,
-  juego_pronunciacion: 6,
-};
-const GAME_TIME_DEFAULT_FALLBACK_MIN = 5;
-
-function buildGameData(actividad) {
-  const tiempoLimiteMin =
-    actividad.juegoTiempoLimiteMin ||
-    GAME_TIME_DEFAULTS_MIN[actividad.tipoJuego] ||
-    GAME_TIME_DEFAULT_FALLBACK_MIN;
-
-  return {
-    emparejar: actividad.juegoEmparejarPares || [],
-    ahorcado: actividad.juegoAhorcadoPalabras || [],
-    sopa: actividad.juegoSopaPalabras || [],
-    oracion: actividad.juegoOracionItems || [],
-    pronunciacion: actividad.juegoPronunciacionItems || [],
-    tiempoLimiteMin,
-  };
-}
-
-function buildGameDataJson(actividad) {
-  return JSON.stringify(buildGameData(actividad)).replace(/</g, "\\u003c");
-}
+const { buildGameDataJson } = require("../utils/gameData");
 
 async function calcularProgreso(aprendizId, fichaId) {
   const actividades = await Actividad.find({ ficha: fichaId, visible: true });
@@ -169,27 +139,6 @@ exports.getActividad = async (req, res, next) => {
       "rap modulo",
     );
     if (!actividad) return res.redirect("/aprendiz");
-
-    // Modo previsualización: el instructor no es aprendiz, así que no tiene
-    // ficha ni entrega real. Se arma una entrega "vacía" solo para renderizar.
-    if (req.session.userRol === "instructor") {
-      return res.render("aprendiz/actividad", {
-        titulo: actividad.titulo,
-        user: req.session.userName,
-        actividad,
-        gameDataJson: buildGameDataJson(actividad),
-        ficha: null,
-        entrega: {
-          estado: "Pendiente",
-          porcentaje: null,
-          retroalimentacion: "",
-          respuestaTexto: "",
-          segundoIntentoHabilitado: false,
-        },
-        error: [],
-        success: [],
-      });
-    }
 
     const ficha = await Ficha.findOne({ aprendices: req.session.userId });
     if (!ficha) return res.redirect("/aprendiz");
