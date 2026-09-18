@@ -11,11 +11,11 @@ const adminLinks = [
 ];
 const instrLinks = [
   { href: '/instructor', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>', label: 'Dashboard' },
-  { href: '/instructor/actividades', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>', label: 'Actividades' },
-  { href: '/instructor/entregas', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>', label: 'Entregas' },
-  { href: '/notificaciones', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>', label: 'Notificaciones' },
-  { href: '/instructor/clonar', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>', label: 'Clonar actividades' },
-  { href: '/instructor/reportes', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>', label: 'Reportes' },
+  { href: '/instructor/actividades', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>', label: 'Activities' },
+  { href: '/instructor/clonar', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>', label: 'Modules' },
+  { href: '/instructor/entregas', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>', label: 'Qualify' },
+  { href: '/notificaciones', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', label: 'Forums' },
+  { href: '/instructor/reportes', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>', label: 'Progress' },
 ];
 const aprendizLinks = [
   { href: '/aprendiz', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>', label: 'Mi ruta' },
@@ -30,14 +30,15 @@ const homeHref = rol === 'admin' ? '/admin' : rol === 'instructor' ? '/instructo
   <!-- BRAND HEADER -->
   <a href="<%= homeHref %>" class="sidebar-brand">
     <div class="sidebar-logo-icon">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 6.5V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v1.5"/>
+        <rect x="3.5" y="6.5" width="17" height="13.5" rx="3" stroke="#ffffff" stroke-width="2.2"/>
+        <path d="M12 10v6.5M8.75 13.25h6.5" stroke="#ffffff" stroke-width="2.2"/>
       </svg>
     </div>
     <div class="sidebar-brand-text">
       <span class="sidebar-brand-name">NurseLearn</span>
-      <span class="sidebar-brand-sub">LEARNING PORTAL</span>
+      <span class="sidebar-brand-sub">NURSING ENGLISH PORTAL</span>
     </div>
   </a>
 
@@ -48,7 +49,7 @@ const homeHref = rol === 'admin' ? '/admin' : rol === 'instructor' ? '/instructo
       <% links.forEach(l => { 
         const isActive = currentPath === l.href || (l.href !== '/admin' && l.href !== '/instructor' && l.href !== '/aprendiz' && l.href !== '/' && currentPath.startsWith(l.href));
       %>
-        <a href="<%= l.href %>" class="<%= isActive ? 'active' : '' %>">
+        <a href="<%= l.href %>" class="sidebar-nav-link <%= isActive ? 'active' : '' %>">
           <span class="icon"><%- l.icon %></span>
           <span><%= l.label %></span>
           <% if (l.href === '/notificaciones' && typeof unreadNotifications !== 'undefined' && unreadNotifications > 0) { %>
@@ -61,16 +62,11 @@ const homeHref = rol === 'admin' ? '/admin' : rol === 'instructor' ? '/instructo
 </div>
 
 <div>
-  <!-- FOOTER WIDGET -->
-  <div class="sidebar-widget">
-    <div class="sidebar-widget-title">Overall RAPs Completion</div>
-    <div class="sidebar-widget-progress">
-      <span>85%</span>
-      <span style="font-weight: 500; font-size: 0.7rem; color: var(--texto-muted);">42/50 Tasks</span>
-    </div>
-    <div class="sidebar-widget-bar">
-      <div class="sidebar-widget-fill" style="width: 85%;"></div>
-    </div>
+  <!-- FOOTER WIDGET: UPGRADE PRO (V2 EXACTO) -->
+  <div class="sidebar-upgrade-pro">
+    <div class="sidebar-upgrade-tag">UPGRADE PRO</div>
+    <div class="sidebar-upgrade-desc">Unlimited clinical simulation cases.</div>
+    <a href="/instructor/reportes" class="sidebar-upgrade-btn">Go Premium</a>
   </div>
 
   <!-- LOGOUT BUTTON -->
@@ -87,3 +83,7 @@ const homeHref = rol === 'admin' ? '/admin' : rol === 'instructor' ? '/instructo
     </form>
   </div>
 </div>
+
+
+
+

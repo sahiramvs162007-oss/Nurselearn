@@ -15,49 +15,108 @@
 
   <!-- TOPBAR -->
   <%- include('../partials/topbar', { user: user, userRol: 'Aprendiz' }) %>
+
   <main class="main">
-    <div class="page-header">
+    <div class="page-header mb-24">
+      <div class="modulo-hero-tag" style="background: var(--verde-soft); color: var(--verde-text); margin-bottom: 8px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        Programa de Formación en Enfermería
+      </div>
       <h1 class="page-title">Mi Ruta de Aprendizaje</h1>
-      <p class="page-subtitle">Ficha: <strong><%= ficha.nombre %></strong></p>
+      <p class="page-subtitle">Ficha asignada: <strong><%= ficha.nombre %></strong></p>
     </div>
 
-    <!-- Progreso global -->
-    <div class="card" style="margin-bottom:24px;">
+    <% 
+      const modulosCompletados = modulos.filter(m => m.pct === 100).length;
+    %>
+
+    <!-- Tarjetas KPI de Resumen (Versión 2 Figma) -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap">
+          <span>📊</span>
+        </div>
+        <div>
+          <div class="kpi-number"><%= pctTotal %>%</div>
+          <div class="kpi-desc">Progreso Total</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: #e0f2fe; color: #0369a1;">
+          <span>📚</span>
+        </div>
+        <div>
+          <div class="kpi-number"><%= modulos.length %></div>
+          <div class="kpi-desc">Módulos Asignados</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: #fef3c7; color: #b45309;">
+          <span>🎯</span>
+        </div>
+        <div>
+          <div class="kpi-number"><%= modulosCompletados %> / <%= modulos.length %></div>
+          <div class="kpi-desc">Módulos Completados</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de Progreso Global -->
+    <div class="card mb-24">
       <div class="progress-label">
-        <span>Progreso total de la ficha</span>
-        <span class="fw-600"><%= pctTotal %>%</span>
+        <span class="fw-600">Avance curricular de la ficha</span>
+        <span class="fw-700" style="color: var(--verde-sena);"><%= pctTotal %>%</span>
       </div>
       <div class="progress-wrap">
         <div class="progress-bar" style="width:<%= pctTotal %>%"></div>
       </div>
     </div>
 
-    <!-- Módulos -->
+    <!-- Catálogo de Módulos (Versión 2 Figma) -->
+    <div class="mb-16">
+      <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--texto); margin-bottom: 14px;">Módulos del Curso</h2>
+    </div>
+
     <% if (modulos.length === 0) { %>
       <div class="alert alert-warning">Aún no tienes módulos disponibles para ingresar. Completa los módulos anteriores para desbloquear los siguientes.</div>
     <% } else { %>
       <div style="display:flex;flex-direction:column;gap:16px;">
-        <% modulos.forEach((m, i) => { %>
+        <% modulos.forEach((m, i) => { 
+          const padNum = (i + 1).toString().padStart(2, '0');
+        %>
           <a href="/aprendiz/modulo/<%= m._id %>" class="modulo-card">
             <div class="modulo-card-header">
-              <div class="flex gap-8" style="align-items:center;">
-                <div class="modulo-num"><%= i + 1 %></div>
+              <div class="flex gap-16" style="align-items:center;">
+                <div class="modulo-num"><%= padNum %></div>
                 <div>
-                  <div class="fw-600"><%= m.nombre %></div>
-                  <% if (m.descripcion) { %><div class="text-muted"><%= m.descripcion %></div><% } %>
+                  <div class="fw-700" style="font-size: 1.1rem; color: var(--texto);"><%= m.nombre %></div>
+                  <% if (m.descripcion) { %>
+                    <div class="text-muted" style="margin-top: 3px;"><%= m.descripcion %></div>
+                  <% } %>
                 </div>
               </div>
-              <div class="flex gap-8" style="align-items:center;">
+              <div class="flex gap-12" style="align-items:center;">
                 <% if (m.pct === 100) { %>
-                  <span class="badge badge-success">✅ Completado</span>
+                  <span class="status-badge-v2 status-aprobado">✅ Completado</span>
+                <% } else if (m.pct > 0) { %>
+                  <span class="status-badge-v2 status-entregado">⏳ En curso</span>
                 <% } else { %>
-                  <span class="badge badge-info">En curso</span>
+                  <span class="status-badge-v2 status-pendiente">⚪ Por iniciar</span>
                 <% } %>
+                
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--texto-muted);">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
               </div>
             </div>
+            
             <div class="progress-label">
-              <span>Progreso del módulo</span>
-              <span class="fw-600"><%= m.pct %>%</span>
+              <span>Avance del módulo</span>
+              <span class="fw-700" style="color: var(--verde-sena);"><%= m.pct %>%</span>
             </div>
             <div class="progress-wrap">
               <div class="progress-bar" style="width:<%= m.pct %>%"></div>
@@ -70,3 +129,4 @@
 </div>
 </body>
 </html>
+

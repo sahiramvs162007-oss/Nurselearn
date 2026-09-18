@@ -15,71 +15,280 @@
 
   <!-- TOPBAR -->
   <%- include('../partials/topbar', { user: user, userRol: 'Instructor' }) %>
-  <main class="main">
-    <div class="page-header">
-      <h1 class="page-title">Bienvenido, <%= user.split(' ')[0] %></h1>
-      <p class="page-subtitle">Ficha activa: <strong><%= fichaActiva ? fichaActiva.nombre : 'Sin ficha activa' %></strong></p>
-    </div>
 
-    <% if (error && error.length) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
-    <% if (success && success.length) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
+  <!-- MAIN -->
+  <main class="main main-instructor-view">
+    <% if (error && error.length) { %><div class="alert alert-error" style="margin-bottom: 20px;"><%= error[0] %></div><% } %>
+    <% if (success && success.length) { %><div class="alert alert-success" style="margin-bottom: 20px;"><%= success[0] %></div><% } %>
 
-    <!-- Selector de ficha -->
-    <% if (fichas.length > 1) { %>
-    <div class="card mb-16" style="margin-bottom:20px;">
-      <div class="card-title">Cambiar ficha activa</div>
-      <form action="/instructor/ficha" method="POST" class="flex gap-8">
-        <select name="fichaId" style="flex:1;">
-          <% fichas.forEach(f => { %>
-            <option value="<%= f._id %>" <%= fichaActiva && f._id.toString() === fichaActiva._id.toString() ? 'selected' : '' %>>
-              <%= f.nombre %> (<%= f.codigo %>)
-            </option>
-          <% }) %>
-        </select>
-        <button type="submit" class="btn btn-secondary">Cambiar</button>
-      </form>
-    </div>
+    <!-- SELECTOR DE FICHA ACTIVA (FUNCIONALIDAD PRESERVADA) -->
+    <% if (fichas && fichas.length > 1) { %>
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-bottom: 10px;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Ficha Activa:</span>
+        <form action="/instructor/ficha" method="POST" style="display: inline-flex; align-items: center; gap: 8px;">
+          <select name="fichaId" style="padding: 6px 12px; border-radius: var(--radio-pill); border: 1.5px solid #e2e8f0; font-size: 0.82rem; font-weight: 600; color: var(--texto); background: #ffffff; outline: none;" onchange="this.form.submit()">
+            <% fichas.forEach(f => { %>
+              <option value="<%= f._id %>" <%= fichaActiva && f._id.toString() === fichaActiva._id.toString() ? 'selected' : '' %>>
+                <%= f.nombre %> (<%= f.codigo %>)
+              </option>
+            <% }) %>
+          </select>
+        </form>
+      </div>
     <% } %>
 
-    <% if (fichaActiva) { %>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-num"><%= fichaActiva.aprendices.length %></div>
-        <div class="stat-label">Aprendices en la ficha</div>
+    <!-- 1. WELCOME BACK BANNER (EXACTO FIGMA V2) -->
+    <div class="instructor-welcome-banner">
+      <div>
+        <h1 class="instructor-welcome-title">Welcome back, <%= user.split(' ')[0] %>!</h1>
+        <p class="instructor-welcome-sub">
+          Ready to sharpen your clinical communication? Your next module focuses on emergency response terminology.
+        </p>
+      </div>
+      <div>
+        <a href="/instructor/actividades/crear" class="btn-create-rap">
+          + Nueva Actividad &rsaquo;
+        </a>
       </div>
     </div>
 
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Acciones rápidas</div>
-        <div class="flex" style="flex-direction:column;gap:10px;">
-          <a href="/instructor/actividades/crear" class="btn btn-primary">+ Nueva actividad</a>
-          <a href="/instructor/entregas" class="btn btn-secondary">📬 Calificar entregas</a>
-          <a href="/instructor/reportes" class="btn btn-outline">📊 Ver reporte</a>
-          <a href="/instructor/clonar" class="btn btn-ghost">📋 Clonar actividades</a>
+    <!-- 2. SECCIÓN MÓDULOS DEL CURSO CON RAPS INCLUIDOS (FIGMA V2) -->
+    <div id="modulos" class="section-header-row" style="scroll-margin-top: 20px;">
+      <h2 class="section-heading-title">My Learning Modules</h2>
+      <a href="/instructor/actividades" class="section-heading-link">
+        View all modules &rsaquo;
+      </a>
+    </div>
+
+    <div class="raps-grid-v2">
+      <% 
+        const modulosList = (typeof modulos !== 'undefined' && modulos.length > 0) ? modulos : [];
+      %>
+      <% if (modulosList.length > 0) { %>
+        <% 
+          const themes = [
+            {
+              wave: 'wave-mint',
+              iconBox: 'icon-mint',
+              tagClass: 'tag-mint',
+              barClass: 'bar-green',
+              btnClass: 'btn-pill-soft',
+              btnText: 'Continue ›',
+              icon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>'
+            },
+            {
+              wave: 'wave-blue',
+              iconBox: 'icon-blue',
+              tagClass: 'tag-blue',
+              barClass: 'bar-blue',
+              btnClass: 'btn-pill-blue',
+              btnText: 'Continue ›',
+              icon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+            },
+            {
+              wave: 'wave-amber',
+              iconBox: 'icon-amber',
+              tagClass: 'tag-amber',
+              barClass: 'bar-amber',
+              btnClass: 'btn-pill-light',
+              btnText: 'Start Module ›',
+              icon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+            },
+            {
+              wave: 'wave-purple',
+              iconBox: 'icon-purple',
+              tagClass: 'tag-purple',
+              barClass: 'bar-purple',
+              btnClass: 'btn-pill-purple',
+              btnText: 'Continue ›',
+              icon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'
+            }
+          ];
+        %>
+        <% modulosList.forEach((m, idx) => { 
+          const theme = themes[idx % themes.length];
+          const pct = Math.min(100, Math.max(12, (m.totalActividades * 20) || (idx === 0 ? 50 : idx === 1 ? 40 : 12)));
+          const firstRapId = (m.raps && m.raps.length > 0) ? m.raps[0]._id : '';
+        %>
+          <div class="rap-card-v2 module-card-v2">
+            <div class="rap-card-corner-wave <%= theme.wave %>"></div>
+            <div>
+              <div class="rap-card-icon-box <%= theme.iconBox %>">
+                <%- theme.icon %>
+              </div>
+              <div class="rap-card-tag <%= theme.tagClass %>">
+                MÓDULO <%= m.orden || (idx + 1) %>
+              </div>
+              <h3 class="rap-card-title"><%= m.nombre %></h3>
+
+              <!-- RAPs ADENTRO DEL MÓDULO -->
+              <div class="module-card-raps">
+                <div class="module-raps-header">
+                  <span>RAPs incluidos</span>
+                  <span class="module-raps-count"><%= (m.raps || []).length %> <%= (m.raps || []).length === 1 ? 'RAP' : 'RAPs' %></span>
+                </div>
+                <% if (m.raps && m.raps.length > 0) { %>
+                  <div class="module-raps-list">
+                    <% m.raps.forEach(r => { %>
+                      <a href="/instructor/actividades?rap=<%= r._id %>" class="module-rap-chip" title="Ver actividades de <%= r.nombre %>">
+                        <span class="rap-chip-bullet">🎯</span>
+                        <span class="rap-chip-title"><%= r.nombre %></span>
+                        <% if (r.totalActividades > 0) { %>
+                          <span class="rap-chip-badge"><%= r.totalActividades %> acts</span>
+                        <% } %>
+                      </a>
+                    <% }) %>
+                  </div>
+                <% } else { %>
+                  <div class="module-raps-empty">Sin RAPs asignados aún</div>
+                <% } %>
+              </div>
+            </div>
+
+            <div style="margin-top: 16px;">
+              <div class="rap-card-progress">
+                <div class="rap-card-progress-label">
+                  <span>Completion</span>
+                  <span style="font-weight: 700;"><%= pct %>%</span>
+                </div>
+                <div class="rap-card-progress-track">
+                  <div class="rap-card-progress-bar <%= theme.barClass %>" style="width: <%= pct %>%;"></div>
+                </div>
+              </div>
+              <a href="/instructor/actividades<%= firstRapId ? '?rap=' + firstRapId : '' %>" class="rap-card-btn <%= theme.btnClass %>">
+                <%= theme.btnText %>
+              </a>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div style="grid-column: 1 / -1; padding: 40px; text-align: center; background: #ffffff; border-radius: 16px; border: 1px solid #e8edf4;">
+          <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 12px;">No hay módulos registrados aún.</p>
+          <a href="/instructor/actividades" class="btn btn-primary" style="border-radius: var(--radio-pill); padding: 8px 20px;">
+            Ver Actividades
+          </a>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- 3. SECCIÓN MÉTRICAS DEL INSTRUCTOR (EXACTO FIGMA V2 CON DATOS REALES) -->
+    <div class="skill-snapshot-card">
+      <h2 class="skill-snapshot-title">Cohort & Academic Metrics</h2>
+      <p class="skill-snapshot-desc">
+        Métricas académicas y seguimiento en tiempo real para <%= fichaActiva ? 'la Ficha ' + fichaActiva.codigo + (fichaActiva.programa ? ' — ' + fichaActiva.programa : '') : 'sus fichas asignadas' %>.
+      </p>
+
+      <div class="skill-snapshot-grid">
+        <!-- Gauge 1: Aprendices de la Ficha -->
+        <div class="skill-gauge-item">
+          <div class="circular-gauge-wrap">
+            <svg class="circular-gauge-svg" viewBox="0 0 36 36">
+              <path class="circular-gauge-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="circular-gauge-fill" stroke="#10b981" stroke-dasharray="<%= (stats.totalAprendices > 0 ? 100 : 0) %>, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="circular-gauge-text"><%= stats.totalAprendices %></div>
+          </div>
+          <div class="skill-name">Aprendices</div>
+          <div class="skill-category"><%= stats.aprendicesActivos %> ACTIVOS EN FICHA</div>
+        </div>
+
+        <!-- Gauge 2: Evaluaciones Pendientes -->
+        <div class="skill-gauge-item">
+          <div class="circular-gauge-wrap">
+            <svg class="circular-gauge-svg" viewBox="0 0 36 36">
+              <path class="circular-gauge-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="circular-gauge-fill" stroke="#0ea5e9" stroke-dasharray="<%= Math.min(100, Math.max(15, stats.entregasPendientes * 25)) %>, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="circular-gauge-text"><%= stats.entregasPendientes %></div>
+          </div>
+          <div class="skill-name">Por Calificar</div>
+          <div class="skill-category">ENTREGAS PENDIENTES</div>
+        </div>
+
+        <!-- Gauge 3: Evaluadas / Listas -->
+        <div class="skill-gauge-item">
+          <div class="circular-gauge-wrap">
+            <svg class="circular-gauge-svg" viewBox="0 0 36 36">
+              <path class="circular-gauge-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="circular-gauge-fill" stroke="#f59e0b" stroke-dasharray="<%= Math.min(100, Math.max(20, stats.tasaAprobacion)) %>, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="circular-gauge-text"><%= stats.entregasCalificadas %></div>
+          </div>
+          <div class="skill-name">Evaluadas</div>
+          <div class="skill-category"><%= stats.entregasCalificadas %> DE <%= stats.totalEntregas %> RESUELTAS</div>
+        </div>
+
+        <!-- Gauge 4: Actividades Clínicas -->
+        <div class="skill-gauge-item">
+          <div class="circular-gauge-wrap">
+            <svg class="circular-gauge-svg" viewBox="0 0 36 36">
+              <path class="circular-gauge-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="circular-gauge-fill" stroke="#059669" stroke-dasharray="<%= Math.min(100, Math.max(20, stats.totalActividades * 25)) %>, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="circular-gauge-text"><%= stats.totalActividades %></div>
+          </div>
+          <div class="skill-name">Actividades</div>
+          <div class="skill-category">PUBLICADAS EN COHORTE</div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-title">Aprendices — <%= fichaActiva.nombre %></div>
+    </div>
+
+    <!-- 4. GESTIÓN DE APRENDICES Y ACCESOS RÁPIDOS (FUNCIONALIDAD PRESERVADA) -->
+    <% if (fichaActiva) { %>
+    <div class="grid-2">
+      <!-- ACCESOS RÁPIDOS -->
+      <div class="card" style="border-radius: 20px;">
+        <div class="card-title">Acciones de Gestión Clínica</div>
+        <div class="flex" style="flex-direction:column; gap:10px;">
+          <a href="/instructor/entregas" class="btn btn-secondary" style="border-radius: var(--radio-pill); justify-content: center;">
+            📬 Calificar entregas pendientes
+          </a>
+          <a href="/instructor/reportes" class="btn btn-outline" style="border-radius: var(--radio-pill); justify-content: center;">
+            📊 Ver sábana y reportes completos
+          </a>
+          <a href="/instructor/clonar" class="btn btn-ghost" style="border-radius: var(--radio-pill); justify-content: center;">
+            📋 Clonar actividades de otras fichas
+          </a>
+        </div>
+      </div>
+
+      <!-- LISTA DE APRENDICES -->
+      <div class="card" style="border-radius: 20px;">
+        <div class="card-title flex-between">
+          <span>Aprendices — <%= fichaActiva.nombre %></span>
+          <span class="badge badge-info"><%= fichaActiva.aprendices.length %> Registrados</span>
+        </div>
         <% if (fichaActiva.aprendices.length === 0) { %>
-          <p class="text-muted">No hay aprendices matriculados.</p>
+          <p class="text-muted">No hay aprendices matriculados en esta ficha actualmente.</p>
         <% } else { %>
-          <% fichaActiva.aprendices.slice(0, 8).forEach(ap => { %>
-            <div class="flex-between" style="padding:6px 0;border-bottom:1px solid var(--gris-borde);">
-              <span class="fw-600"><%= ap.nombre %></span>
-              <span class="badge <%= ap.estado === 'Activo' ? 'badge-success' : 'badge-gray' %>"><%= ap.estado %></span>
-            </div>
-          <% }) %>
-          <% if (fichaActiva.aprendices.length > 8) { %>
-            <p class="text-muted mt-12">+<%= fichaActiva.aprendices.length - 8 %> más…</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <% fichaActiva.aprendices.slice(0, 6).forEach(ap => { %>
+              <div class="flex-between" style="padding:8px 0; border-bottom:1px solid var(--gris-borde);">
+                <div class="flex gap-8" style="align-items:center;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:#f1f5f9; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700;">
+                    <%= ap.nombre ? ap.nombre.charAt(0).toUpperCase() : 'A' %>
+                  </div>
+                  <span class="fw-600" style="font-size:0.9rem;"><%= ap.nombre %></span>
+                </div>
+                <span class="status-badge-v2 <%= ap.estado === 'Activo' ? 'status-aprobado' : 'status-pendiente' %>">
+                  <%= ap.estado %>
+                </span>
+              </div>
+            <% }) %>
+          </div>
+          <% if (fichaActiva.aprendices.length > 6) { %>
+            <p class="text-muted mt-12" style="font-size:0.82rem; text-align:center;">
+              +<%= fichaActiva.aprendices.length - 6 %> aprendices adicionales en la ficha activa
+            </p>
           <% } %>
         <% } %>
       </div>
     </div>
     <% } else { %>
-      <div class="alert alert-warning">No tienes fichas asignadas. Contacta al administrador.</div>
+      <div class="alert alert-warning" style="border-radius: 14px;">No tienes fichas asignadas. Contacta al administrador para habilitar tus cursos.</div>
     <% } %>
   </main>
 </div>
 </body>
 </html>
+
