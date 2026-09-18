@@ -154,7 +154,7 @@
                         <div class="module-rap-activities">
                           <% if (hasActs) { %>
                             <% acts.forEach(a => { %>
-                              <a href="/instructor/actividades?rap=<%= r._id %>" class="module-act-item" title="<%= a.titulo %> (<%= a.tipo %>)">
+                              <a href="/instructor/entregas?actividad=<%= a._id %>" class="module-act-item" title="Ver entregas de: <%= a.titulo %> (<%= a.tipo %>)">
                                 <span class="module-act-icon">
                                   <% if (a.tipo === 'blog') { %>
                                     <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -278,7 +278,7 @@
       <div class="card" style="border-radius: 20px;">
         <div class="card-title">Acciones de Gestión Clínica</div>
         <div class="flex" style="flex-direction:column; gap:10px;">
-          <a href="/instructor/entregas" class="btn btn-secondary" style="border-radius: var(--radio-pill); justify-content: center; display: inline-flex; align-items: center; gap: 8px;">
+          <a href="/instructor/entregas?estado=pendiente" class="btn btn-secondary" style="border-radius: var(--radio-pill); justify-content: center; display: inline-flex; align-items: center; gap: 8px;">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
             Calificar entregas pendientes
           </a>

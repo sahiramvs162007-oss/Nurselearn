@@ -915,6 +915,9 @@
           } else if (wrongAttempts >= maxAttempts) {
             finished = true;
             clearGameTimer();
+            const uniqueLetters = new Set(targetWord.split(''));
+            const correctas = [...uniqueLetters].filter(ch => guessedLetters.has(ch)).length;
+            const pct = Math.round((correctas / uniqueLetters.size) * 100);
             gameContentHtml += `
               <div class="alert alert-error" style="margin-top: 20px; text-align: center; display: block;">
                 <strong>💀 Paciente inestable.</strong> La palabra era: <strong>${targetWord}</strong>
@@ -922,6 +925,7 @@
                 <button class="btn btn-secondary btn-sm" style="margin-top: 10px;" onclick="initHangmanGame(document.getElementById('game-active-area'), GAME_DATA.ahorcado)">Reintentar</button>
               </div>
             `;
+            setTimeout(() => { completarJuego(pct); }, 1200);
           }
 
           container.innerHTML = gameContentHtml;
