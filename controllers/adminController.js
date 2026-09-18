@@ -196,7 +196,11 @@ exports.getAsignaciones = async (req, res, next) => {
       User.find({ rol: 'aprendiz' }, 'nombre email'),
       RAP.find().populate('modulo', 'nombre').sort('orden')
     ]);
-    res.render('admin/asignaciones', { titulo: 'Asignaciones', user: req.session.userName, fichas, instructores, aprendices, raps, error: req.flash('error'), success: req.flash('success') });
+    const matriculadosIds = new Set(
+      fichas.flatMap(f => f.aprendices.map(ap => String(ap._id)))
+    );
+    const aprendicesDisponibles = aprendices.filter(a => !matriculadosIds.has(String(a._id)));
+    res.render('admin/asignaciones', { titulo: 'Asignaciones', user: req.session.userName, fichas, instructores, aprendices: aprendicesDisponibles, raps, error: req.flash('error'), success: req.flash('success') });
   } catch (err) { next(err); }
 };
 
@@ -218,6 +222,11 @@ exports.postAsignarInstructor = async (req, res, next) => {
 exports.postAsignarAprendiz = async (req, res, next) => {
   try {
     const { fichaId, aprendizId } = req.body;
+    const yaMatriculado = await Ficha.exists({ aprendices: aprendizId });
+    if (yaMatriculado) {
+      req.flash('error', 'Este aprendiz ya está matriculado en una ficha. Debe desmatricularlo antes de asignarlo a otra.');
+      return res.redirect('/admin/asignaciones');
+    }
     await Ficha.findByIdAndUpdate(fichaId, { $addToSet: { aprendices: aprendizId } });
     req.flash('success', 'Aprendiz asignado.');
     res.redirect('/admin/asignaciones');

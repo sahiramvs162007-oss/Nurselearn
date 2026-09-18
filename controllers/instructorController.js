@@ -251,13 +251,54 @@ exports.getActividades = async (req, res, next) => {
       ),
     ]);
 
+    const actividadesPorRap = {};
+    actividades.forEach((a) => {
+      const rId = a.rap ? a.rap.toString() : "sin-rap";
+      if (!actividadesPorRap[rId]) actividadesPorRap[rId] = [];
+      actividadesPorRap[rId].push(a);
+    });
+
+    const modulosConDatos = modulos.map((m) => {
+      const rapsDelModulo = raps.filter(
+        (r) => r.modulo && r.modulo._id.toString() === m._id.toString(),
+      );
+      const totalActividades = rapsDelModulo.reduce(
+        (acc, r) => acc + (actividadesPorRap[r._id.toString()] || []).length,
+        0,
+      );
+      return { modulo: m, raps: rapsDelModulo, totalActividades };
+    });
+
+    // Resuelve el módulo a mostrar en detalle: por ?modulo=ID directo,
+    // o por ?rap=ID (enlaces existentes desde el dashboard de instructor)
+    let moduloSeleccionadoId = req.query.modulo || "";
+    if (!moduloSeleccionadoId && req.query.rap) {
+      const rapRef = raps.find((r) => r._id.toString() === req.query.rap);
+      if (rapRef && rapRef.modulo) moduloSeleccionadoId = rapRef.modulo._id.toString();
+    }
+    const moduloSeleccionado = moduloSeleccionadoId
+      ? modulosConDatos.find((md) => md.modulo._id.toString() === moduloSeleccionadoId)
+      : null;
+
+    const rapsConActividad = raps.filter(
+      (r) => (actividadesPorRap[r._id.toString()] || []).length > 0,
+    ).length;
+    const cobertura = raps.length > 0 ? Math.round((rapsConActividad / raps.length) * 100) : 0;
+
     res.render("instructor/actividades", {
       titulo: "Actividades",
       user: req.session.userName,
       fichaActiva,
-      modulos,
-      raps,
-      actividades,
+      modulosConDatos,
+      actividadesPorRap,
+      moduloSeleccionado,
+      rapDestacadoId: req.query.rap || "",
+      stats: {
+        totalModulos: modulos.length,
+        totalRaps: raps.length,
+        totalActividades: actividades.length,
+        cobertura,
+      },
       error: req.flash("error"),
       success: req.flash("success"),
     });
@@ -281,12 +322,21 @@ exports.getCrearActividad = async (req, res, next) => {
         .sort("orden"),
     ]);
 
+    let preselectRapId = req.query.rap || "";
+    if (!preselectRapId && req.query.modulo) {
+      const primerRapDelModulo = raps.find(
+        (r) => r.modulo && r.modulo._id.toString() === req.query.modulo,
+      );
+      if (primerRapDelModulo) preselectRapId = primerRapDelModulo._id.toString();
+    }
+
     res.render("instructor/crear-actividad", {
       titulo: "Crear Actividad",
       user: req.session.userName,
       fichaActiva,
       modulos,
       raps,
+      preselectRapId,
       error: req.flash("error"),
     });
   } catch (err) {

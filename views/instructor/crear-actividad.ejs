@@ -77,8 +77,13 @@
             <label>RAP</label>
             <select name="rap" required>
               <option value="" disabled <%= (typeof actividad === 'undefined' || !actividad) ? 'selected' : '' %>>Selecciona un RAP</option>
-              <% raps.forEach(r => { %>
-                <option value="<%= r._id %>" <%= (typeof actividad !== 'undefined' && actividad && actividad.rap && actividad.rap.toString() === r._id.toString()) ? 'selected' : '' %>><%= r.modulo ? r.modulo.nombre : 'Módulo' %> — <%= r.nombre %></option>
+              <% raps.forEach(r => {
+                const esEdicion = typeof actividad !== 'undefined' && actividad;
+                const seleccionado = esEdicion
+                  ? (actividad.rap && actividad.rap.toString() === r._id.toString())
+                  : (typeof preselectRapId !== 'undefined' && preselectRapId === r._id.toString());
+              %>
+                <option value="<%= r._id %>" <%= seleccionado ? 'selected' : '' %>><%= r.modulo ? r.modulo.nombre : 'Módulo' %> — <%= r.nombre %></option>
               <% }) %>
             </select>
           </div>

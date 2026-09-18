@@ -585,6 +585,52 @@ body {
   background: var(--gris-borde);
 }
 
+.filter-dropdown-wrap {
+  position: relative;
+}
+
+.filter-dropdown-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: 220px;
+  background: var(--blanco);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra);
+  padding: 16px;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-dropdown-panel.open {
+  display: flex;
+}
+
+.filter-dropdown-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-dropdown-group label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.filter-dropdown-group select {
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio-md, 8px);
+  padding: 7px 10px;
+  font-size: 0.85rem;
+  font-family: var(--font);
+  color: var(--texto);
+  background: #f8fafc;
+}
+
 .table-wrap { overflow-x: auto; }
 
 table {
@@ -1345,10 +1391,9 @@ input:checked + .slider::before { transform: translateX(18px); }
   color: #10946a;
 }
 
-/* Fila de opciones: Recuérdame / Olvidé */
+/* Fila de opciones: Recuérdame */
 .form-options-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-top: 4px;
   margin-bottom: 22px;
@@ -1370,18 +1415,6 @@ input:checked + .slider::before { transform: translateX(18px); }
   width: 16px;
   height: 16px;
   cursor: pointer;
-}
-
-.forgot-pwd-link {
-  color: #10946a;
-  font-weight: 700;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.forgot-pwd-link:hover {
-  text-decoration: underline;
-  color: #0d7d59;
 }
 
 /* Botón Principal */

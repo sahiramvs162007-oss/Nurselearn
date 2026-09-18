@@ -21,275 +21,226 @@
     <% if (error && error.length) { %><div class="alert alert-error" style="margin-bottom: 20px;"><%= error[0] %></div><% } %>
     <% if (success && success.length) { %><div class="alert alert-success" style="margin-bottom: 20px;"><%= success[0] %></div><% } %>
 
-    <% 
-      // Agrupar actividades por RAP
-      const actPorRap = {};
-      actividades.forEach(a => {
-        const rId = a.rap ? a.rap.toString() : 'sin-rap';
-        if (!actPorRap[rId]) actPorRap[rId] = [];
-        actPorRap[rId].push(a);
-      });
-
-      const defaultRap = raps.length > 0 ? raps[0] : null;
-      const initialRapId = defaultRap ? defaultRap._id.toString() : '';
-    %>
-
-    <!-- 1. BREADCRUMBS (FIGMA V2 EXACTO) -->
+    <!-- 1. BREADCRUMBS -->
     <div class="breadcrumbs-v2">
       <a href="/instructor">Dashboard</a>
       <span class="sep">&rsaquo;</span>
-      <span><%= (fichaActiva && fichaActiva.programa) ? fichaActiva.programa : 'Nursing English' %></span>
-      <span class="sep">&rsaquo;</span>
-      <span class="current" id="crumb-rap-name">
-        RAP: <%= defaultRap ? defaultRap.nombre : 'Clinical Communication' %>
-      </span>
+      <% if (moduloSeleccionado) { %>
+        <a href="/instructor/actividades">Actividades</a>
+        <span class="sep">&rsaquo;</span>
+        <span class="current"><%= moduloSeleccionado.modulo.nombre %></span>
+      <% } else { %>
+        <span class="current">Actividades</span>
+      <% } %>
     </div>
 
-    <!-- 2. HERO BANNER (FIGMA V2 EXACTO) -->
-    <% 
-      const initialActs = defaultRap ? (actPorRap[defaultRap._id.toString()] || []) : [];
-      const initialPct = initialActs.length > 0 ? Math.min(100, Math.max(25, initialActs.length * 30)) : 30;
-      const circumference = 2 * Math.PI * 40; // ≈ 251.32
-      const initialOffset = circumference - (circumference * (initialPct / 100));
+    <!-- 2. CONTENEDOR DE RESUMEN (información real de la ficha) -->
+    <%
+      const circumference = 2 * Math.PI * 40;
+      const coverageOffset = circumference - (circumference * (stats.cobertura / 100));
     %>
     <div class="rap-hero-banner-v2">
       <div class="rap-hero-wedge"></div>
       <div class="rap-hero-left">
-        <h1 class="rap-hero-title" id="banner-rap-title">
-          <%= defaultRap ? ('RAP ' + (defaultRap.orden || 1) + ': ' + defaultRap.nombre + ' - Module Content') : 'Nursing Fundamentals - Module Content' %>
+        <h1 class="rap-hero-title">
+          Gestión de Actividades — Ficha <%= fichaActiva.codigo %>
         </h1>
-        <p class="rap-hero-desc" id="banner-rap-desc">
-          <%= (defaultRap && defaultRap.descripcion) ? defaultRap.descripcion : 'Mastering the terminology and clinical assessment protocols for patients with cardiovascular conditions. This module covers vital signs, ECG basics, and patient education in English.' %>
+        <p class="rap-hero-desc">
+          <%= stats.totalModulos %> módulo<%= stats.totalModulos === 1 ? '' : 's' %> ·
+          <%= stats.totalRaps %> RAP<%= stats.totalRaps === 1 ? '' : 's' %> ·
+          <%= stats.totalActividades %> actividad<%= stats.totalActividades === 1 ? '' : 'es' %> registrada<%= stats.totalActividades === 1 ? '' : 's' %> en esta ficha.
+          Selecciona un módulo para revisar sus RAPs y administrar sus actividades.
         </p>
       </div>
       <div class="rap-hero-right">
         <div class="rap-hero-gauge">
           <svg class="rap-gauge-svg" viewBox="0 0 100 100">
             <circle class="rap-gauge-bg" cx="50" cy="50" r="40" />
-            <circle class="rap-gauge-bar" id="banner-gauge-bar" cx="50" cy="50" r="40" 
-                    stroke-dasharray="<%= circumference %>" 
-                    stroke-dashoffset="<%= initialOffset %>" />
+            <circle class="rap-gauge-bar" cx="50" cy="50" r="40"
+                    stroke-dasharray="<%= circumference %>"
+                    stroke-dashoffset="<%= coverageOffset %>" />
           </svg>
           <div class="rap-gauge-text">
-            <span class="pct" id="banner-gauge-pct"><%= initialPct %>%</span>
-            <span class="lbl">COMPLETE</span>
+            <span class="pct"><%= stats.cobertura %>%</span>
+            <span class="lbl">RAPs con actividad</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 3. TABS DE RAPS (SI EXISTEN MÚLTIPLES RAPS) -->
-    <% if (raps.length > 1) { %>
-      <div class="rap-filter-tabs">
-        <% raps.forEach((r, idx) => { 
-          const countActs = (actPorRap[r._id.toString()] || []).length;
-        %>
-          <button type="button" 
-                  class="rap-tab-btn <%= (idx === 0) ? 'active' : '' %>" 
-                  data-rap-id="<%= r._id %>"
-                  data-rap-nombre="<%= r.nombre %>"
-                  data-rap-orden="<%= r.orden || (idx + 1) %>"
-                  data-rap-modulo="<%= r.modulo ? r.modulo.nombre : 'Module Content' %>"
-                  data-rap-desc="<%= r.descripcion || 'Mastering the terminology and clinical assessment protocols for patients with cardiovascular conditions. This module covers vital signs, ECG basics, and patient education in English.' %>"
-                  data-rap-count="<%= countActs %>"
-                  onclick="selectRapTab('<%= r._id %>')">
-            RAP <%= r.orden || (idx + 1) %>: <%= r.nombre %> (<%= countActs %>)
-          </button>
-        <% }) %>
+    <% if (!moduloSeleccionado) { %>
+      <!-- 3. VISTA: GRID DE MÓDULOS -->
+      <div class="activities-subnav-row">
+        <h2 class="activities-section-title">Módulos</h2>
       </div>
-    <% } %>
 
-    <!-- 4. SUBNAV ROW: TITULO MODULES Y BOTÓN CREAR -->
-    <div class="activities-subnav-row">
-      <div class="flex align-center gap-12">
-        <h2 class="activities-section-title">Modules</h2>
-        <span class="activities-est-time">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          <span id="est-time-text">Est. Time: 2h 15m</span>
-        </span>
-      </div>
-      <a href="/instructor/actividades/crear" class="btn-create-module">
-        Create New Module &rsaquo;
-      </a>
-    </div>
-
-    <!-- 5. TIMELINES DE ACTIVIDADES POR RAP -->
-    <% if (raps.length === 0 && actividades.length === 0) { %>
-      <div class="card text-center" style="border-radius: 20px; padding: 40px;">
-        <h3>Aún no has creado actividades para esta ficha.</h3>
-        <p class="text-muted mt-12 mb-16">Puedes crear actividades nuevas o importar desde fichas anteriores.</p>
-        <div class="flex gap-12" style="justify-content:center;">
-          <a href="/instructor/actividades/crear" class="btn-create-module">Crear Nueva</a>
-          <a href="/instructor/clonar" class="btn btn-outline" style="border-radius: var(--radio-pill);">Importar Actividades</a>
+      <% if (modulosConDatos.length === 0) { %>
+        <div class="card text-center" style="border-radius: 20px; padding: 40px;">
+          <h3>Aún no hay módulos creados.</h3>
+          <p class="text-muted mt-12">Los módulos y sus RAPs los crea el administrador del sistema. En cuanto existan, podrás añadirles actividades desde aquí.</p>
         </div>
-      </div>
-    <% } else { %>
-      <% 
-        const cardThemes = [
-          {
-            variant: 'variant-mint',
-            iconBox: 'icon-mint',
-            btnClass: 'btn-mint',
-            isCompleted: true,
-            icon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>',
-            metaIcon: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
-            metaLabel: 'Clinical Reading',
-            time: '30 mins'
-          },
-          {
-            variant: 'variant-blue',
-            iconBox: 'icon-blue',
-            btnClass: 'btn-blue',
-            isCompleted: false,
-            icon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>',
-            metaIcon: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>',
-            metaLabel: 'Listening',
-            time: '45 mins'
-          },
-          {
-            variant: 'variant-purple',
-            iconBox: 'icon-purple',
-            btnClass: 'btn-purple',
-            isCompleted: false,
-            icon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
-            metaIcon: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
-            metaLabel: 'Writing',
-            time: '20 mins'
-          }
-        ];
-      %>
+      <% } else { %>
+        <div class="raps-grid-v2">
+          <%
+            const themes = ['wave-mint icon-mint tag-mint', 'wave-blue icon-blue tag-blue', 'wave-amber icon-amber tag-amber', 'wave-purple icon-purple tag-purple'];
+          %>
+          <% modulosConDatos.forEach((md, idx) => {
+            const [wave, iconBox, tag] = themes[idx % themes.length].split(' ');
+          %>
+            <a href="/instructor/actividades?modulo=<%= md.modulo._id %>" class="rap-card-v2 module-card-v2" style="text-decoration:none;">
+              <div class="rap-card-corner-wave <%= wave %>"></div>
+              <div>
+                <div class="rap-card-icon-box <%= iconBox %>">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+                </div>
+                <div class="rap-card-tag <%= tag %>">MÓDULO <%= md.modulo.orden || (idx + 1) %></div>
+                <h3 class="rap-card-title"><%= md.modulo.nombre %></h3>
 
-      <% raps.forEach((r, rIdx) => { 
-        const acts = actPorRap[r._id.toString()] || [];
-      %>
-        <div class="rap-timeline-wrapper" id="rap-group-<%= r._id %>" style="<%= (rIdx === 0) ? 'display:block;' : 'display:none;' %>">
-          <% if (acts.length === 0) { %>
-            <div class="card text-center" style="border-radius: 18px; padding: 36px; background: #ffffff; border: 1.5px dashed #e2e8f0;">
-              <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 14px;">No hay actividades registradas en este RAP todavía.</p>
-              <a href="/instructor/actividades/crear" class="btn-create-module">
-                + Crear Primera Actividad
-              </a>
-            </div>
-          <% } else { %>
-            <div class="timeline-container-v2">
-              <% acts.forEach((act, aIdx) => { 
-                const theme = cardThemes[aIdx % cardThemes.length];
-                const isFirst = (aIdx === 0);
-              %>
-                <div class="timeline-row-v2 <%= aIdx === 1 ? 'is-active' : '' %>">
-                  <!-- Nodo de reproducción en línea continua -->
-                  <div class="timeline-node-col">
-                    <div class="timeline-node">
-                      <svg viewBox="0 0 24 24" width="11" height="11" fill="#0284c7" stroke="none">
-                        <polygon points="6 3 20 12 6 21 6 3"/>
-                      </svg>
-                    </div>
-                    <div class="timeline-line"></div>
+                <div class="module-card-raps">
+                  <div class="module-raps-header">
+                    <span>RAPs incluidos</span>
+                    <span class="module-raps-count"><%= md.raps.length %> <%= md.raps.length === 1 ? 'RAP' : 'RAPs' %></span>
                   </div>
+                  <% if (md.raps.length > 0) { %>
+                    <div class="module-raps-list">
+                      <% md.raps.forEach(r => {
+                        const countActs = (actividadesPorRap[r._id.toString()] || []).length;
+                      %>
+                        <span class="module-rap-chip">
+                          <span class="rap-chip-bullet">🎯</span>
+                          <span class="rap-chip-title"><%= r.nombre %></span>
+                          <% if (countActs > 0) { %>
+                            <span class="rap-chip-badge"><%= countActs %> act<%= countActs === 1 ? '' : 's' %></span>
+                          <% } %>
+                        </span>
+                      <% }) %>
+                    </div>
+                  <% } else { %>
+                    <div class="module-raps-empty">Sin RAPs asignados aún</div>
+                  <% } %>
+                </div>
+              </div>
 
-                  <!-- Tarjeta de Actividad Figma Exacta -->
-                  <div class="timeline-card-col">
-                    <div class="activity-card-v2 <%= aIdx === 1 ? 'active-blue' : theme.variant %> <%= act.visible ? '' : 'act-hidden' %>" 
-                         id="act-<%= act._id %>" 
-                         onclick="selectActivityCard(this)">
-                      <!-- Izquierda: Icono + Título + Meta -->
-                      <div class="activity-card-left">
-                        <div class="activity-icon-box <%= theme.iconBox %>">
-                          <%- theme.icon %>
-                        </div>
-                        <div class="activity-card-info">
-                          <h3 class="activity-card-title"><%= act.titulo %></h3>
-                          <div class="activity-card-meta">
-                            <span class="meta-item">
-                              <%- theme.metaIcon %>
-                              <%= act.momentoPedagogico || theme.metaLabel %>
-                            </span>
-                            <span class="meta-dot">&bull;</span>
-                            <span class="meta-item"><%= theme.time %></span>
-                            <% if (act.esCierreModulo) { %>
-                              <span class="badge-cierre">Cierre Módulo</span>
-                            <% } %>
-                          </div>
+              <div style="margin-top: 16px;">
+                <span class="rap-card-btn btn-pill-soft">Ver Actividades &rsaquo;</span>
+              </div>
+            </a>
+          <% }) %>
+        </div>
+      <% } %>
+
+    <% } else { %>
+      <!-- 4. VISTA: DETALLE DEL MÓDULO SELECCIONADO (RAPs + trazabilidad de actividades) -->
+      <a href="/instructor/actividades" class="btn btn-ghost btn-sm" style="margin-bottom: 16px;">&larr; Volver a Módulos</a>
+
+      <div class="activities-subnav-row">
+        <h2 class="activities-section-title"><%= moduloSeleccionado.modulo.nombre %></h2>
+        <a href="/instructor/actividades/crear?modulo=<%= moduloSeleccionado.modulo._id %>" class="btn-create-module">
+          + Crear Actividad
+        </a>
+      </div>
+
+      <% if (moduloSeleccionado.raps.length === 0) { %>
+        <div class="card text-center" style="border-radius: 18px; padding: 36px; background: #ffffff; border: 1.5px dashed #e2e8f0;">
+          <p style="color: #64748b; font-size: 0.95rem;">Este módulo aún no tiene RAPs configurados. Contacta al administrador para crearlos.</p>
+        </div>
+      <% } %>
+
+      <% moduloSeleccionado.raps.forEach((r) => {
+        const acts = actividadesPorRap[r._id.toString()] || [];
+        const tipoInfo = {
+          blog: { label: 'Lectura', iconBox: 'icon-mint', icon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>' },
+          juego: { label: 'Juego', iconBox: 'icon-blue', icon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/></svg>' },
+          evaluacion: { label: 'Evaluación', iconBox: 'icon-purple', icon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' }
+        };
+      %>
+        <div class="activities-subnav-row" style="margin-top: 30px; margin-bottom: 12px;<%= r._id.toString() === rapDestacadoId ? ' scroll-margin-top: 20px;' : '' %>" id="rap-<%= r._id %>">
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a;">RAP <%= r.orden %>: <%= r.nombre %></h3>
+          <span class="activities-est-time"><%= acts.length %> actividad<%= acts.length === 1 ? '' : 'es' %></span>
+        </div>
+
+        <% if (acts.length === 0) { %>
+          <div class="card text-center" style="border-radius: 18px; padding: 30px; background: #ffffff; border: 1.5px dashed #e2e8f0; margin-bottom: 8px;">
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 12px;">No hay actividades registradas en este RAP todavía.</p>
+            <a href="/instructor/actividades/crear?rap=<%= r._id %>" class="btn-create-module">+ Agregar Actividad</a>
+          </div>
+        <% } else { %>
+          <div class="timeline-container-v2" style="margin-bottom: 8px;">
+            <% acts.forEach((act) => {
+              const ti = tipoInfo[act.tipo] || tipoInfo.blog;
+            %>
+              <div class="timeline-row-v2">
+                <div class="timeline-node-col">
+                  <div class="timeline-node">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="#0284c7" stroke="none">
+                      <polygon points="6 3 20 12 6 21 6 3"/>
+                    </svg>
+                  </div>
+                  <div class="timeline-line"></div>
+                </div>
+
+                <div class="timeline-card-col">
+                  <div class="activity-card-v2 <%= act.visible ? '' : 'act-hidden' %>" id="act-<%= act._id %>">
+                    <div class="activity-card-left">
+                      <div class="activity-icon-box <%= ti.iconBox %>">
+                        <%- ti.icon %>
+                      </div>
+                      <div class="activity-card-info">
+                        <h3 class="activity-card-title"><%= act.titulo %></h3>
+                        <div class="activity-card-meta">
+                          <span class="meta-item"><%= ti.label %></span>
+                          <span class="meta-dot">&bull;</span>
+                          <span class="meta-item"><%= act.momentoPedagogico %></span>
+                          <% if (act.esCierreModulo) { %>
+                            <span class="badge-cierre">Cierre Módulo</span>
+                          <% } %>
                         </div>
                       </div>
-                      <!-- Derecha: Estado/Continuar + Acciones del Instructor -->
-                      <div class="activity-card-right">
-                        <% if (isFirst) { %>
-                          <span class="badge-completed-v2">COMPLETED</span>
-                        <% } else { %>
-                          <a href="/aprendiz/actividad/<%= act._id %>" target="_blank" class="btn-card-action-v2 <%= theme.btnClass %>">
-                            Continue
-                          </a>
-                        <% } %>
+                    </div>
 
-                        <!-- Herramientas Administrativas del Instructor -->
-                        <div class="instructor-quick-actions" onclick="event.stopPropagation()">
-                          <a href="/instructor/actividades/<%= act._id %>/preview" target="_blank" class="icon-btn-v2" title="Vista previa de actividad">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                              <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                          </a>
-                          <a href="/instructor/actividades/<%= act._id %>/editar" class="icon-btn-v2" title="Editar actividad">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                              <path d="m15 5 4 4"/>
-                            </svg>
-                          </a>
-                          <div class="switch-wrap" title="Visibilidad para aprendices">
-                            <label class="switch">
-                              <input type="checkbox" <%= act.visible ? 'checked' : '' %> onchange="toggleVisibilidad('<%= act._id %>')">
-                              <span class="slider"></span>
-                            </label>
-                          </div>
-                          <form action="/instructor/actividades/<%= act._id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar actividad?');" style="margin:0;">
-                            <button type="submit" class="icon-btn-v2 delete" title="Eliminar actividad">
-                              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="3 6 5 6 21 6"/>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                              </svg>
-                            </button>
-                          </form>
+                    <div class="activity-card-right">
+                      <div class="instructor-quick-actions">
+                        <a href="/instructor/actividades/<%= act._id %>/preview" class="icon-btn-v2" title="Vista previa como aprendiz">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </a>
+                        <a href="/instructor/actividades/<%= act._id %>/editar" class="icon-btn-v2" title="Editar actividad">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                            <path d="m15 5 4 4"/>
+                          </svg>
+                        </a>
+                        <div class="switch-wrap" title="Visibilidad para aprendices">
+                          <label class="switch">
+                            <input type="checkbox" <%= act.visible ? 'checked' : '' %> onchange="toggleVisibilidad('<%= act._id %>')">
+                            <span class="slider"></span>
+                          </label>
                         </div>
+                        <form action="/instructor/actividades/<%= act._id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar actividad?');" style="margin:0;">
+                          <button type="submit" class="icon-btn-v2 delete" title="Eliminar actividad">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <polyline points="3 6 5 6 21 6"/>
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                          </button>
+                        </form>
                       </div>
                     </div>
                   </div>
                 </div>
-              <% }) %>
-            </div>
-          <% } %>
-        </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
       <% }) %>
     <% } %>
 
   </main>
 </div>
 
-<!-- SCRIPTS DE INTERACCIÓN Y FUNCIONALIDAD -->
 <script>
-  // Selección interactiva de tarjeta en azul al hacer clic
-  function selectActivityCard(cardEl) {
-    const container = cardEl.closest('.timeline-container-v2');
-    if (container) {
-      container.querySelectorAll('.activity-card-v2').forEach(c => {
-        c.classList.remove('active-blue');
-      });
-      container.querySelectorAll('.timeline-row-v2').forEach(r => {
-        r.classList.remove('is-active');
-      });
-    }
-
-    cardEl.classList.add('active-blue');
-    const parentRow = cardEl.closest('.timeline-row-v2');
-    if (parentRow) {
-      parentRow.classList.add('is-active');
-    }
-  }
-
-  // Cambiar visibilidad de actividad
   async function toggleVisibilidad(id) {
     try {
       const res = await fetch('/instructor/actividades/' + id + '/visibilidad', { method: 'POST' });
@@ -300,75 +251,19 @@
       } else {
         el.classList.add('act-hidden');
       }
-    } catch(e) {
+    } catch (e) {
       alert('Error al cambiar visibilidad');
       window.location.reload();
     }
   }
 
-  // Cambio de pestañas de RAP (actualiza Banner y Timeline en tiempo real)
-  function selectRapTab(rapId) {
-    const tabs = document.querySelectorAll('.rap-tab-btn');
-    let selectedBtn = null;
-
-    tabs.forEach(btn => {
-      if (btn.getAttribute('data-rap-id') === rapId) {
-        btn.classList.add('active');
-        selectedBtn = btn;
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    const groups = document.querySelectorAll('.rap-timeline-wrapper');
-    groups.forEach(g => {
-      if (g.id === 'rap-group-' + rapId) {
-        g.style.display = 'block';
-      } else {
-        g.style.display = 'none';
-      }
-    });
-
-    if (selectedBtn) {
-      const nombre = selectedBtn.getAttribute('data-rap-nombre') || '';
-      const orden = selectedBtn.getAttribute('data-rap-orden') || '1';
-      const modulo = selectedBtn.getAttribute('data-rap-modulo') || 'Module Content';
-      const desc = selectedBtn.getAttribute('data-rap-desc') || '';
-      const count = parseInt(selectedBtn.getAttribute('data-rap-count') || '0', 10);
-
-      const bannerTitle = document.getElementById('banner-rap-title');
-      if (bannerTitle) bannerTitle.textContent = `RAP ${orden}: ${nombre} - ${modulo}`;
-
-      const bannerDesc = document.getElementById('banner-rap-desc');
-      if (bannerDesc) bannerDesc.textContent = desc;
-
-      const crumbName = document.getElementById('crumb-rap-name');
-      if (crumbName) crumbName.textContent = `RAP: ${nombre}`;
-
-      const pct = count > 0 ? Math.min(100, Math.max(25, count * 30)) : 30;
-      const pctEl = document.getElementById('banner-gauge-pct');
-      if (pctEl) pctEl.textContent = `${pct}%`;
-
-      const barEl = document.getElementById('banner-gauge-bar');
-      if (barEl) {
-        const circum = 2 * Math.PI * 40;
-        const offset = circum - (circum * (pct / 100));
-        barEl.style.strokeDashoffset = offset;
-      }
-
-      const estTimeEl = document.getElementById('est-time-text');
-      if (estTimeEl) {
-        estTimeEl.textContent = `Est. Time: ${count > 0 ? Math.round(count * 45) + ' mins' : '2h 15m'}`;
-      }
-    }
-  }
-
-  // Si viene con ?rap=ID en la URL, activar ese RAP automáticamente
+  // Si viene de un enlace con ?rap=ID, hace scroll hasta ese RAP dentro del módulo
   (function() {
     const urlParams = new URLSearchParams(window.location.search);
-    const paramRap = urlParams.get('rap');
-    if (paramRap) {
-      selectRapTab(paramRap);
+    const rapId = urlParams.get('rap');
+    if (rapId) {
+      const el = document.getElementById('rap-' + rapId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   })();
 </script>
