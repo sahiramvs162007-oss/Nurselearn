@@ -78,7 +78,7 @@
         <div class="grid-2">
           <div class="form-group">
             <label>RAP</label>
-            <select name="rap" required>
+            <select name="rap" id="rap-select" required>
               <option value="" disabled <%= (typeof actividad === 'undefined' || !actividad) ? 'selected' : '' %>>Selecciona un RAP</option>
               <% raps.forEach(r => {
                 const esEdicion = typeof actividad !== 'undefined' && actividad;
@@ -86,7 +86,7 @@
                   ? (actividad.rap && actividad.rap.toString() === r._id.toString())
                   : (typeof preselectRapId !== 'undefined' && preselectRapId === r._id.toString());
               %>
-                <option value="<%= r._id %>" <%= seleccionado ? 'selected' : '' %>><%= r.modulo ? r.modulo.nombre : 'Módulo' %> — <%= r.nombre %></option>
+                <option value="<%= r._id %>" data-modulo="<%= r.modulo ? r.modulo._id : '' %>" data-orden="<%= r.orden || 0 %>" <%= seleccionado ? 'selected' : '' %>><%= r.modulo ? r.modulo.nombre : 'Módulo' %> — <%= r.nombre %></option>
               <% }) %>
             </select>
           </div>
@@ -211,9 +211,10 @@
         <div class="section" id="sec-evaluacion">
           <div class="card-title">Preguntas de evaluación</div>
           <div class="form-group switch-wrap">
-            <label class="switch"><input type="checkbox" name="esCierreModulo" <%= (typeof actividad !== 'undefined' && actividad && actividad.esCierreModulo) ? 'checked' : '' %>><span class="slider"></span></label>
+            <label class="switch"><input type="checkbox" name="esCierreModulo" id="esCierreModulo-input" onchange="onCierreModuloToggle(this)" <%= (typeof actividad !== 'undefined' && actividad && actividad.esCierreModulo) ? 'checked' : '' %>><span class="slider"></span></label>
             <span>Esta es la Evaluación de Cierre de Módulo</span>
           </div>
+          <p class="juego-hint">Solo puede haber una evaluación de cierre por módulo. Al marcarla, se selecciona automáticamente el último RAP del módulo y la actividad se crea desactivada hasta que la actives manualmente.</p>
           <div id="preguntas-container"></div>
           <button type="button" class="btn btn-outline" onclick="agregarPregunta()">+ Agregar pregunta</button>
         </div>
@@ -243,6 +244,25 @@ function updatePreview() {
   if (previewBody) {
     previewBody.innerHTML = html || '<em>(vacío)</em>';
   }
+}
+
+function onCierreModuloToggle(checkbox) {
+  if (!checkbox.checked) return;
+  const rapSelect = document.getElementById('rap-select');
+  if (!rapSelect) return;
+  const actual = rapSelect.selectedOptions[0];
+  const moduloId = actual ? actual.dataset.modulo : '';
+  if (!moduloId) return;
+
+  let mejorOpcion = null;
+  Array.from(rapSelect.options).forEach((opt) => {
+    if (opt.dataset.modulo !== moduloId) return;
+    const orden = Number(opt.dataset.orden || 0);
+    if (!mejorOpcion || orden > Number(mejorOpcion.dataset.orden || 0)) {
+      mejorOpcion = opt;
+    }
+  });
+  if (mejorOpcion) rapSelect.value = mejorOpcion.value;
 }
 
 function seleccionarTipo(tipo) {

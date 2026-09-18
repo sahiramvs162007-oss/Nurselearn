@@ -1819,6 +1819,28 @@ input:checked + .slider::before { transform: translateX(18px); }
   flex-shrink: 0;
 }
 
+.modulo-card.blocked {
+  cursor: not-allowed;
+  background: #f8fafc;
+  opacity: 0.75;
+}
+
+.modulo-card.blocked:hover {
+  border-color: var(--gris-borde);
+  transform: none;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.modulo-card.blocked:hover::before {
+  background: transparent;
+}
+
+.modulo-card.blocked .modulo-num {
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 1rem;
+}
+
 /* ── HERO BANNER DE MÓDULO (V2) ──────────────────────── */
 .modulo-hero-v2 {
   background: linear-gradient(135deg, #064e3b 0%, #0d5c3a 50%, #059669 100%);
@@ -2001,6 +2023,23 @@ input:checked + .slider::before { transform: translateX(18px); }
 .act-icon-v2.juego { background: #fef3c7; color: #d97706; }
 .act-icon-v2.evaluacion { background: #fee2e2; color: #dc2626; }
 
+.act-card-locked {
+  cursor: not-allowed;
+  background: #f8fafc;
+  opacity: 0.7;
+}
+
+.act-card-locked:hover {
+  border-color: var(--gris-borde);
+  transform: none;
+  box-shadow: var(--sombra-sm);
+}
+
+.act-card-locked .act-icon-v2 {
+  background: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
 .act-meta-v2 {
   font-size: 0.72rem;
   color: var(--texto-suave);
@@ -2033,6 +2072,7 @@ input:checked + .slider::before { transform: translateX(18px); }
 .status-badge-v2.status-entregado { background: #e0f2fe; color: #0369a1; }
 .status-badge-v2.status-aprobado { background: #dcfce7; color: #15803d; }
 .status-badge-v2.status-reprobado { background: #fee2e2; color: #991b1b; }
+.status-badge-v2.status-bloqueado { background: #e2e8f0; color: #475569; }
 
 /* ── PREGUNTAS Y EVALUACIÓN (V2) ─────────────────────── */
 .quiz-question-card {

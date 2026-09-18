@@ -85,25 +85,36 @@
     </div>
 
     <% if (modulos.length === 0) { %>
-      <div class="alert alert-warning">Aún no tienes módulos disponibles para ingresar. Completa los módulos anteriores para desbloquear los siguientes.</div>
+      <div class="alert alert-warning">Aún no hay módulos creados para tu programa. Contacta al administrador.</div>
     <% } else { %>
       <div style="display:flex;flex-direction:column;gap:16px;">
-        <% modulos.forEach((m, i) => { 
+        <% modulos.forEach((m, i) => {
           const padNum = (i + 1).toString().padStart(2, '0');
         %>
-          <a href="/aprendiz/modulo/<%= m._id %>" class="modulo-card">
+          <% if (m.bloqueado) { %>
+            <div class="modulo-card blocked" title="<%= m.motivoBloqueo || 'Módulo bloqueado' %>">
+          <% } else { %>
+            <a href="/aprendiz/modulo/<%= m._id %>" class="modulo-card">
+          <% } %>
             <div class="modulo-card-header">
               <div class="flex gap-16" style="align-items:center;">
-                <div class="modulo-num"><%= padNum %></div>
+                <div class="modulo-num"><%= m.bloqueado ? '🔒' : padNum %></div>
                 <div>
                   <div class="fw-700" style="font-size: 1.1rem; color: var(--texto);"><%= m.nombre %></div>
-                  <% if (m.descripcion) { %>
+                  <% if (m.bloqueado) { %>
+                    <div class="text-muted" style="margin-top: 3px;"><%= m.motivoBloqueo %></div>
+                  <% } else if (m.descripcion) { %>
                     <div class="text-muted" style="margin-top: 3px;"><%= m.descripcion %></div>
                   <% } %>
                 </div>
               </div>
               <div class="flex gap-12" style="align-items:center;">
-                <% if (m.pct === 100) { %>
+                <% if (m.bloqueado) { %>
+                  <span class="status-badge-v2 status-bloqueado" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Bloqueado
+                  </span>
+                <% } else if (m.pct === 100) { %>
                   <span class="status-badge-v2 status-aprobado" style="display: inline-flex; align-items: center; gap: 4px;">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     Completado
@@ -119,21 +130,29 @@
                     Por iniciar
                   </span>
                 <% } %>
-                
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--texto-muted);">
-                  <path d="M9 18l6-6-6-6"/>
-                </svg>
+
+                <% if (!m.bloqueado) { %>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--texto-muted);">
+                    <path d="M9 18l6-6-6-6"/>
+                  </svg>
+                <% } %>
               </div>
             </div>
-            
-            <div class="progress-label">
-              <span>Avance del módulo</span>
-              <span class="fw-700" style="color: var(--verde-sena);"><%= m.pct %>%</span>
+
+            <% if (!m.bloqueado) { %>
+              <div class="progress-label">
+                <span>Avance del módulo</span>
+                <span class="fw-700" style="color: var(--verde-sena);"><%= m.pct %>%</span>
+              </div>
+              <div class="progress-wrap">
+                <div class="progress-bar" style="width:<%= m.pct %>%"></div>
+              </div>
+            <% } %>
+          <% if (m.bloqueado) { %>
             </div>
-            <div class="progress-wrap">
-              <div class="progress-bar" style="width:<%= m.pct %>%"></div>
-            </div>
-          </a>
+          <% } else { %>
+            </a>
+          <% } %>
         <% }) %>
       </div>
     <% } %>

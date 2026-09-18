@@ -85,37 +85,77 @@
       <% } else { %>
         <div class="raps-grid-v2">
           <%
-            const themes = ['wave-mint icon-mint tag-mint', 'wave-blue icon-blue tag-blue', 'wave-amber icon-amber tag-amber', 'wave-purple icon-purple tag-purple'];
+            const themes = [
+              { wave: 'wave-mint', iconBox: 'icon-mint', tag: 'tag-mint', bar: 'bar-green', btn: 'btn-pill-soft' },
+              { wave: 'wave-blue', iconBox: 'icon-blue', tag: 'tag-blue', bar: 'bar-blue', btn: 'btn-pill-blue' },
+              { wave: 'wave-amber', iconBox: 'icon-amber', tag: 'tag-amber', bar: 'bar-amber', btn: 'btn-pill-light' },
+              { wave: 'wave-purple', iconBox: 'icon-purple', tag: 'tag-purple', bar: 'bar-purple', btn: 'btn-pill-purple' },
+            ];
           %>
           <% modulosConDatos.forEach((md, idx) => {
-            const [wave, iconBox, tag] = themes[idx % themes.length].split(' ');
+            const theme = themes[idx % themes.length];
+            const rapsConActividad = md.raps.filter(r => (actividadesPorRap[r._id.toString()] || []).length > 0).length;
+            const cobertura = md.raps.length > 0 ? Math.round((rapsConActividad / md.raps.length) * 100) : 0;
           %>
-            <a href="/instructor/actividades?modulo=<%= md.modulo._id %>" class="rap-card-v2 module-card-v2" style="text-decoration:none;">
-              <div class="rap-card-corner-wave <%= wave %>"></div>
+            <div class="rap-card-v2 module-card-v2">
+              <div class="rap-card-corner-wave <%= theme.wave %>"></div>
               <div>
-                <div class="rap-card-icon-box <%= iconBox %>">
+                <div class="rap-card-icon-box <%= theme.iconBox %>">
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
                 </div>
-                <div class="rap-card-tag <%= tag %>">MÓDULO <%= md.modulo.orden || (idx + 1) %></div>
+                <div class="rap-card-tag <%= theme.tag %>">MÓDULO <%= md.modulo.orden || (idx + 1) %></div>
                 <h3 class="rap-card-title"><%= md.modulo.nombre %></h3>
 
+                <!-- RAPs Y ACTIVIDADES ADENTRO DEL MÓDULO -->
                 <div class="module-card-raps">
                   <div class="module-raps-header">
-                    <span>RAPs incluidos</span>
-                    <span class="module-raps-count"><%= md.raps.length %> <%= md.raps.length === 1 ? 'RAP' : 'RAPs' %></span>
+                    <span>RAPs y Actividades</span>
+                    <span class="module-raps-count">
+                      <%= md.raps.length %> <%= md.raps.length === 1 ? 'RAP' : 'RAPs' %> · <%= md.totalActividades %> <%= md.totalActividades === 1 ? 'Act' : 'Acts' %>
+                    </span>
                   </div>
                   <% if (md.raps.length > 0) { %>
                     <div class="module-raps-list">
-                      <% md.raps.forEach(r => {
-                        const countActs = (actividadesPorRap[r._id.toString()] || []).length;
+                      <% md.raps.forEach((r, rIdx) => {
+                        const acts = actividadesPorRap[r._id.toString()] || [];
+                        const hasActs = acts.length > 0;
                       %>
-                        <span class="module-rap-chip">
-                          <span class="rap-chip-bullet">🎯</span>
-                          <span class="rap-chip-title"><%= r.nombre %></span>
-                          <% if (countActs > 0) { %>
-                            <span class="rap-chip-badge"><%= countActs %> act<%= countActs === 1 ? '' : 's' %></span>
-                          <% } %>
-                        </span>
+                        <div class="module-rap-group <%= hasActs ? 'has-acts' : '' %> <%= rIdx === 0 ? 'expanded' : '' %>">
+                          <div class="module-rap-header" onclick="this.closest('.module-rap-group').classList.toggle('expanded')" title="Click para ver o contraer actividades de <%= r.nombre %>">
+                            <span class="rap-header-icon">
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                            </span>
+                            <span class="rap-header-title"><%= r.nombre %></span>
+                            <span class="rap-header-badge"><%= acts.length %> acts</span>
+                            <span class="rap-header-toggle">
+                              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </span>
+                          </div>
+
+                          <div class="module-rap-activities">
+                            <% if (hasActs) { %>
+                              <% acts.forEach(a => { %>
+                                <a href="/instructor/actividades?rap=<%= r._id %>" class="module-act-item" title="<%= a.titulo %> (<%= a.tipo %>)">
+                                  <span class="module-act-icon">
+                                    <% if (a.tipo === 'blog') { %>
+                                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                    <% } else if (a.tipo === 'juego') { %>
+                                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
+                                    <% } else { %>
+                                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                    <% } %>
+                                  </span>
+                                  <span class="module-act-title"><%= a.titulo %></span>
+                                </a>
+                              <% }) %>
+                            <% } else { %>
+                              <div class="module-act-empty">
+                                <span>Sin actividades</span>
+                                <a href="/instructor/actividades/crear?rap=<%= r._id %>" class="module-act-create-link">+ Crear</a>
+                              </div>
+                            <% } %>
+                          </div>
+                        </div>
                       <% }) %>
                     </div>
                   <% } else { %>
@@ -125,9 +165,20 @@
               </div>
 
               <div style="margin-top: 16px;">
-                <span class="rap-card-btn btn-pill-soft">Ver Actividades &rsaquo;</span>
+                <div class="rap-card-progress">
+                  <div class="rap-card-progress-label">
+                    <span>Cobertura de contenido</span>
+                    <span style="font-weight: 700;"><%= cobertura %>%</span>
+                  </div>
+                  <div class="rap-card-progress-track">
+                    <div class="rap-card-progress-bar <%= theme.bar %>" style="width: <%= cobertura %>%;"></div>
+                  </div>
+                </div>
+                <a href="/instructor/actividades?modulo=<%= md.modulo._id %>" class="rap-card-btn <%= theme.btn %>">
+                  Gestionar Módulo &rsaquo;
+                </a>
               </div>
-            </a>
+            </div>
           <% }) %>
         </div>
       <% } %>
