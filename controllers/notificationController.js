@@ -7,6 +7,11 @@ exports.getNotifications = async (req, res, next) => {
     })
       .sort("-createdAt")
       .lean();
+
+    if (req.query.json === "true" || req.xhr) {
+      return res.json({ success: true, notifications });
+    }
+
     res.render("notificaciones", {
       titulo: "Notificaciones",
       user: req.session.userName,
@@ -25,6 +30,9 @@ exports.markAsRead = async (req, res, next) => {
       { _id: req.params.id, destinatario: req.session.userId },
       { leido: true },
     );
+    if (req.query.json === "true" || req.xhr) {
+      return res.json({ success: true });
+    }
     res.redirect(req.get("Referer") || "/notificaciones");
   } catch (err) {
     next(err);
@@ -37,6 +45,9 @@ exports.markAllAsRead = async (req, res, next) => {
       { destinatario: req.session.userId, leido: false },
       { leido: true },
     );
+    if (req.query.json === "true" || req.xhr) {
+      return res.json({ success: true });
+    }
     res.redirect("/notificaciones");
   } catch (err) {
     next(err);

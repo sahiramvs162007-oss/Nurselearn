@@ -3342,4 +3342,235 @@ a.sidebar-brand.active,
   padding: 4px 0;
 }
 
+/* ── NOTIFICATIONS MODAL (TOPBAR BELL) ─────────────────── */
+.notif-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s ease;
+}
+
+.notif-modal-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.notif-modal-dialog {
+  position: fixed;
+  top: 70px;
+  right: 24px;
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 90px);
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.98);
+  visibility: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.notif-modal-dialog.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+}
+
+.notif-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.notif-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.notif-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.notif-modal-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.notif-modal-body {
+  padding: 14px;
+  overflow-y: auto;
+  max-height: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notif-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+.notif-modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.notif-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.18s ease;
+}
+
+.notif-item.unread {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  border-left: 3.5px solid #00593B;
+}
+
+.notif-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.notif-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notif-item-msg {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.35;
+}
+
+.notif-item-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.notif-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notif-btn-action {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: #00593B;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.15s ease;
+}
+
+.notif-btn-action:hover {
+  opacity: 0.9;
+}
+
+.notif-btn-read {
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.notif-btn-read:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.notif-empty-state {
+  padding: 32px 16px;
+  text-align: center;
+  color: #64748b;
+}
+
+.notif-empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.notif-modal-footer {
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notif-footer-link {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #00593B;
+  text-decoration: none;
+}
+
+.notif-footer-link:hover {
+  text-decoration: underline;
+}
+
+.notif-btn-mark-all {
+  background: transparent;
+  border: none;
+  font-size: 0.75rem;
+  color: #64748b;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.notif-btn-mark-all:hover {
+  color: #0f172a;
+  text-decoration: underline;
+}
+
 
