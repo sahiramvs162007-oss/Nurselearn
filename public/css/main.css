@@ -1345,10 +1345,9 @@ input:checked + .slider::before { transform: translateX(18px); }
   color: #10946a;
 }
 
-/* Fila de opciones: Recuérdame / Olvidé */
+/* Fila de opciones: Recuérdame */
 .form-options-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-top: 4px;
   margin-bottom: 22px;
@@ -1370,18 +1369,6 @@ input:checked + .slider::before { transform: translateX(18px); }
   width: 16px;
   height: 16px;
   cursor: pointer;
-}
-
-.forgot-pwd-link {
-  color: #10946a;
-  font-weight: 700;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.forgot-pwd-link:hover {
-  text-decoration: underline;
-  color: #0d7d59;
 }
 
 /* Botón Principal */
