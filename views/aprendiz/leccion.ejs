@@ -79,7 +79,7 @@
         <% if (b.tipo === 'texto') { %>
           <div class="bloque rich-content"><%- c.html %></div>
 
-        <% if (b.tipo === 'video') { %>
+        <% } else if (b.tipo === 'video') { %>
           <div class="bloque">
             <div class="media-frame"><iframe src="<%= c.url %>" allowfullscreen></iframe></div>
           </div>
