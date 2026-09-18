@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title><%= actividad.titulo %> — NurseLearn</title>
-  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/main.css?v=14">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
 </head>
 <body>
 <%
@@ -555,7 +558,7 @@
         const form = document.getElementById('form-oracion');
         if (!form) return;
         startGameTimer(GAME_DATA.tiempoLimiteMin, () => {
-          alert('⏰ Se agotó el tiempo. Se enviarán tus respuestas tal como están.');
+          mostrarToast('⏰ Se agotó el tiempo. Se enviarán tus respuestas tal como están.');
           form.submit();
         });
       }
@@ -607,7 +610,7 @@
           if (finished) return;
           finished = true;
           const pct = Math.round((countCorrectas() / pares.length) * 100);
-          alert('⏰ Se agotó el tiempo. Se calificará según las parejas correctas que uniste.');
+          mostrarToast('⏰ Se agotó el tiempo. Se calificará según las parejas correctas que uniste.');
           completarJuego(pct);
         });
 
@@ -730,7 +733,6 @@
             const correctas = countCorrectas();
             const pct = Math.round((correctas / pares.length) * 100);
             setTimeout(() => {
-              alert(`✅ Uniste todas las parejas. Acertaste ${correctas} de ${pares.length}.`);
               completarJuego(pct);
             }, 400);
           }
@@ -797,7 +799,7 @@
           const uniqueLetters = new Set(targetWord.split(''));
           const correctas = [...uniqueLetters].filter(ch => guessedLetters.has(ch)).length;
           const pct = Math.round((correctas / uniqueLetters.size) * 100);
-          alert('⏰ Se agotó el tiempo. Se calificará según las letras que descubriste.');
+          mostrarToast('⏰ Se agotó el tiempo. Se calificará según las letras que descubriste.');
           completarJuego(pct);
         });
 
@@ -982,7 +984,7 @@
           finished = true;
           inputLocked = true;
           const pct = Math.round((foundWords.size / targetWords.length) * 100);
-          alert('⏰ Se agotó el tiempo. Se calificará según las palabras que encontraste.');
+          mostrarToast('⏰ Se agotó el tiempo. Se calificará según las palabras que encontraste.');
           completarJuego(pct);
         });
 
@@ -1196,7 +1198,6 @@
               finished = true;
               clearGameTimer();
               setTimeout(() => {
-                alert('🎉 ¡Felicidades! Encontraste todas las palabras en la sopa de letras.');
                 completarJuego();
               }, 500);
             }
@@ -1262,17 +1263,61 @@
   </main>
 </div>
 <script>
+
+function mostrarToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'app-toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
+}
+
+// Confeti que sale disparado desde los lados de la pantalla
+function lanzarConfeti() {
+  const canvas = document.createElement('canvas');
+  canvas.className = 'confetti-canvas';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = window.innerWidth;
+  const H = canvas.height = window.innerHeight;
+  const colores = ['#0d5c3a', '#22c55e', '#facc15', '#f97316', '#3b82f6', '#ec4899', '#a855f7'];
+  const piezas = [];
+  for (let i = 0; i < 160; i++) {
+    const izq = i % 2 === 0;
+    const ang = (Math.PI / 180) * (20 + Math.random() * 40);
+    const vel = 12 + Math.random() * 12;
+    piezas.push({
+      x: izq ? 0 : W, y: H * (0.55 + Math.random() * 0.2),
+      vx: (izq ? 1 : -1) * Math.cos(ang) * vel, vy: -Math.sin(ang) * vel - 6 - Math.random() * 6,
+      w: 6 + Math.random() * 6, h: 8 + Math.random() * 8,
+      rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4,
+      color: colores[Math.floor(Math.random() * colores.length)]
+    });
+  }
+  const fin = Date.now() + 3000;
+  (function frame() {
+    ctx.clearRect(0, 0, W, H);
+    piezas.forEach(p => {
+      p.vy += 0.35; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+    });
+    if (Date.now() < fin) requestAnimationFrame(frame); else canvas.remove();
+  })();
+}
+
 const PREVIEW_MODE = <%= previewMode ? 'true' : 'false' %>;
 
 function handlePreviewFormSubmit(e) {
   e.preventDefault();
-  alert('👁️ Vista previa: así se enviaría esta actividad. No se guardó ningún resultado.');
+  mostrarToast('👁️ Vista previa: así se enviaría esta actividad. No se guardó ningún resultado.');
   return false;
 }
 
 async function completarJuego(porcentaje) {
   if (PREVIEW_MODE) {
-    alert('👁️ Vista previa: en este punto el aprendiz completaría la actividad. No se guardó ningún resultado.');
+    mostrarToast('👁️ Vista previa: en este punto el aprendiz completaría la actividad. No se guardó ningún resultado.');
     return;
   }
   const res = await fetch('/aprendiz/juego/completar', {
@@ -1281,7 +1326,11 @@ async function completarJuego(porcentaje) {
     body: JSON.stringify({ actividadId: '<%= actividad._id %>', porcentaje })
   });
   const data = await res.json();
-  if (data.ok) { alert(data.mensaje); location.reload(); }
+  if (data.ok) {
+    mostrarToast(data.mensaje);
+    lanzarConfeti();
+    setTimeout(() => location.reload(), 3200);
+  }
 }
 </script>
 </body>
