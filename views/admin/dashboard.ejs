@@ -110,15 +110,37 @@
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input type="text" placeholder="Search by name, email or ID...">
+          <input type="text" id="userSearchInput" placeholder="Search by name, email or ID...">
         </div>
 
-        <button class="btn-filter-pill">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-          </svg>
-          Filter
-        </button>
+        <div class="filter-dropdown-wrap">
+          <button class="btn-filter-pill" id="filterToggleBtn" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Filter
+          </button>
+          <div class="filter-dropdown-panel" id="filterDropdownPanel">
+            <div class="filter-dropdown-group">
+              <label>Role</label>
+              <select id="filterRoleSelect">
+                <option value="">All roles</option>
+                <option value="aprendiz">Student</option>
+                <option value="instructor">Instructor</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="filter-dropdown-group">
+              <label>Status</label>
+              <select id="filterStatusSelect">
+                <option value="">All statuses</option>
+                <option value="Activo">Active</option>
+                <option value="Inactivo">Inactive</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm w-100" id="filterClearBtn" style="justify-content:center;">Clear filters</button>
+          </div>
+        </div>
       </div>
 
       <div class="table-wrap">
@@ -132,7 +154,7 @@
               <th style="text-align: right;">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="usersTableBody">
             <% if (locals.recentUsers && recentUsers.length) { %>
               <% recentUsers.forEach((u, i) => { 
                 const uInit = u.nombre.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
@@ -140,7 +162,14 @@
                 const bgCol = colors[i % colors.length];
                 const roleClass = u.rol === 'admin' ? 'badge-role-admin' : u.rol === 'instructor' ? 'badge-role-instructor' : 'badge-role-student';
               %>
-                <tr>
+                <tr
+                  class="user-row"
+                  data-name="<%= u.nombre.toLowerCase() %>"
+                  data-email="<%= u.email.toLowerCase() %>"
+                  data-id="<%= ('sena-' + String(u._id).substring(18,24)).toLowerCase() %>"
+                  data-role="<%= u.rol %>"
+                  data-status="<%= u.estado || 'Activo' %>"
+                >
                   <td>
                     <div class="user-cell">
                       <div class="user-cell-avatar" style="background: <%= bgCol %>; color: white;">
@@ -181,6 +210,11 @@
                 </td>
               </tr>
             <% } %>
+            <tr id="noResultsRow" style="display:none;">
+              <td colspan="5" style="text-align:center; padding:30px; color:var(--texto-muted);">
+                No users match your search or filters.
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -197,5 +231,64 @@
     </div>
   </main>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('userSearchInput');
+    const roleSelect = document.getElementById('filterRoleSelect');
+    const statusSelect = document.getElementById('filterStatusSelect');
+    const clearBtn = document.getElementById('filterClearBtn');
+    const filterToggleBtn = document.getElementById('filterToggleBtn');
+    const filterPanel = document.getElementById('filterDropdownPanel');
+    const noResultsRow = document.getElementById('noResultsRow');
+    const rows = Array.from(document.querySelectorAll('#usersTableBody .user-row'));
+
+    const applyFilters = () => {
+      const query = (searchInput.value || '').trim().toLowerCase();
+      const role = roleSelect.value;
+      const status = statusSelect.value;
+      let visibleCount = 0;
+
+      rows.forEach(row => {
+        const matchesQuery = !query
+          || row.dataset.name.includes(query)
+          || row.dataset.email.includes(query)
+          || row.dataset.id.includes(query);
+        const matchesRole = !role || row.dataset.role === role;
+        const matchesStatus = !status || row.dataset.status === status;
+        const isVisible = matchesQuery && matchesRole && matchesStatus;
+        row.style.display = isVisible ? '' : 'none';
+        if (isVisible) visibleCount++;
+      });
+
+      if (noResultsRow) noResultsRow.style.display = visibleCount === 0 ? '' : 'none';
+    };
+
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (roleSelect) roleSelect.addEventListener('change', applyFilters);
+    if (statusSelect) statusSelect.addEventListener('change', applyFilters);
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        roleSelect.value = '';
+        statusSelect.value = '';
+        applyFilters();
+      });
+    }
+
+    if (filterToggleBtn && filterPanel) {
+      filterToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        filterPanel.classList.toggle('open');
+      });
+      document.addEventListener('click', (e) => {
+        if (!filterPanel.contains(e.target) && !filterToggleBtn.contains(e.target)) {
+          filterPanel.classList.remove('open');
+        }
+      });
+    }
+  });
+</script>
 </body>
 </html>
