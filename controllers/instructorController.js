@@ -107,11 +107,110 @@ exports.getDashboard = async (req, res, next) => {
       "instructores.instructor": req.session.userId,
     });
     const fichaActiva = await getFichaActiva(req.session.userId);
+
+    // Obtener todos los Módulos y RAPs creados por el administrador
+    const [modulos, raps] = await Promise.all([
+      Modulo.find().sort("orden"),
+      RAP.find().populate("modulo").sort("orden"),
+    ]);
+
+    // Contar actividades asociadas a cada RAP para la ficha activa
+    const rapIds = raps.map((r) => r._id);
+    const queryAct = { rap: { $in: rapIds } };
+    if (fichaActiva) {
+      queryAct.ficha = fichaActiva._id;
+    }
+    const actividades = await Actividad.find(queryAct);
+
+    // Mapear estadísticas de cada RAP
+    const rapsWithStats = raps.map((rap, idx) => {
+      const actsRap = actividades.filter(
+        (a) => a.rap && a.rap.toString() === rap._id.toString()
+      );
+      return {
+        _id: rap._id,
+        nombre: rap.nombre,
+        modulo: rap.modulo,
+        orden: rap.orden || idx + 1,
+        totalActividades: actsRap.length,
+      };
+    });
+
+    // Mapear Módulos con sus RAPs agrupados adentro
+    const modulosWithRaps = modulos.map((mod, idx) => {
+      const rapsDelModulo = rapsWithStats.filter(
+        (r) => r.modulo && r.modulo._id.toString() === mod._id.toString()
+      );
+      const totalActsModulo = rapsDelModulo.reduce(
+        (acc, curr) => acc + curr.totalActividades,
+        0
+      );
+      return {
+        _id: mod._id,
+        nombre: mod.nombre,
+        descripcion: mod.descripcion,
+        orden: mod.orden || idx + 1,
+        raps: rapsDelModulo,
+        totalActividades: totalActsModulo,
+      };
+    });
+
+    // Métricas reales del instructor y su cohorte/ficha
+    let totalAprendices = 0;
+    let aprendicesActivos = 0;
+    if (fichaActiva && fichaActiva.aprendices) {
+      totalAprendices = fichaActiva.aprendices.length;
+      aprendicesActivos = fichaActiva.aprendices.filter(
+        (a) => a.estado === "Activo"
+      ).length;
+    }
+
+    let entregasPendientes = 0;
+    let entregasCalificadas = 0;
+    let totalEntregas = 0;
+    let tasaAprobacion = 100;
+
+    if (fichaActiva) {
+      const [pendientes, calificadas, total] = await Promise.all([
+        Entrega.countDocuments({ ficha: fichaActiva._id, estado: "Entregado" }),
+        Entrega.countDocuments({
+          ficha: fichaActiva._id,
+          estado: { $in: ["Calificado", "Aprobado"] },
+        }),
+        Entrega.countDocuments({ ficha: fichaActiva._id }),
+      ]);
+      entregasPendientes = pendientes;
+      entregasCalificadas = calificadas;
+      totalEntregas = total;
+
+      if (totalEntregas > 0) {
+        const aprobadas = await Entrega.countDocuments({
+          ficha: fichaActiva._id,
+          estado: "Aprobado",
+        });
+        tasaAprobacion = Math.round((aprobadas / totalEntregas) * 100);
+      }
+    }
+
+    const stats = {
+      totalAprendices,
+      aprendicesActivos,
+      entregasPendientes,
+      entregasCalificadas,
+      totalEntregas,
+      tasaAprobacion,
+      totalActividades: actividades.length,
+      totalFichas: fichas.length,
+    };
+
     res.render("instructor/dashboard", {
       titulo: "Panel Instructor",
       user: req.session.userName,
       fichas,
       fichaActiva,
+      modulos: modulosWithRaps,
+      raps: rapsWithStats,
+      stats,
       error: req.flash("error"),
       success: req.flash("success"),
     });
@@ -141,17 +240,12 @@ exports.getActividades = async (req, res, next) => {
       return res.redirect("/instructor");
     }
 
-    const asig = fichaActiva.instructores.find(
-      (i) => i.instructor.toString() === req.session.userId,
-    );
-    const misRaps = asig ? asig.raps : [];
-
     const [modulos, raps, actividades] = await Promise.all([
       Modulo.find().sort("orden"),
-      RAP.find({ _id: { $in: misRaps } })
+      RAP.find()
         .populate("modulo")
         .sort("orden"),
-      Actividad.find({ ficha: fichaActiva._id, rap: { $in: misRaps } }).sort(
+      Actividad.find({ ficha: fichaActiva._id }).sort(
         "orden",
       ),
     ]);
@@ -178,16 +272,14 @@ exports.getCrearActividad = async (req, res, next) => {
       req.flash("error", "Sin ficha activa.");
       return res.redirect("/instructor");
     }
-    const asig = fichaActiva.instructores.find(
-      (i) => i.instructor.toString() === req.session.userId,
-    );
-    const misRaps = asig ? asig.raps : [];
+
     const [modulos, raps] = await Promise.all([
       Modulo.find().sort("orden"),
-      RAP.find({ _id: { $in: misRaps } })
+      RAP.find()
         .populate("modulo")
         .sort("orden"),
     ]);
+
     res.render("instructor/crear-actividad", {
       titulo: "Crear Actividad",
       user: req.session.userName,
@@ -356,13 +448,9 @@ exports.getEditarActividad = async (req, res, next) => {
       req.flash("error", "Sin ficha activa.");
       return res.redirect("/instructor");
     }
-    const asig = fichaActiva.instructores.find(
-      (i) => i.instructor.toString() === req.session.userId,
-    );
-    const misRaps = asig ? asig.raps : [];
     const [modulos, raps] = await Promise.all([
       Modulo.find().sort("orden"),
-      RAP.find({ _id: { $in: misRaps } })
+      RAP.find()
         .populate("modulo")
         .sort("orden"),
     ]);

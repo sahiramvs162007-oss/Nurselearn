@@ -227,23 +227,46 @@
       let pendientes = entregas.filter(e => e.estado === 'Pendiente').length;
     %>
 
-    <!-- Stats row -->
-    <div class="history-stats">
-      <div class="history-stat-card">
-        <div class="stat-val"><%= totalInteracciones %></div>
-        <div class="stat-name">Total Entregadas</div>
+    <!-- Stats row Versión 2 Figma -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: #f1f5f9; color: #475569;">
+          <span>📋</span>
+        </div>
+        <div>
+          <div class="kpi-number"><%= totalInteracciones %></div>
+          <div class="kpi-desc">Total Entregadas</div>
+        </div>
       </div>
-      <div class="history-stat-card">
-        <div class="stat-val" style="color: var(--verde);"><%= aprobadas %></div>
-        <div class="stat-name">Aprobadas</div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: var(--verde-soft); color: var(--verde-text);">
+          <span>✅</span>
+        </div>
+        <div>
+          <div class="kpi-number" style="color: var(--verde-text);"><%= aprobadas %></div>
+          <div class="kpi-desc">Aprobadas</div>
+        </div>
       </div>
-      <div class="history-stat-card">
-        <div class="stat-val" style="color: var(--rojo);"><%= reprobadas %></div>
-        <div class="stat-name">Reprobadas</div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: #fee2e2; color: #dc2626;">
+          <span>❌</span>
+        </div>
+        <div>
+          <div class="kpi-number" style="color: #dc2626;"><%= reprobadas %></div>
+          <div class="kpi-desc">Reprobadas</div>
+        </div>
       </div>
-      <div class="history-stat-card">
-        <div class="stat-val" style="color: var(--azul);"><%= enRevision %></div>
-        <div class="stat-name">En Revisión</div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: #e0f2fe; color: #0284c7;">
+          <span>👀</span>
+        </div>
+        <div>
+          <div class="kpi-number" style="color: #0284c7;"><%= enRevision %></div>
+          <div class="kpi-desc">En Revisión</div>
+        </div>
       </div>
     </div>
 

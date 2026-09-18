@@ -4,90 +4,144 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iniciar Sesión — NurseLearn</title>
-  <link rel="stylesheet" href="/css/main.css?v=10">
+  <link rel="stylesheet" href="/css/main.css?v=13">
 </head>
 <body>
 <div class="login-wrapper">
   <!-- Cabecera / Navegación superior -->
   <header class="login-header">
-    <a href="#" class="login-header-logo">Nurse<span>Learn</span></a>
-    <nav class="login-nav-links">
-      <a href="#" class="active">Inicio</a>
-      <a href="#">Sobre el Sistema</a>
-    </nav>
-    <a href="https://www.sena.edu.co" target="_blank" class="btn-top-sena">SENA</a>
+    <a href="/auth/login" class="login-header-logo" id="logo-inicio">
+      <div class="medkit-logo-icon">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 6.5V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v1.5"/>
+          <rect x="3.5" y="6.5" width="17" height="13.5" rx="3" stroke="#ffffff" stroke-width="2.2"/>
+          <path d="M12 10v6.5M8.75 13.25h6.5" stroke="#ffffff" stroke-width="2.2"/>
+        </svg>
+      </div>
+      <span class="logo-text">Nurse<span>Learn</span></span>
+    </a>
+    <div class="login-header-right">
+      <a href="https://betowa.sena.edu.co/" target="_blank" rel="noopener noreferrer" class="btn-top-sena">SENA</a>
+    </div>
   </header>
 
-  <!-- Contenido Principal (Héroe) -->
+  <!-- Contenido Principal -->
   <main class="login-main">
     <!-- Lado Izquierdo: Contenido Dinámico -->
     <div class="login-content-left">
       
-      <!-- Bloque 1: Bienvenida (Visible por defecto) -->
+      <!-- BLOQUE 1: INFORMACIÓN INICIAL DE BIENVENIDA -->
       <div class="login-intro-block">
-        <div class="badge-medical">Hospital & Aprendizaje</div>
+        <div class="badge-medical">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: -2px;">
+            <path d="M12 6v12M6 12h12"/>
+            <rect width="18" height="18" x="3" y="3" rx="2"/>
+          </svg>
+          HOSPITAL & APRENDIZAJE
+        </div>
         <h1 class="main-title">
-          English Skills <span>for Future &</span> <br><span>Nurses</span>
+          English Skills <span>for Future &</span> <br><span class="highlight-green">Nurses</span>
         </h1>
         <p class="main-desc">
           Desarrolla competencias en inglés para el sector salud mediante una plataforma interactiva, práctica y diseñada para fortalecer tu desempeño profesional.
         </p>
         
         <div class="cta-actions">
-          <button class="btn-get-started">Comenzar Ahora <span class="arrow">›</span></button>
+          <button type="button" class="btn-get-started" id="btnGetStarted">
+            Comenzar Ahora <span class="arrow">›</span>
+          </button>
           <div class="emergency-contact">
-            <div class="contact-icon">📞</div>
+            <div class="contact-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+            </div>
             <div class="contact-text">
-              <span>Mesa de Ayuda</span>
+              <span>MESA DE AYUDA</span>
               <strong>+57 (601) 546-1500</strong>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Bloque 2: Formulario de Login (Oculto por defecto, reemplaza al Bloque 1) -->
+      <!-- BLOQUE 2: FORMULARIO CON EL NUEVO DISEÑO DE INICIAR SESIÓN -->
       <div class="login-form-block" style="display: none;">
         <% if (error && error.length) { %>
-          <div class="alert alert-error login-alert">⚠️ <%= error[0] %></div>
+          <div class="alert alert-error login-alert" style="margin-bottom: 16px; border-radius: 14px;">⚠️ <%= error[0] %></div>
         <% } %>
         <% if (success && success.length) { %>
-          <div class="alert alert-success login-alert">✅ <%= success[0] %></div>
+          <div class="alert alert-success login-alert" style="margin-bottom: 16px; border-radius: 14px;">✅ <%= success[0] %></div>
         <% } %>
 
-        <div class="login-box">
-          <h2 class="login-box-title">Iniciar Sesión</h2>
+        <div class="login-box-v2">
+          <!-- Detalle decorativo verde en esquina superior izquierda -->
+          <div class="login-card-corner-accent"></div>
 
+          <!-- Encabezado de la tarjeta -->
+          <div class="login-card-header">
+            <div class="login-user-icon-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10946a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <h2 class="login-card-title">Iniciar Sesión</h2>
+          </div>
+
+          <!-- Formulario POST hacia /auth/login -->
           <form id="login-form" action="/auth/login" method="POST">
-            <div class="line-input-field">
-              <label for="email">Email</label>
-              <div class="field-control">
-                <input type="email" id="email" name="email" required autocomplete="email">
-                <span class="field-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+            <!-- Campo: Correo electrónico -->
+            <div class="form-field-group">
+              <label for="email" class="form-field-label">Correo electrónico</label>
+              <div class="form-input-container">
+                <span class="input-icon-left">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10946a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="20" height="16" x="2" y="4" rx="2"/>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
                   </svg>
                 </span>
+                <input type="email" id="email" name="email" required placeholder="Tu correo electrónico" autocomplete="email">
               </div>
-              <div class="line-separator"></div>
-            </div>
-            
-            <div class="line-input-field" style="margin-bottom: 30px;">
-              <label for="password">Password</label>
-              <div class="field-control">
-                <input type="password" id="password" name="password" required autocomplete="current-password">
-                <span class="field-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                </span>
-              </div>
-              <div class="line-separator"></div>
             </div>
 
-            <button type="submit" class="btn-login-submit">
-              Ingresar al Sistema
+            <!-- Campo: Contraseña -->
+            <div class="form-field-group">
+              <label for="password" class="form-field-label">Contraseña</label>
+              <div class="form-input-container">
+                <span class="input-icon-left">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10946a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </span>
+                <input type="password" id="password" name="password" required placeholder="Tu contraseña" autocomplete="current-password">
+                <button type="button" class="btn-toggle-pwd" id="togglePasswordBtn" aria-label="Mostrar u ocultar contraseña">
+                  <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                    <line x1="2" y1="2" x2="22" y2="22"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Fila de opciones: Recuérdame y ¿Olvidaste tu contraseña? -->
+            <div class="form-options-row">
+              <label class="remember-checkbox-label">
+                <input type="checkbox" name="remember" checked>
+                <span class="custom-checkbox"></span>
+                <span class="remember-text">Recuérdame</span>
+              </label>
+              <a href="#" class="forgot-pwd-link">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <!-- Botón Principal: Ingresar al Sistema -->
+            <button type="submit" class="btn-login-main-submit">
+              <span>Ingresar al Sistema</span>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
             </button>
           </form>
         </div>
@@ -95,29 +149,46 @@
 
     </div>
 
-    <!-- Lado Derecho: Imagen de Enfermera y Tarjetas Flotantes -->
+    <!-- Lado Derecho: Imagen de Doctora y Tarjetas Flotantes -->
     <div class="login-content-right">
-      <img src="/img/enfermera.png" alt="Enfermera NurseLearn" class="nurse-img">
+      <!-- Forma geométrica verde en esquina inferior derecha -->
+      <div class="green-geometry-corner"></div>
+
+      <!-- Imagen de la Doctora -->
+      <img src="/img/enfermera.png" alt="Doctora NurseLearn" class="nurse-img">
       
-      <!-- Tarjeta Flotante 1 -->
-      <div class="info-card card-instructor animate-float-delay-1">
-        <div class="avatar">👩‍⚕️</div>
-        <div class="details">
+      <!-- Tarjeta Flotante Superior: +500 Activo -->
+      <div class="info-card-top-users">
+        <div class="avatars-group-top">
+          <div class="avatar-circle-sm" style="background: #a855f7;">👩</div>
+          <div class="avatar-circle-sm" style="background: #ec4899;">👨</div>
+          <div class="avatar-circle-sm" style="background: #3b82f6;">👩‍⚕️</div>
+        </div>
+        <div class="info-top-texts">
+          <strong class="text-users-green">+500 Activo</strong>
+          <span>Learners Learning every day</span>
+        </div>
+      </div>
+
+      <!-- Tarjeta Flotante Inferior: Expert Instructors -->
+      <div class="info-card-expert-bottom">
+        <div class="expert-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10946a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="expert-texts">
           <strong>Expert Instructors</strong>
           <span>Personalized guidance</span>
         </div>
-      </div>
-      
-      <!-- Tarjeta Flotante 2 -->
-      <div class="info-card card-users animate-float-delay-2">
-        <div class="avatars-group">
-          <div class="avatar-sm">👤</div>
-          <div class="avatar-sm">👤</div>
-          <div class="avatar-sm">👤</div>
-        </div>
-        <div class="details">
-          <strong>+500 Active</strong>
-          <span>Learners Learning every day</span>
+        <div class="expert-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
         </div>
       </div>
     </div>
@@ -126,80 +197,110 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const btnGetStarted = document.querySelector('.btn-get-started');
+    const btnGetStarted = document.getElementById('btnGetStarted');
     const introBlock = document.querySelector('.login-intro-block');
     const formBlock = document.querySelector('.login-form-block');
+    const navInicio = document.getElementById('nav-inicio');
     const emailInput = document.getElementById('email');
-    const navHome = document.querySelector('.login-nav-links a.active');
-    const logoHome = document.querySelector('.login-header-logo');
 
-    // Función para ocultar intro y mostrar formulario
+    // Función para mostrar el formulario de login y ocultar bienvenida
     const showLoginForm = () => {
+      if (!introBlock || !formBlock) return;
       introBlock.classList.add('hide');
       setTimeout(() => {
         introBlock.style.display = 'none';
         formBlock.style.display = 'block';
         setTimeout(() => {
           formBlock.classList.add('show');
-          emailInput.focus();
-        }, 50);
-      }, 400);
+          if (emailInput) emailInput.focus();
+        }, 40);
+      }, 300);
     };
 
-    // Función para ocultar formulario y mostrar intro
+    // Función para volver a la bienvenida
     const showIntroText = () => {
-      if (formBlock.style.display === 'none') return;
+      if (!introBlock || !formBlock || formBlock.style.display === 'none') return;
       formBlock.classList.remove('show');
       setTimeout(() => {
         formBlock.style.display = 'none';
         introBlock.style.display = 'block';
         setTimeout(() => {
           introBlock.classList.remove('hide');
-        }, 50);
-      }, 400);
+        }, 40);
+      }, 300);
     };
 
-    // Si existen mensajes de error o éxito al recargar, se muestra el formulario de inmediato
+    // Si hay un mensaje de alerta por error, abrir el formulario directamente
     const hasAlert = document.querySelector('.login-alert');
     if (hasAlert) {
-      introBlock.style.display = 'none';
-      introBlock.classList.add('hide');
-      formBlock.style.display = 'block';
-      formBlock.classList.add('show');
+      if (introBlock) {
+        introBlock.style.display = 'none';
+        introBlock.classList.add('hide');
+      }
+      if (formBlock) {
+        formBlock.style.display = 'block';
+        formBlock.classList.add('show');
+      }
     }
 
-    btnGetStarted.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      showLoginForm();
-    });
-
-    if (navHome) {
-      navHome.addEventListener('click', (e) => {
+    if (btnGetStarted) {
+      btnGetStarted.addEventListener('click', (e) => {
         e.preventDefault();
-        showIntroText();
+        e.stopPropagation();
+        showLoginForm();
       });
     }
 
-    if (logoHome) {
-      logoHome.addEventListener('click', (e) => {
-        e.preventDefault();
-        showIntroText();
+    const logoInicio = document.getElementById('logo-inicio');
+    if (logoInicio) {
+      logoInicio.addEventListener('click', (e) => {
+        if (formBlock && formBlock.style.display !== 'none') {
+          e.preventDefault();
+          showIntroText();
+        }
       });
     }
 
-    // Regresar al hacer clic en cualquier parte fuera del cuadro de inicio de sesión
+    // Regresar al hacer clic fuera del cuadro de inicio de sesión
     document.addEventListener('click', (e) => {
-      if (formBlock.style.display !== 'none' && formBlock.classList.contains('show')) {
-        const isInsideLoginBox = e.target.closest('.login-box');
-        const isGetStartedBtn = e.target.closest('.btn-get-started');
-        
+      if (formBlock && formBlock.style.display !== 'none' && formBlock.classList.contains('show')) {
+        const isInsideLoginBox = e.target.closest('.login-box-v2');
+        const isGetStartedBtn = e.target.closest('#btnGetStarted');
         if (!isInsideLoginBox && !isGetStartedBtn) {
           showIntroText();
         }
       }
     });
+
+    // Alternar visibilidad de contraseña
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    const pwdInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    if (toggleBtn && pwdInput) {
+      toggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isPassword = pwdInput.type === 'password';
+        pwdInput.type = isPassword ? 'text' : 'password';
+        
+        if (isPassword) {
+          eyeIcon.innerHTML = `
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+            <circle cx="12" cy="12" r="3"/>
+          `;
+          eyeIcon.setAttribute('stroke', '#10946a');
+        } else {
+          eyeIcon.innerHTML = `
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+            <circle cx="12" cy="12" r="3"/>
+            <line x1="2" y1="2" x2="22" y2="22"/>
+          `;
+          eyeIcon.setAttribute('stroke', '#64748b');
+        }
+      });
+    }
   });
 </script>
 </body>
 </html>
+

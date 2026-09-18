@@ -6,61 +6,46 @@
   <link rel="stylesheet" href="/css/main.css">
   <style>
     .leccion-header {
-      background: linear-gradient(135deg, var(--azul) 0%, #005a9e 100%);
-      color: white; padding: 26px 30px; border-radius: 16px; margin-bottom: 24px;
+      background: linear-gradient(135deg, #064e3b 0%, #0d5c3a 50%, #059669 100%);
+      color: white;
+      padding: 30px 36px;
+      border-radius: 20px;
+      margin-bottom: 26px;
+      box-shadow: 0 12px 32px rgba(13, 92, 58, 0.2);
     }
-    .leccion-header h1 { font-size: 1.6rem; margin-bottom: 6px; }
-    .leccion-header p { opacity: 0.85; font-size: 0.9rem; }
+    .leccion-header h1 { font-size: 1.8rem; margin-bottom: 8px; font-weight: 700; letter-spacing: -0.02em; }
+    .leccion-header p { opacity: 0.9; font-size: 0.95rem; }
 
-    .bloque { background: white; border: 1px solid var(--gris-borde); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-    .bloque-nota { background: var(--azul-claro); border-left: 4px solid var(--azul); }
+    .bloque { background: white; border: 1.5px solid var(--gris-borde); border-radius: 14px; padding: 22px; margin-bottom: 18px; box-shadow: var(--sombra-sm); }
+    .bloque-nota { background: var(--verde-soft); border-left: 4px solid var(--verde-sena); color: var(--texto); }
     .bloque-separador { border: none; border-top: 2px dashed var(--gris-borde); background: transparent; padding: 0; margin: 24px 0; }
 
-    .rich-content img, .rich-content video { max-width: 100%; border-radius: 8px; }
-    .media-frame { aspect-ratio: 16/9; border-radius: 10px; overflow: hidden; }
+    .rich-content img, .rich-content video { max-width: 100%; border-radius: 10px; }
+    .media-frame { aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; border: 1px solid var(--gris-borde); }
     .media-frame iframe { width: 100%; height: 100%; border: 0; }
 
-    .tarjetas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
-    .tarjeta { perspective: 900px; height: 100px; cursor: pointer; }
-    .tarjeta-inner { position: relative; width: 100%; height: 100%; transition: transform 0.5s; transform-style: preserve-3d; }
+    .tarjetas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+    .tarjeta { perspective: 900px; height: 110px; cursor: pointer; }
+    .tarjeta-inner { position: relative; width: 100%; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
     .tarjeta.flipped .tarjeta-inner { transform: rotateY(180deg); }
     .tarjeta-front, .tarjeta-back {
-      position: absolute; inset: 0; backface-visibility: hidden; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px; font-weight: 600;
+      position: absolute; inset: 0; backface-visibility: hidden; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px; font-weight: 600;
+      box-shadow: var(--sombra-sm);
     }
-    .tarjeta-front { background: var(--azul); color: white; }
-    .tarjeta-back { background: var(--verde-claro); color: var(--verde-oscuro); border: 2px solid var(--verde); transform: rotateY(180deg); }
+    .tarjeta-front { background: var(--texto); color: white; border: 1px solid var(--texto); }
+    .tarjeta-back { background: var(--verde-soft); color: var(--verde-text); border: 2px solid var(--verde-sena); transform: rotateY(180deg); }
 
-    .faq-item { border-bottom: 1px solid var(--gris-borde); padding: 10px 0; }
-    .faq-pregunta { font-weight: 600; color: var(--azul); cursor: pointer; }
-    .faq-respuesta { color: var(--texto-suave); margin-top: 6px; display: none; }
+    .faq-item { border-bottom: 1px solid var(--gris-borde); padding: 14px 0; }
+    .faq-pregunta { font-weight: 600; color: var(--texto); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .faq-respuesta { color: var(--texto-suave); margin-top: 8px; padding-left: 18px; display: none; }
     .faq-item.abierta .faq-respuesta { display: block; }
 
-    table.bloque-tabla { width: 100%; border-collapse: collapse; }
-    table.bloque-tabla th, table.bloque-tabla td { border: 1px solid var(--gris-borde); padding: 8px 12px; text-align: left; font-size: 0.9rem; }
-    table.bloque-tabla th { background: var(--gris); }
+    table.bloque-tabla { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
+    table.bloque-tabla th, table.bloque-tabla td { border: 1px solid var(--gris-borde); padding: 10px 14px; text-align: left; font-size: 0.9rem; }
+    table.bloque-tabla th { background: #f8fafc; font-weight: 700; color: var(--texto); }
 
-    .act-card {
-      display: flex; align-items: center; justify-content: space-between;
-      background: white; border: 1.5px solid var(--gris-borde);
-      border-radius: 12px; padding: 16px 20px; margin-bottom: 12px;
-      text-decoration: none; color: inherit; transition: all 0.2s;
-    }
-    .act-card:hover { border-color: var(--verde); transform: translateX(4px); box-shadow: var(--sombra); }
-    .act-info { display: flex; align-items: center; gap: 16px; }
-    .act-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-    .act-icon.blog { background: var(--azul-claro); }
-    .act-icon.juego { background: #fef3c7; }
-    .act-icon.evaluacion { background: #fdecea; }
-    .act-meta { font-size: 0.8rem; color: var(--texto-suave); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .act-title { font-weight: 700; font-size: 1.05rem; margin-top: 2px; }
-    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .status-pendiente { background: var(--gris); color: var(--texto-suave); }
-    .status-entregado { background: var(--azul-claro); color: var(--azul); }
-    .status-aprobado { background: var(--verde-claro); color: var(--verde-oscuro); }
-    .status-reprobado { background: #fdecea; color: var(--rojo); }
-
-    .section-title { font-weight: 700; font-size: 1.05rem; color: var(--azul); margin: 26px 0 12px; display: flex; align-items: center; gap: 8px; }
+    .section-title { font-weight: 700; font-size: 1.15rem; color: var(--texto); margin: 28px 0 14px; display: flex; align-items: center; gap: 8px; }
   </style>
 </head>
 <body>
@@ -173,7 +158,14 @@
 
     <!-- ══════════ ACTIVIDADES ══════════ -->
     <% if (actividades.length > 0) { %>
-      <div class="section-title">🎯 Actividades</div>
+      <div class="section-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--verde-sena);">
+          <circle cx="12" cy="12" r="10"/>
+          <circle cx="12" cy="12" r="6"/>
+          <circle cx="12" cy="12" r="2"/>
+        </svg>
+        Actividades Prácticas
+      </div>
       <% actividades.forEach(act => {
         const entrega = entregaMap[act._id.toString()];
         let statusClass = 'status-pendiente';
@@ -186,17 +178,17 @@
           else if (entrega.estado === 'Reprobado') { statusClass = 'status-reprobado'; statusText = 'Reprobado'; statusIcon = '❌'; }
         }
       %>
-        <a href="/aprendiz/actividad/<%= act._id %>" class="act-card">
-          <div class="act-info">
-            <div class="act-icon <%= act.tipo %>">
+        <a href="/aprendiz/actividad/<%= act._id %>" class="act-card-v2">
+          <div class="act-info-v2">
+            <div class="act-icon-v2 <%= act.tipo %>">
               <%= act.tipo === 'blog' ? '✏️' : (act.tipo === 'juego' ? '🎮' : '📝') %>
             </div>
             <div>
-              <div class="act-meta"><%= act.tipo === 'blog' ? 'Actividad escrita' : (act.tipo === 'juego' ? 'Juego' : 'Evaluación') %></div>
-              <div class="act-title"><%= act.titulo %></div>
+              <div class="act-meta-v2"><%= act.tipo === 'blog' ? 'Actividad escrita' : (act.tipo === 'juego' ? 'Juego' : 'Evaluación') %></div>
+              <div class="act-title-v2"><%= act.titulo %></div>
             </div>
           </div>
-          <div class="status-badge <%= statusClass %>">
+          <div class="status-badge-v2 <%= statusClass %>">
             <span><%= statusIcon %></span> <%= statusText %>
           </div>
         </a>

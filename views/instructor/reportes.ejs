@@ -149,18 +149,33 @@
       reporte.forEach(r => totalPct += r.pct); 
       const avgPct = reporte.length > 0 ? Math.round(totalPct / reporte.length) : 0;
     %>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-num"><%= fichaActiva.aprendices.length %></div>
-        <div class="stat-label">Total Aprendices</div>
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: #e0f2fe; color: #0369a1;">
+          <span>👥</span>
+        </div>
+        <div>
+          <div class="kpi-number"><%= fichaActiva.aprendices.length %></div>
+          <div class="kpi-desc">Total Aprendices</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-num"><%= actividades.length %></div>
-        <div class="stat-label">Actividades Creadas</div>
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: #fef3c7; color: #b45309;">
+          <span>📝</span>
+        </div>
+        <div>
+          <div class="kpi-number"><%= actividades.length %></div>
+          <div class="kpi-desc">Actividades Creadas</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color: <%= avgPct >= 70 ? 'var(--verde)' : 'var(--amarillo)' %>;"><%= avgPct %>%</div>
-        <div class="stat-label">Progreso Promedio Ficha</div>
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: var(--verde-soft); color: var(--verde-text);">
+          <span>📈</span>
+        </div>
+        <div>
+          <div class="kpi-number" style="color: <%= avgPct >= 70 ? 'var(--verde-text)' : 'var(--amarillo-text)' %>;"><%= avgPct %>%</div>
+          <div class="kpi-desc">Progreso Promedio Ficha</div>
+        </div>
       </div>
     </div>
 

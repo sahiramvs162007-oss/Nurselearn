@@ -4,62 +4,6 @@
   <meta charset="UTF-8">
   <title><%= titulo %> — NurseLearn</title>
   <link rel="stylesheet" href="/css/main.css">
-  <style>
-    .modulo-header {
-      background: linear-gradient(135deg, var(--azul) 0%, #005a9e 100%);
-      color: white;
-      padding: 30px;
-      border-radius: 16px;
-      margin-bottom: 30px;
-      box-shadow: 0 10px 30px rgba(0,61,107,0.15);
-    }
-    .modulo-header h1 { font-size: 2rem; margin-bottom: 8px; }
-    .modulo-header p { opacity: 0.8; font-size: 0.95rem; }
-
-    .path-container { position: relative; padding-left: 20px; }
-    .path-container::before {
-      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-      width: 4px; background: var(--gris-borde); border-radius: 4px;
-    }
-
-    .rap-node { position: relative; margin-bottom: 30px; }
-    .rap-node::before {
-      content: ''; position: absolute; left: -26px; top: 0;
-      width: 16px; height: 16px; border-radius: 50%;
-      background: var(--verde); border: 4px solid white; box-shadow: 0 0 0 1px var(--verde);
-    }
-    
-    .rap-title { font-size: 1.15rem; font-weight: 700; color: var(--azul); margin-bottom: 16px; }
-
-    .act-card {
-      display: flex; align-items: center; justify-content: space-between;
-      background: white; border: 1.5px solid var(--gris-borde);
-      border-radius: 12px; padding: 16px 20px; margin-bottom: 12px;
-      text-decoration: none; color: inherit; transition: all 0.2s;
-    }
-    .act-card:hover { border-color: var(--verde); transform: translateX(4px); box-shadow: var(--sombra); }
-
-    .act-info { display: flex; align-items: center; gap: 16px; }
-    .act-icon {
-      width: 48px; height: 48px; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
-    }
-    .act-icon.blog { background: var(--azul-claro); }
-    .act-icon.juego { background: #fef3c7; }
-    .act-icon.evaluacion { background: #fdecea; }
-
-    .act-meta { font-size: 0.8rem; color: var(--texto-suave); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .act-title { font-weight: 700; font-size: 1.05rem; margin-top: 2px; }
-
-    .status-badge {
-      padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
-      display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.05em;
-    }
-    .status-pendiente { background: var(--gris); color: var(--texto-suave); }
-    .status-entregado { background: var(--azul-claro); color: var(--azul); }
-    .status-aprobado { background: var(--verde-claro); color: var(--verde-oscuro); }
-    .status-reprobado { background: #fdecea; color: var(--rojo); }
-  </style>
 </head>
 <body>
 <div class="layout">
@@ -72,14 +16,45 @@
   </nav>
 
   <main class="main">
-    <a href="/aprendiz" class="btn btn-ghost mb-16">← Volver a la Ruta</a>
+    <a href="/aprendiz" class="btn btn-ghost mb-16">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Volver a la Ruta
+    </a>
 
-    <div class="modulo-header">
-      <h1><%= modulo.nombre %></h1>
-      <p><%= modulo.descripcion %></p>
+    <%
+      let totalActs = actividades.length;
+      let aprobadas = 0;
+      actividades.forEach(a => {
+        const ent = entregaMap[a._id.toString()];
+        if (ent && ent.estado === 'Aprobado') aprobadas++;
+      });
+      let pctModulo = totalActs > 0 ? Math.round((aprobadas / totalActs) * 100) : 0;
+    %>
+
+    <!-- Hero Banner Versión 2 (Figma) -->
+    <div class="modulo-hero-v2">
+      <div class="modulo-hero-content">
+        <div class="modulo-hero-tag">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+          </svg>
+          Módulo de Especialidad
+        </div>
+        <h1 class="modulo-hero-title"><%= modulo.nombre %></h1>
+        <p class="modulo-hero-desc"><%= modulo.descripcion %></p>
+      </div>
+
+      <div class="modulo-progress-gauge">
+        <div class="modulo-gauge-pct"><%= pctModulo %>%</div>
+        <div class="modulo-gauge-label">Progreso Módulo</div>
+      </div>
     </div>
 
-    <div class="path-container">
+    <!-- Timeline de RAPs Versión 2 (Figma) -->
+    <div class="path-container-v2">
       <% if (raps.length === 0) { %>
         <p class="text-muted">Este módulo aún no tiene RAPs asignados.</p>
       <% } else { %>
@@ -95,13 +70,15 @@
         <% raps.forEach(r => { 
           const acts = actPorRap[r._id.toString()] || [];
         %>
-          <div class="rap-node">
-            <div class="rap-title"><%= r.nombre %></div>
+          <div class="rap-node-v2">
+            <div class="rap-title-v2">
+              <span><%= r.nombre %></span>
+            </div>
             
             <% if (acts.length === 0) { %>
-              <div class="alert alert-warning" style="margin-left: 20px;">No hay actividades visibles en este RAP por el momento.</div>
+              <div class="alert alert-warning" style="margin-left: 10px;">No hay actividades visibles en este RAP por el momento.</div>
             <% } else { %>
-              <div style="margin-left: 20px;">
+              <div>
                 <% acts.forEach(act => { 
                   const entrega = entregaMap[act._id.toString()];
                   let statusClass = 'status-pendiente';
@@ -114,17 +91,17 @@
                     else if (entrega.estado === 'Reprobado') { statusClass = 'status-reprobado'; statusText = 'Reprobado'; statusIcon = '❌'; }
                   }
                 %>
-                  <a href="/aprendiz/actividad/<%= act._id %>" class="act-card">
-                    <div class="act-info">
-                      <div class="act-icon <%= act.tipo %>">
+                  <a href="/aprendiz/actividad/<%= act._id %>" class="act-card-v2">
+                    <div class="act-info-v2">
+                      <div class="act-icon-v2 <%= act.tipo %>">
                         <%= act.tipo === 'blog' ? '📖' : (act.tipo === 'juego' ? '🎮' : '📝') %>
                       </div>
                       <div>
-                        <div class="act-meta"><%= act.momentoPedagogico %></div>
-                        <div class="act-title"><%= act.titulo %></div>
+                        <div class="act-meta-v2"><%= act.momentoPedagogico %></div>
+                        <div class="act-title-v2"><%= act.titulo %></div>
                       </div>
                     </div>
-                    <div class="status-badge <%= statusClass %>">
+                    <div class="status-badge-v2 <%= statusClass %>">
                       <span><%= statusIcon %></span> <%= statusText %>
                     </div>
                   </a>
@@ -139,3 +116,4 @@
 </div>
 </body>
 </html>
+
