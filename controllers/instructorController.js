@@ -383,6 +383,24 @@ exports.postCrearActividad = async (req, res, next) => {
       return res.redirect("/instructor/actividades/crear");
     }
 
+    const marcaCierre = esCierreModulo === "on";
+    if (marcaCierre) {
+      const cierreExistente = await Actividad.findOne({
+        ficha: fichaActiva._id,
+        modulo: rapDoc.modulo,
+        esCierreModulo: true,
+      });
+      if (cierreExistente) {
+        req.flash(
+          "error",
+          "Este módulo ya tiene una evaluación de cierre. Solo puede existir una por módulo.",
+        );
+        return res.redirect(
+          "/instructor/actividades/crear?modulo=" + rapDoc.modulo,
+        );
+      }
+    }
+
     let calculatedOrden = Number(orden);
     if (
       orden === undefined ||
@@ -412,7 +430,10 @@ exports.postCrearActividad = async (req, res, next) => {
       segundoIntentoAutomatico: segundoIntentoAutomatico === "on",
       descripcion,
       tipoJuego: tipoJuego || null,
-      esCierreModulo: esCierreModulo === "on",
+      esCierreModulo: marcaCierre,
+      // La evaluación de cierre nace desactivada: el instructor la activa
+      // manualmente cuando esté lista para que los aprendices la vean.
+      visible: !marcaCierre,
     };
 
     if (tipo === "juego") {
@@ -566,9 +587,37 @@ exports.postEditarActividad = async (req, res, next) => {
     const urlYoutubeNorm = normalizeYoutube(urlYoutube);
 
     // Update actividad fields
+    const eraCierre = actividad.esCierreModulo;
+    const marcaCierre = esCierreModulo === "on";
+
     actividad.titulo = titulo;
     actividad.tipo = tipo;
     actividad.rap = rap;
+
+    // El módulo se deriva del RAP elegido: si el instructor cambia el RAP a
+    // uno de otro módulo, la actividad debe moverse de módulo con él.
+    const rapSeleccionado = await RAP.findById(rap);
+    if (rapSeleccionado) actividad.modulo = rapSeleccionado.modulo;
+
+    if (marcaCierre && !eraCierre) {
+      const moduloId = rapSeleccionado ? rapSeleccionado.modulo : actividad.modulo;
+      const cierreExistente = await Actividad.findOne({
+        ficha: fichaActiva._id,
+        modulo: moduloId,
+        esCierreModulo: true,
+        _id: { $ne: actividad._id },
+      });
+      if (cierreExistente) {
+        req.flash(
+          "error",
+          "Este módulo ya tiene una evaluación de cierre. Solo puede existir una por módulo.",
+        );
+        return res.redirect("/instructor/actividades/" + actividad._id + "/editar");
+      }
+      // Recién marcada como cierre: nace desactivada hasta que el instructor la active.
+      actividad.visible = false;
+    }
+
     actividad.momentoPedagogico = momentoPedagogico;
     actividad.orden = orden || actividad.orden;
     actividad.contenidoRico = contenidoRico;
@@ -577,7 +626,7 @@ exports.postEditarActividad = async (req, res, next) => {
     actividad.segundoIntentoAutomatico = segundoIntentoAutomatico === "on";
     actividad.descripcion = descripcion;
     actividad.tipoJuego = tipoJuego || null;
-    actividad.esCierreModulo = esCierreModulo === "on";
+    actividad.esCierreModulo = marcaCierre;
 
     if (tipo === "juego") {
       Object.assign(actividad, buildJuegoFields(req.body, tipoJuego));

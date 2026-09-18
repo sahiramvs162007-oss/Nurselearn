@@ -24,9 +24,13 @@
     </a>
 
     <%
-      let totalActs = actividades.length;
+      // El progreso del módulo solo cuenta actividades visibles: las que el
+      // instructor aún no activó (p. ej. la evaluación de cierre) no cuentan
+      // como pendientes, solo se muestran bloqueadas más abajo.
+      const actividadesVisibles = actividades.filter(a => a.visible);
+      let totalActs = actividadesVisibles.length;
       let aprobadas = 0;
-      actividades.forEach(a => {
+      actividadesVisibles.forEach(a => {
         const ent = entregaMap[a._id.toString()];
         if (ent && ent.estado === 'Aprobado') aprobadas++;
       });
@@ -76,10 +80,10 @@
             </div>
             
             <% if (acts.length === 0) { %>
-              <div class="alert alert-warning" style="margin-left: 10px;">No hay actividades visibles en este RAP por el momento.</div>
+              <div class="alert alert-warning" style="margin-left: 10px;">No hay actividades registradas en este RAP por el momento.</div>
             <% } else { %>
               <div>
-                <% acts.forEach(act => { 
+                <% acts.forEach(act => {
                   const entrega = entregaMap[act._id.toString()];
                   let statusClass = 'status-pendiente';
                   let statusText = 'Pendiente';
@@ -90,7 +94,7 @@
                     else if (entrega.estado === 'Reprobado') { statusClass = 'status-reprobado'; statusText = 'Reprobado'; }
                   }
                 %>
-                  <a href="/aprendiz/actividad/<%= act._id %>" class="act-card-v2">
+                  <% if (act.visible) { %><a href="/aprendiz/actividad/<%= act._id %>" class="act-card-v2"><% } else { %><div class="act-card-v2 act-card-locked" title="El instructor aún no habilitó esta actividad"><% } %>
                     <div class="act-info-v2">
                       <div class="act-icon-v2 <%= act.tipo %>">
                         <% if (act.tipo === 'blog') { %>
@@ -106,19 +110,26 @@
                         <div class="act-title-v2"><%= act.titulo %></div>
                       </div>
                     </div>
-                    <div class="status-badge-v2 <%= statusClass %>" style="display: inline-flex; align-items: center; gap: 4px;">
-                      <% if (entrega && entrega.estado === 'Aprobado') { %>
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                      <% } else if (entrega && entrega.estado === 'Reprobado') { %>
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                      <% } else if (entrega && entrega.estado === 'Entregado') { %>
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                      <% } else { %>
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg>
-                      <% } %>
-                      <span><%= statusText %></span>
-                    </div>
-                  </a>
+                    <% if (!act.visible) { %>
+                      <div class="status-badge-v2 status-bloqueado" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span>Bloqueada</span>
+                      </div>
+                    <% } else { %>
+                      <div class="status-badge-v2 <%= statusClass %>" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <% if (entrega && entrega.estado === 'Aprobado') { %>
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <% } else if (entrega && entrega.estado === 'Reprobado') { %>
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <% } else if (entrega && entrega.estado === 'Entregado') { %>
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <% } else { %>
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg>
+                        <% } %>
+                        <span><%= statusText %></span>
+                      </div>
+                    <% } %>
+                  <% if (act.visible) { %></a><% } else { %></div><% } %>
                 <% }) %>
               </div>
             <% } %>

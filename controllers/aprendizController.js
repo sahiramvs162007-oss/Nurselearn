@@ -36,6 +36,74 @@ async function calcularProgreso(aprendizId, fichaId) {
   return { pct, porModulo };
 }
 
+// Calcula, para cada módulo del sistema, su progreso y si está bloqueado
+// para este aprendiz. Un módulo (salvo el primero) queda bloqueado hasta
+// que el aprendiz apruebe la evaluación de cierre del módulo anterior; si
+// ese módulo anterior no tiene ninguna evaluación de cierre configurada,
+// se usa como respaldo la regla anterior (100% de sus actividades visibles
+// aprobadas). `modulosDesbloqueados` de la ficha permite un desbloqueo
+// manual que ignora ambas reglas.
+async function calcularModulosConEstado(aprendizId, fichaId) {
+  const ficha = await Ficha.findById(fichaId);
+  const modulos = await Modulo.find().sort("orden");
+  const { pct, porModulo } = await calcularProgreso(aprendizId, fichaId);
+
+  const cierres = await Actividad.find({ ficha: fichaId, esCierreModulo: true });
+  const cierrePorModulo = {};
+  cierres.forEach((c) => {
+    if (c.modulo) cierrePorModulo[c.modulo.toString()] = c;
+  });
+
+  const aprobadas = await Entrega.find({
+    aprendiz: aprendizId,
+    ficha: fichaId,
+    estado: "Aprobado",
+  });
+  const aprobSet = new Set(aprobadas.map((e) => e.actividad.toString()));
+
+  const modulosConEstado = modulos.map((m, i) => {
+    const mId = m._id.toString();
+    const prog = porModulo[mId] || { total: 0, aprobadas: 0 };
+    const pctMod =
+      prog.total > 0 ? Math.round((prog.aprobadas / prog.total) * 100) : 0;
+
+    let bloqueado = false;
+    let motivoBloqueo = "";
+    if (i > 0) {
+      const anterior = modulos[i - 1];
+      const desbloqueoManual = ficha.modulosDesbloqueados.some(
+        (md) => md.toString() === mId,
+      );
+      if (!desbloqueoManual) {
+        const cierreAnterior = cierrePorModulo[anterior._id.toString()];
+        if (cierreAnterior) {
+          bloqueado = !aprobSet.has(cierreAnterior._id.toString());
+          if (bloqueado) {
+            motivoBloqueo = `Aprueba la evaluación de cierre de "${anterior.nombre}" para desbloquear este módulo.`;
+          }
+        } else {
+          const progAnterior = porModulo[anterior._id.toString()] || {
+            total: 0,
+            aprobadas: 0,
+          };
+          const pctAnterior =
+            progAnterior.total > 0
+              ? Math.round((progAnterior.aprobadas / progAnterior.total) * 100)
+              : 0;
+          bloqueado = pctAnterior < 100;
+          if (bloqueado) {
+            motivoBloqueo = `Completa todas las actividades de "${anterior.nombre}" para desbloquear este módulo.`;
+          }
+        }
+      }
+    }
+
+    return { modulo: m, pct: pctMod, bloqueado, motivoBloqueo };
+  });
+
+  return { modulosConEstado, pctTotal: pct };
+}
+
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 exports.getDashboard = async (req, res, next) => {
   try {
@@ -49,48 +117,24 @@ exports.getDashboard = async (req, res, next) => {
       return res.redirect("/auth/login");
     }
 
-    const modulos = await Modulo.find().sort("orden");
-    const { pct, porModulo } = await calcularProgreso(
+    const { modulosConEstado, pctTotal } = await calcularModulosConEstado(
       req.session.userId,
       ficha._id,
     );
 
-    const modulosConEstado = modulos.map((m, i) => {
-      const mId = m._id.toString();
-      const prog = porModulo[mId] || { total: 0, aprobadas: 0 };
-      const pctMod =
-        prog.total > 0 ? Math.round((prog.aprobadas / prog.total) * 100) : 0;
-      const desbloqueado =
-        ficha.modulosDesbloqueados.some((md) => md.toString() === mId) ||
-        i === 0;
-
-      let bloqueado = false;
-      if (!desbloqueado) {
-        bloqueado = true;
-      } else if (i > 0) {
-        const anterior = modulos[i - 1];
-        const progAnterior = porModulo[anterior._id.toString()] || {
-          total: 0,
-          aprobadas: 0,
-        };
-        const pctAnterior =
-          progAnterior.total > 0
-            ? Math.round((progAnterior.aprobadas / progAnterior.total) * 100)
-            : 0;
-        if (pctAnterior < 100) bloqueado = true;
-      }
-
-      return { ...m._doc, pct: pctMod, bloqueado };
-    });
-
-    const modulosDisponibles = modulosConEstado.filter((m) => !m.bloqueado);
+    const modulos = modulosConEstado.map((x) => ({
+      ...x.modulo._doc,
+      pct: x.pct,
+      bloqueado: x.bloqueado,
+      motivoBloqueo: x.motivoBloqueo,
+    }));
 
     res.render("aprendiz/dashboard", {
       titulo: "Mi Ruta de Aprendizaje",
       user: req.session.userName,
       ficha,
-      modulos: modulosDisponibles,
-      pctTotal: pct,
+      modulos,
+      pctTotal,
     });
   } catch (err) {
     next(err);
@@ -104,12 +148,29 @@ exports.getModulo = async (req, res, next) => {
     if (!ficha) return res.redirect("/aprendiz");
     const modulo = await Modulo.findById(req.params.moduloId);
     if (!modulo) return res.redirect("/aprendiz");
+
+    const { modulosConEstado } = await calcularModulosConEstado(
+      req.session.userId,
+      ficha._id,
+    );
+    const estadoModulo = modulosConEstado.find(
+      (x) => x.modulo._id.toString() === modulo._id.toString(),
+    );
+    if (estadoModulo && estadoModulo.bloqueado) {
+      req.flash(
+        "error",
+        estadoModulo.motivoBloqueo || "Este módulo todavía está bloqueado.",
+      );
+      return res.redirect("/aprendiz");
+    }
+
     const raps = await RAP.find({ modulo: modulo._id }).sort("orden");
 
+    // Se traen también las actividades ocultas por el instructor para
+    // mostrarlas bloqueadas (en gris) en vez de omitirlas por completo.
     const actividades = await Actividad.find({
       ficha: ficha._id,
       modulo: modulo._id,
-      visible: true,
     }).sort("orden");
     const entregas = await Entrega.find({
       aprendiz: req.session.userId,
@@ -142,6 +203,37 @@ exports.getActividad = async (req, res, next) => {
 
     const ficha = await Ficha.findOne({ aprendices: req.session.userId });
     if (!ficha) return res.redirect("/aprendiz");
+
+    if (!actividad.ficha.equals(ficha._id)) {
+      req.flash("error", "No tienes acceso a esta actividad.");
+      return res.redirect("/aprendiz");
+    }
+
+    if (!actividad.visible) {
+      req.flash("error", "Esta actividad todavía no está disponible.");
+      return res.redirect(
+        "/aprendiz/modulo/" +
+          (actividad.modulo ? actividad.modulo._id : actividad.modulo),
+      );
+    }
+
+    const { modulosConEstado } = await calcularModulosConEstado(
+      req.session.userId,
+      ficha._id,
+    );
+    const estadoModulo = modulosConEstado.find(
+      (x) =>
+        actividad.modulo &&
+        x.modulo._id.toString() === actividad.modulo._id.toString(),
+    );
+    if (estadoModulo && estadoModulo.bloqueado) {
+      req.flash(
+        "error",
+        estadoModulo.motivoBloqueo || "Este módulo todavía está bloqueado.",
+      );
+      return res.redirect("/aprendiz");
+    }
+
     let entrega = await Entrega.findOne({
       actividad: actividad._id,
       aprendiz: req.session.userId,
