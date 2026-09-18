@@ -215,18 +215,6 @@
                           </div>
                         </div>
                       </div>
-<<<<<<< HEAD
-                      
-                      <div class="flex gap-12 align-center">
-                        <a href="/instructor/actividades/<%= act._id %>/preview" class="btn btn-sm btn-ghost" title="Vista previa">👁️</a>
-                        <a href="/instructor/actividades/<%= act._id %>/editar" class="btn btn-sm btn-ghost" title="Editar">✏️</a>
-                        <div class="switch-wrap" title="Alternar visibilidad">
-                          <label class="switch">
-                            <input type="checkbox" <%= act.visible ? 'checked' : '' %> onchange="toggleVisibilidad('<%= act._id %>')">
-                            <span class="slider"></span>
-                          </label>
-=======
-
                       <!-- Derecha: Estado/Continuar + Acciones del Instructor -->
                       <div class="activity-card-right">
                         <% if (isFirst) { %>
@@ -239,7 +227,7 @@
 
                         <!-- Herramientas Administrativas del Instructor -->
                         <div class="instructor-quick-actions" onclick="event.stopPropagation()">
-                          <a href="/aprendiz/actividad/<%= act._id %>" target="_blank" class="icon-btn-v2" title="Vista previa como aprendiz">
+                          <a href="/instructor/actividades/<%= act._id %>/preview" target="_blank" class="icon-btn-v2" title="Vista previa de actividad">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                               <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
                               <circle cx="12" cy="12" r="3"/>
@@ -265,7 +253,6 @@
                               </svg>
                             </button>
                           </form>
->>>>>>> 7873566cb98715e57a749b9f54105fe1c9c4f282
                         </div>
                       </div>
                     </div>
