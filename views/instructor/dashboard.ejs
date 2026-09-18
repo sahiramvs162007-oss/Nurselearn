@@ -131,7 +131,7 @@
                   <div class="module-raps-list">
                     <% m.raps.forEach(r => { %>
                       <a href="/instructor/actividades?rap=<%= r._id %>" class="module-rap-chip" title="Ver actividades de <%= r.nombre %>">
-                        <span class="rap-chip-bullet">🎯</span>
+                        <span class="rap-chip-bullet"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
                         <span class="rap-chip-title"><%= r.nombre %></span>
                         <% if (r.totalActividades > 0) { %>
                           <span class="rap-chip-badge"><%= r.totalActividades %> acts</span>
@@ -240,14 +240,17 @@
       <div class="card" style="border-radius: 20px;">
         <div class="card-title">Acciones de Gestión Clínica</div>
         <div class="flex" style="flex-direction:column; gap:10px;">
-          <a href="/instructor/entregas" class="btn btn-secondary" style="border-radius: var(--radio-pill); justify-content: center;">
-            📬 Calificar entregas pendientes
+          <a href="/instructor/entregas" class="btn btn-secondary" style="border-radius: var(--radio-pill); justify-content: center; display: inline-flex; align-items: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+            Calificar entregas pendientes
           </a>
-          <a href="/instructor/reportes" class="btn btn-outline" style="border-radius: var(--radio-pill); justify-content: center;">
-            📊 Ver sábana y reportes completos
+          <a href="/instructor/reportes" class="btn btn-outline" style="border-radius: var(--radio-pill); justify-content: center; display: inline-flex; align-items: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Ver sábana y reportes completos
           </a>
-          <a href="/instructor/clonar" class="btn btn-ghost" style="border-radius: var(--radio-pill); justify-content: center;">
-            📋 Clonar actividades de otras fichas
+          <a href="/instructor/clonar" class="btn btn-ghost" style="border-radius: var(--radio-pill); justify-content: center; display: inline-flex; align-items: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            Clonar actividades de otras fichas
           </a>
         </div>
       </div>

@@ -153,8 +153,14 @@
         <p class="page-subtitle">Rendimiento general de todas las fichas del sistema</p>
       </div>
       <div class="export-row">
-        <button onclick="exportGlobalCSV()" class="btn btn-outline">📥 Exportar CSV</button>
-        <button onclick="descargarPDF()" class="btn btn-secondary">📥 Descargar PDF</button>
+        <button onclick="exportGlobalCSV()" class="btn btn-outline">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar CSV
+        </button>
+        <button onclick="descargarPDF()" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Descargar PDF
+        </button>
       </div>
     </div>
 
@@ -195,10 +201,15 @@
     <!-- Fichas List -->
     <% if (reportes.length === 0) { %>
       <div class="card empty-state">
-        <div class="icon-big">📊</div>
+        <div class="icon-big" style="color: #64748b; margin-bottom: 12px; display: flex; justify-content: center;">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
         <h3>No hay fichas registradas</h3>
         <p>Crea fichas y asigna aprendices para ver los reportes globales.</p>
-        <a href="/admin/fichas" class="btn btn-primary" style="margin-top: 16px;">🗂️ Crear ficha</a>
+        <a href="/admin/fichas" class="btn btn-primary" style="margin-top: 16px; display: inline-flex; align-items: center; gap: 8px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+          Crear ficha
+        </a>
       </div>
     <% } else { %>
       <% reportes.forEach((r, idx) => { %>
@@ -211,10 +222,10 @@
                 <span class="ficha-code">#<%= r.ficha.codigo %></span>
               </div>
               <div class="ficha-meta">
-                <span>👥 <%= r.ficha.aprendices.length %> aprendices</span>
-                <span>📝 <%= r.totalActs || 0 %> actividades</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> <%= r.ficha.aprendices.length %> aprendices</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> <%= r.totalActs || 0 %> actividades</span>
                 <% if (r.ficha.instructores && r.ficha.instructores.length > 0) { %>
-                  <span>👨‍🏫 <%= r.ficha.instructores.map(i => i.instructor ? i.instructor.nombre : '').filter(Boolean).join(', ') %></span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> <%= r.ficha.instructores.map(i => i.instructor ? i.instructor.nombre : '').filter(Boolean).join(', ') %></span>
                 <% } %>
               </div>
               <!-- Progress bar -->
@@ -239,9 +250,9 @@
             <div class="ficha-detail-inner">
               <!-- Summary pills -->
               <div class="summary-pills">
-                <span class="summary-pill pill-green">✔️ <%= r.aprobadas || 0 %> aprobadas</span>
-                <span class="summary-pill pill-blue">📨 <%= r.entregadas || 0 %> entregas realizadas</span>
-                <span class="summary-pill pill-gray">📋 <%= r.posibles || 0 %> entregas posibles</span>
+                <span class="summary-pill pill-green" style="display: inline-flex; align-items: center; gap: 4px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <%= r.aprobadas || 0 %> aprobadas</span>
+                <span class="summary-pill pill-blue" style="display: inline-flex; align-items: center; gap: 4px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> <%= r.entregadas || 0 %> entregas realizadas</span>
+                <span class="summary-pill pill-gray" style="display: inline-flex; align-items: center; gap: 4px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> <%= r.posibles || 0 %> entregas posibles</span>
               </div>
 
               <% if (r.detalle && r.detalle.length > 0) { %>
