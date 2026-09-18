@@ -180,7 +180,7 @@
                 </div>
 
                 <div class="timeline-card-col">
-                  <div class="activity-card-v2 <%= act.visible ? '' : 'act-hidden' %>" id="act-<%= act._id %>">
+                  <div class="activity-card-v2 <%= act.visible ? '' : 'act-hidden' %>" id="act-<%= act._id %>" onclick="location.href='/instructor/entregas?actividad=<%= act._id %>'" title="Ver entregas de esta actividad">
                     <div class="activity-card-left">
                       <div class="activity-icon-box <%= ti.iconBox %>">
                         <%- ti.icon %>
@@ -198,7 +198,7 @@
                       </div>
                     </div>
 
-                    <div class="activity-card-right">
+                    <div class="activity-card-right" onclick="event.stopPropagation()">
                       <div class="instructor-quick-actions">
                         <a href="/instructor/actividades/<%= act._id %>/preview" class="icon-btn-v2" title="Vista previa como aprendiz">
                           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

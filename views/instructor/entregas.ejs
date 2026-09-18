@@ -17,16 +17,38 @@
 
   <main class="main">
     <div class="page-header">
-      <h1 class="page-title">Entregas Pendientes por Calificar</h1>
+      <h1 class="page-title">Entregas de Estudiantes</h1>
       <p class="page-subtitle">Ficha activa: <strong><%= fichaActiva ? fichaActiva.nombre : 'Ninguna' %></strong></p>
     </div>
 
     <% if (error && error.length) { %><div class="alert alert-error"><%= error[0] %></div><% } %>
     <% if (success && success.length) { %><div class="alert alert-success"><%= success[0] %></div><% } %>
 
+    <% if (actividadFiltro) { %>
+      <div class="alert alert-info" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <span>Mostrando entregas de la actividad: <strong><%= actividadFiltro.titulo %></strong></span>
+        <a href="/instructor/entregas<%= estadoFiltro !== 'todas' ? '?estado=' + estadoFiltro : '' %>" class="btn btn-sm btn-ghost">Quitar filtro &times;</a>
+      </div>
+    <% } %>
+
     <div class="card">
-      <div class="card-title">Listado de entregas</div>
-      
+      <div class="card-title flex-between" style="flex-wrap: wrap; gap: 12px;">
+        <span>Listado de entregas</span>
+        <div class="flex gap-8" style="flex-wrap: wrap;">
+          <%
+            const qs = (est) => {
+              const params = [];
+              if (est !== 'todas') params.push('estado=' + est);
+              if (actividadFiltro) params.push('actividad=' + actividadFiltro._id);
+              return params.length ? '?' + params.join('&') : '';
+            };
+          %>
+          <a href="/instructor/entregas<%= qs('todas') %>" class="btn btn-sm <%= estadoFiltro === 'todas' ? 'btn-primary' : 'btn-outline' %>">Todas</a>
+          <a href="/instructor/entregas<%= qs('pendiente') %>" class="btn btn-sm <%= estadoFiltro === 'pendiente' ? 'btn-primary' : 'btn-outline' %>">Pendientes por calificar</a>
+          <a href="/instructor/entregas<%= qs('calificado') %>" class="btn btn-sm <%= estadoFiltro === 'calificado' ? 'btn-primary' : 'btn-outline' %>">Calificadas</a>
+        </div>
+      </div>
+
       <% if (!entregas || entregas.length === 0) { %>
         <div class="alert alert-success" style="background-color: var(--verde-claro); color: var(--verde-oscuro); display: flex; align-items: center; justify-content: center; padding: 30px;">
           <div style="text-align: center;">
@@ -37,7 +59,14 @@
               </svg>
             </div>
             <br>
-            <strong style="font-size: 1.05rem;">¡Todo al día!</strong><br> No tienes entregas pendientes por calificar en esta ficha.
+            <strong style="font-size: 1.05rem;">¡Todo al día!</strong><br>
+            <% if (estadoFiltro === 'pendiente') { %>
+              No tienes entregas pendientes por calificar en esta ficha.
+            <% } else if (estadoFiltro === 'calificado') { %>
+              Aún no hay entregas calificadas en esta ficha.
+            <% } else { %>
+              No hay entregas registradas todavía en esta ficha.
+            <% } %>
           </div>
         </div>
       <% } else { %>
@@ -48,6 +77,8 @@
                 <th>Aprendiz</th>
                 <th>Actividad</th>
                 <th>Tipo</th>
+                <th>Estado</th>
+                <th>Calificación</th>
                 <th>Fecha de Entrega</th>
                 <th>Acciones</th>
               </tr>
@@ -55,23 +86,53 @@
             <tbody>
               <% entregas.forEach(e => { %>
                 <tr>
-                  <td><strong><%= e.aprendiz.nombre %></strong></td>
-                  <td><%= e.actividad.titulo %></td>
+                  <td><strong><%= e.aprendiz ? e.aprendiz.nombre : 'Aprendiz eliminado' %></strong></td>
+                  <td><%= e.actividad ? e.actividad.titulo : 'Actividad eliminada' %></td>
                   <td>
-                    <% if (e.actividad.tipo === 'blog') { %>
+                    <% if (!e.actividad) { %>
+                      <span class="badge badge-gray">—</span>
+                    <% } else if (e.actividad.tipo === 'blog') { %>
                       <span class="badge badge-info" style="display: inline-flex; align-items: center; gap: 4px;">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
                         Blog
                       </span>
+                    <% } else if (e.actividad.tipo === 'juego') { %>
+                      <span class="badge badge-gray" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/></svg>
+                        Juego
+                      </span>
                     <% } else { %>
-                      <span class="badge badge-gray"><%= e.actividad.tipo %></span>
+                      <span class="badge badge-gray" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Evaluación
+                      </span>
                     <% } %>
+                  </td>
+                  <td>
+                    <% if (e.estado === 'Entregado') { %>
+                      <span class="status-badge-v2 status-pendiente">Pendiente</span>
+                    <% } else if (e.estado === 'Aprobado') { %>
+                      <span class="status-badge-v2 status-aprobado">Aprobado</span>
+                    <% } else if (e.estado === 'Reprobado') { %>
+                      <span class="status-badge-v2 status-reprobado">Reprobado</span>
+                    <% } else { %>
+                      <span class="status-badge-v2 status-aprobado">Calificado</span>
+                    <% } %>
+                  </td>
+                  <td class="text-muted">
+                    <%= e.porcentaje !== null && e.porcentaje !== undefined ? e.porcentaje + '%' : '—' %>
                   </td>
                   <td class="text-muted">
                     <%= e.entregadoEn ? e.entregadoEn.toLocaleDateString() + ' ' + e.entregadoEn.toLocaleTimeString() : 'Sin fecha' %>
                   </td>
                   <td>
-                    <a href="/instructor/entregas/<%= e._id %>/calificar" class="btn btn-sm btn-primary">Evaluar</a>
+                    <% if (!e.actividad) { %>
+                      —
+                    <% } else if (e.actividad.tipo === 'blog') { %>
+                      <a href="/instructor/entregas/<%= e._id %>/calificar" class="btn btn-sm btn-primary"><%= e.estado === 'Entregado' ? 'Calificar' : 'Ver / Recalificar' %></a>
+                    <% } else { %>
+                      <a href="/instructor/entregas/<%= e._id %>/calificar" class="btn btn-sm btn-outline">Ver entrega</a>
+                    <% } %>
                   </td>
                 </tr>
               <% }) %>

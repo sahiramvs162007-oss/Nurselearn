@@ -176,9 +176,12 @@ exports.getDashboard = async (req, res, next) => {
         Entrega.countDocuments({ ficha: fichaActiva._id, estado: "Entregado" }),
         Entrega.countDocuments({
           ficha: fichaActiva._id,
-          estado: { $in: ["Calificado", "Aprobado"] },
+          estado: { $in: ["Calificado", "Aprobado", "Reprobado"] },
         }),
-        Entrega.countDocuments({ ficha: fichaActiva._id }),
+        Entrega.countDocuments({
+          ficha: fichaActiva._id,
+          entregadoEn: { $ne: null },
+        }),
       ]);
       entregasPendientes = pendientes;
       entregasCalificadas = calificadas;
@@ -826,17 +829,39 @@ exports.getEntregas = async (req, res, next) => {
       req.flash("error", "Sin ficha activa.");
       return res.redirect("/instructor");
     }
-    const entregas = await Entrega.find({
-      ficha: fichaActiva._id,
-      estado: "Entregado",
-    })
+
+    // Solo se muestran entregas que el aprendiz realmente envió (no las
+    // filas "Pendiente" que se crean automáticamente al abrir la actividad).
+    const filtro = { ficha: fichaActiva._id, entregadoEn: { $ne: null } };
+
+    const estadoFiltro =
+      req.query.estado === "pendiente" || req.query.estado === "calificado"
+        ? req.query.estado
+        : "todas";
+    if (estadoFiltro === "pendiente") {
+      filtro.estado = "Entregado";
+    } else if (estadoFiltro === "calificado") {
+      filtro.estado = { $in: ["Aprobado", "Reprobado", "Calificado"] };
+    }
+
+    let actividadFiltro = null;
+    if (req.query.actividad) {
+      filtro.actividad = req.query.actividad;
+      actividadFiltro = await Actividad.findById(req.query.actividad);
+    }
+
+    const entregas = await Entrega.find(filtro)
       .populate("aprendiz", "nombre")
-      .populate("actividad", "titulo tipo");
+      .populate("actividad", "titulo tipo")
+      .sort("-entregadoEn");
+
     res.render("instructor/entregas", {
-      titulo: "Entregas Pendientes",
+      titulo: "Entregas de Estudiantes",
       user: req.session.userName,
       fichaActiva,
       entregas,
+      estadoFiltro,
+      actividadFiltro,
       error: req.flash("error"),
       success: req.flash("success"),
     });
@@ -855,7 +880,10 @@ exports.getCalificar = async (req, res, next) => {
       return res.redirect("/instructor/entregas");
     }
     res.render("instructor/calificar", {
-      titulo: "Calificar Entrega",
+      titulo:
+        entrega.actividad.tipo === "blog"
+          ? "Calificar Entrega"
+          : "Detalle de la Entrega",
       user: req.session.userName,
       entrega,
       error: req.flash("error"),
@@ -874,6 +902,14 @@ exports.postCalificar = async (req, res, next) => {
     const entrega = await Entrega.findById(req.params.id).populate("actividad");
     if (!entrega) {
       req.flash("error", "Entrega no encontrada.");
+      return res.redirect("/instructor/entregas");
+    }
+
+    if (entrega.actividad.tipo !== "blog") {
+      req.flash(
+        "error",
+        "Esta actividad se califica automáticamente y no admite calificación manual.",
+      );
       return res.redirect("/instructor/entregas");
     }
 
