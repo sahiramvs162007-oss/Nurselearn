@@ -62,6 +62,7 @@ exports.getDashboard = async (req, res, next) => {
         modulo: rap.modulo,
         orden: rap.orden || idx + 1,
         totalActividades: actsRap.length,
+        actividades: actsRap,
       };
     });
 

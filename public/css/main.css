@@ -3143,62 +3143,196 @@ a.sidebar-brand.active,
   font-weight: 700;
 }
 
+/* ── TARJETAS DE MÓDULOS CON RAPS Y ACTIVIDADES (DASHBOARD) ──── */
+.module-card-v2 {
+  min-height: 330px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.module-card-raps {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.module-raps-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.module-raps-count {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: var(--radio-pill);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
 .module-raps-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-height: 125px;
+  gap: 8px;
+  max-height: 180px;
   overflow-y: auto;
-  padding-right: 2px;
+  padding-right: 4px;
 }
 
-.module-rap-chip {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+.module-raps-list::-webkit-scrollbar {
+  width: 4px;
+}
+.module-raps-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.module-rap-group {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 6px 10px;
-  text-decoration: none;
-  font-size: 0.8rem;
-  color: #1e293b;
-  font-weight: 600;
-  transition: all 0.16s ease;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.module-rap-chip:hover {
-  background: #ffffff;
-  border-color: #00593B;
+.module-rap-group:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.module-rap-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.module-rap-header:hover {
+  background: #f1f5f9;
+}
+
+.rap-header-icon {
   color: #00593B;
-  box-shadow: 0 2px 8px rgba(0, 89, 59, 0.12);
-  transform: translateX(2px);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
-.rap-chip-bullet {
-  font-size: 0.85rem;
-  line-height: 1;
+.rap-header-title {
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.rap-chip-title {
+.rap-header-badge {
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: var(--radio-pill);
+  flex-shrink: 0;
+}
+
+.module-rap-group.has-acts .rap-header-badge {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.rap-header-toggle {
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.module-rap-group.expanded .rap-header-toggle {
+  transform: rotate(180deg);
+}
+
+.module-rap-activities {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 10px 8px 24px;
+  border-top: 1px dashed #e2e8f0;
+  background: #ffffff;
+}
+
+.module-rap-group.expanded .module-rap-activities {
+  display: flex;
+}
+
+.module-act-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  color: #334155;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.module-act-item:hover {
+  background: #f1f5f9;
+  color: #00593B;
+}
+
+.module-act-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+.module-act-title {
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.rap-chip-badge {
-  background: #e2e8f0;
-  color: #475569;
-  font-size: 0.68rem;
-  font-weight: 700;
-  padding: 1px 7px;
-  border-radius: var(--radio-pill);
+.module-act-empty {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.module-rap-chip:hover .rap-chip-badge {
-  background: #dcfce7;
-  color: #15803d;
+.module-act-create-link {
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #00593B;
+  text-decoration: none;
+}
+
+.module-act-create-link:hover {
+  text-decoration: underline;
 }
 
 .module-raps-empty {
