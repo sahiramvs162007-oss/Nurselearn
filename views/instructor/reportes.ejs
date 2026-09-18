@@ -138,8 +138,14 @@
         <p class="page-subtitle">Resultados y rendimiento de la ficha: <strong><%= fichaActiva.nombre %> (<%= fichaActiva.codigo %>)</strong></p>
       </div>
       <div class="export-buttons">
-        <button onclick="exportCSV()" class="btn btn-outline">📥 Exportar CSV</button>
-        <button onclick="descargarPDF()" class="btn btn-secondary">📥 Descargar PDF</button>
+        <button onclick="exportCSV()" class="btn btn-outline">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar CSV
+        </button>
+        <button onclick="descargarPDF()" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Descargar PDF
+        </button>
       </div>
     </div>
 
@@ -152,7 +158,7 @@
     <div class="kpi-row">
       <div class="kpi-card">
         <div class="kpi-icon-wrap" style="background: #e0f2fe; color: #0369a1;">
-          <span>👥</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <div>
           <div class="kpi-number"><%= fichaActiva.aprendices.length %></div>
@@ -161,7 +167,7 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-icon-wrap" style="background: #fef3c7; color: #b45309;">
-          <span>📝</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         </div>
         <div>
           <div class="kpi-number"><%= actividades.length %></div>
@@ -170,7 +176,7 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-icon-wrap" style="background: var(--verde-soft); color: var(--verde-text);">
-          <span>📈</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
         </div>
         <div>
           <div class="kpi-number" style="color: <%= avgPct >= 70 ? 'var(--verde-text)' : 'var(--amarillo-text)' %>;"><%= avgPct %>%</div>
@@ -181,8 +187,14 @@
 
     <!-- Pestañas de Navegación -->
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('resumen', this)">📋 Resumen de Aprendices</button>
-      <button class="tab-btn" onclick="switchTab('sabana', this)">📊 Sábana de Calificaciones</button>
+      <button class="tab-btn active" onclick="switchTab('resumen', this)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:6px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+        Resumen de Aprendices
+      </button>
+      <button class="tab-btn" onclick="switchTab('sabana', this)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:6px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Sábana de Calificaciones
+      </button>
     </div>
 
     <!-- Contenido Pestaña 1: Resumen -->
@@ -224,9 +236,10 @@
                     <td style="text-align: center; font-weight: 600; font-family: var(--mono);">
                       <%= r.aprobadas %> / <%= r.total %>
                     </td>
-                    <td style="text-align: right;">
-                      <button onclick="verDetalleAprendiz('<%= r.aprendiz._id %>', '<%= r.aprendiz.nombre %>')" class="btn btn-sm btn-ghost">🔍 Detalle</button>
-                    </td>
+                      <button onclick="verDetalleAprendiz('<%= r.aprendiz._id %>', '<%= r.aprendiz.nombre %>')" class="btn btn-sm btn-ghost">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        Detalle
+                      </button>
                   </tr>
                 <% }) %>
               </tbody>
@@ -251,8 +264,8 @@
                   <% actividades.forEach((act, idx) => { %>
                     <th title="<%= act.titulo %> (Módulo: <%= act.modulo ? act.modulo.nombre : '' %>)">
                       <div>Act. <%= idx + 1 %></div>
-                      <div style="font-size: 0.65rem; font-weight: normal; opacity: 0.8;">
-                        <%= act.tipo === 'blog' ? '📖 Blog' : (act.tipo === 'juego' ? '🎮 Juego' : '📝 Eval') %>
+                      <div style="font-size: 0.65rem; font-weight: 600; opacity: 0.85; text-transform: uppercase;">
+                        <%= act.tipo === 'blog' ? 'Blog' : (act.tipo === 'juego' ? 'Juego' : 'Eval') %>
                       </div>
                     </th>
                   <% }) %>
@@ -268,27 +281,32 @@
                       <td>
                         <% if (!entrega) { %>
                           <span class="status-badge" style="background: #f1f3f5; color: #6c757d;" title="Sin entrega">
-                            ➖ Sin entrega
+                            Sin entrega
                           </span>
                         <% } else if (entrega.estado === 'Aprobado') { %>
-                          <span class="status-badge" style="background: var(--verde-claro); color: var(--verde-oscuro);" title="Aprobado. Porcentaje: <%= entrega.porcentaje %>%">
-                            ✔️ <%= entrega.porcentaje %>%
+                          <span class="status-badge" style="background: var(--verde-claro); color: var(--verde-oscuro); display: inline-flex; align-items: center; gap: 4px;" title="Aprobado. Porcentaje: <%= entrega.porcentaje %>%">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            <%= entrega.porcentaje %>%
                           </span>
                         <% } else if (entrega.estado === 'Reprobado') { %>
-                          <span class="status-badge" style="background: #fdecea; color: var(--rojo);" title="Reprobado. Porcentaje: <%= entrega.porcentaje %>%">
-                            ❌ <%= entrega.porcentaje %>%
+                          <span class="status-badge" style="background: #fdecea; color: var(--rojo); display: inline-flex; align-items: center; gap: 4px;" title="Reprobado. Porcentaje: <%= entrega.porcentaje %>%">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <%= entrega.porcentaje %>%
                           </span>
                         <% } else if (entrega.estado === 'Entregado') { %>
-                          <span class="status-badge" style="background: #fef3c7; color: #92400e;" title="Entregado. Pendiente de calificación.">
-                            ⏳ Calificar
+                          <span class="status-badge" style="background: #fef3c7; color: #92400e; display: inline-flex; align-items: center; gap: 4px;" title="Entregado. Pendiente de calificación.">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Calificar
                           </span>
                         <% } else if (entrega.estado === 'Pendiente') { %>
-                          <span class="status-badge" style="background: #e9ecef; color: #495057;" title="Habilitado para segundo intento.">
-                            🔄 Reintento
+                          <span class="status-badge" style="background: #e9ecef; color: #495057; display: inline-flex; align-items: center; gap: 4px;" title="Habilitado para segundo intento.">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                            Reintento
                           </span>
                         <% } else { %>
-                          <span class="status-badge" style="background: var(--azul-claro); color: var(--azul);" title="Calificado">
-                            📝 <%= entrega.porcentaje %>%
+                          <span class="status-badge" style="background: var(--azul-claro); color: var(--azul); display: inline-flex; align-items: center; gap: 4px;" title="Calificado">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            <%= entrega.porcentaje %>%
                           </span>
                         <% } %>
                       </td>

@@ -30,8 +30,14 @@
       <% if (!entregas || entregas.length === 0) { %>
         <div class="alert alert-success" style="background-color: var(--verde-claro); color: var(--verde-oscuro); display: flex; align-items: center; justify-content: center; padding: 30px;">
           <div style="text-align: center;">
-            <div style="font-size: 2rem; margin-bottom: 10px;">🎉</div>
-            <strong>¡Todo al día!</strong><br> No tienes entregas pendientes por calificar en esta ficha.
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #d1fae5; color: #059669; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
+            <br>
+            <strong style="font-size: 1.05rem;">¡Todo al día!</strong><br> No tienes entregas pendientes por calificar en esta ficha.
           </div>
         </div>
       <% } else { %>
@@ -53,7 +59,10 @@
                   <td><%= e.actividad.titulo %></td>
                   <td>
                     <% if (e.actividad.tipo === 'blog') { %>
-                      <span class="badge badge-info">📖 Blog</span>
+                      <span class="badge badge-info" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+                        Blog
+                      </span>
                     <% } else { %>
                       <span class="badge badge-gray"><%= e.actividad.tipo %></span>
                     <% } %>

@@ -231,7 +231,7 @@
     <div class="kpi-row">
       <div class="kpi-card">
         <div class="kpi-icon-wrap" style="background: #f1f5f9; color: #475569;">
-          <span>📋</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
         </div>
         <div>
           <div class="kpi-number"><%= totalInteracciones %></div>
@@ -241,7 +241,7 @@
 
       <div class="kpi-card">
         <div class="kpi-icon-wrap" style="background: var(--verde-soft); color: var(--verde-text);">
-          <span>✅</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <div>
           <div class="kpi-number" style="color: var(--verde-text);"><%= aprobadas %></div>
@@ -251,7 +251,7 @@
 
       <div class="kpi-card">
         <div class="kpi-icon-wrap" style="background: #fee2e2; color: #dc2626;">
-          <span>❌</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </div>
         <div>
           <div class="kpi-number" style="color: #dc2626;"><%= reprobadas %></div>
@@ -261,7 +261,7 @@
 
       <div class="kpi-card">
         <div class="kpi-icon-wrap" style="background: #e0f2fe; color: #0284c7;">
-          <span>👀</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
         <div>
           <div class="kpi-number" style="color: #0284c7;"><%= enRevision %></div>
@@ -276,17 +276,17 @@
         <span class="filter-label">Filtrar por:</span>
         <select id="filterType" class="filter-select" onchange="applyFilters()">
           <option value="all">Todos los tipos</option>
-          <option value="blog">📖 Blogs</option>
-          <option value="juego">🎮 Juegos</option>
-          <option value="evaluacion">📝 Evaluaciones</option>
+          <option value="blog">Blogs</option>
+          <option value="juego">Juegos</option>
+          <option value="evaluacion">Evaluaciones</option>
         </select>
 
         <select id="filterStatus" class="filter-select" onchange="applyFilters()">
           <option value="all">Todos los estados</option>
-          <option value="Aprobado">✅ Aprobado</option>
-          <option value="Reprobado">❌ Reprobado</option>
-          <option value="Entregado">👀 En revisión</option>
-          <option value="Pendiente">⏳ Pendiente</option>
+          <option value="Aprobado">Aprobado</option>
+          <option value="Reprobado">Reprobado</option>
+          <option value="Entregado">En revisión</option>
+          <option value="Pendiente">Pendiente</option>
         </select>
       </div>
     <% } %>
@@ -294,7 +294,9 @@
     <!-- History list -->
     <% if (entregas.length === 0) { %>
       <div class="empty-state">
-        <div class="icon-big">📄</div>
+        <div class="icon-big" style="color: #64748b; margin-bottom: 12px; display: flex; justify-content: center;">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
         <h3>No tienes historial de entregas</h3>
         <p>Visita los módulos desbloqueados y realiza entregas para verlas aquí.</p>
         <a href="/aprendiz" class="btn btn-primary" style="margin-top: 16px;">Ir a mi ruta</a>
@@ -307,27 +309,32 @@
 
           let statusClass = 'status-pendiente';
           let statusText = 'Pendiente';
-          let statusIcon = '⏳';
 
-          if (e.estado === 'Entregado') { statusClass = 'status-entregado'; statusText = 'En revisión'; statusIcon = '👀'; }
-          else if (e.estado === 'Aprobado') { statusClass = 'status-aprobado'; statusText = 'Aprobado'; statusIcon = '✅'; }
-          else if (e.estado === 'Reprobado') { statusClass = 'status-reprobado'; statusText = 'Reprobado'; statusIcon = '❌'; }
+          if (e.estado === 'Entregado') { statusClass = 'status-entregado'; statusText = 'En revisión'; }
+          else if (e.estado === 'Aprobado') { statusClass = 'status-aprobado'; statusText = 'Aprobado'; }
+          else if (e.estado === 'Reprobado') { statusClass = 'status-reprobado'; statusText = 'Reprobado'; }
         %>
           <div class="history-card" data-type="<%= act.tipo %>" data-status="<%= e.estado %>">
             <div class="history-header" onclick="toggleDetail(<%= idx %>)">
               <div class="history-info">
                 <div class="history-icon <%= act.tipo %>">
-                  <%= act.tipo === 'blog' ? '📖' : (act.tipo === 'juego' ? '🎮' : '📝') %>
+                  <% if (act.tipo === 'blog') { %>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+                  <% } else if (act.tipo === 'juego') { %>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
+                  <% } else { %>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  <% } %>
                 </div>
                 <div>
                   <div class="history-title"><%= act.titulo %></div>
                   <div class="history-meta">
                     <span>Tipo: <%= act.tipo === 'blog' ? 'Blog' : (act.tipo === 'juego' ? 'Juego' : 'Evaluación') %></span>
                     <% if (e.createdAt) { %>
-                      <span style="margin-left: 12px;">📅 Iniciado: <%= new Date(e.createdAt).toLocaleDateString('es-ES') %></span>
+                      <span style="margin-left: 12px;">Iniciado: <%= new Date(e.createdAt).toLocaleDateString('es-ES') %></span>
                     <% } %>
                     <% if (e.calificadoEn) { %>
-                      <span style="margin-left: 12px;">📅 Calificado: <%= new Date(e.calificadoEn).toLocaleDateString('es-ES') %></span>
+                      <span style="margin-left: 12px;">Calificado: <%= new Date(e.calificadoEn).toLocaleDateString('es-ES') %></span>
                     <% } %>
                   </div>
                 </div>
@@ -339,8 +346,17 @@
                     <%= e.porcentaje %>%
                   </div>
                 <% } %>
-                <div class="status-badge <%= statusClass %>">
-                  <span><%= statusIcon %></span> <%= statusText %>
+                <div class="status-badge <%= statusClass %>" style="display: inline-flex; align-items: center; gap: 4px;">
+                  <% if (e.estado === 'Aprobado') { %>
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  <% } else if (e.estado === 'Reprobado') { %>
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  <% } else if (e.estado === 'Entregado') { %>
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <% } else { %>
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg>
+                  <% } %>
+                  <span><%= statusText %></span>
                 </div>
                 <span class="toggle-arrow" id="arrow-<%= idx %>">▼</span>
               </div>
